@@ -120,9 +120,9 @@ body:not(.forkmode) .forkpanel{display:none}
 body.forkmode .stage .view.sub{display:none!important}
 body.forkmode .stage{grid-template-columns:1fr}
 body.fs.forkmode .signal{display:none}
-body.noaids #vTop{display:none!important}
-body.noaids #btnSub{display:none}
-body.noaids .stage{grid-template-columns:1fr}
+body.notop #vTop{display:none!important}
+body.notop #btnSub{display:none}
+body.notop .stage{grid-template-columns:1fr}
 .view.tappable{cursor:pointer}
 .k.tilt{background:#262f3a;border-color:#3e5068;color:#d5e3f5}
 .sig-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
@@ -381,6 +381,7 @@ body.fs{overflow:hidden;--fsbar:46px}
 </style>
 </head>
 <body>
+
 <div class="app">
   <header class="bar">
     <div class="brand"><h1>フォークリフト誘導訓練</h1><small id="sMode">—</small></div>
@@ -495,14 +496,15 @@ body.fs{overflow:hidden;--fsbar:46px}
     <div class="opts">
       <label>レベル
         <select id="optLevel">
-          <option value="1">Lv1 入門</option><option value="2">Lv2 初級</option><option value="3" selected>Lv3 標準</option><option value="4">Lv4 上級</option><option value="5">Lv5 実戦</option>
+          
         </select>
       </label>
       <label>操作
         <select id="optStick"><option value="pedal" selected>ボタン（ハンドル＋前進・バック）</option><option value="easy">スティック：かんたん</option><option value="map">スティック：地図基準</option><option value="car">スティック：車体基準</option></select>
       </label>
       <label><input type="checkbox" id="optOpen" checked> 初心者コース（棚・柱なし・減点なし）</label>
-      <label><input type="checkbox" id="optAids" checked> 練習用の補助表示（上方ビュー・進路の線・荷役の図解）</label>
+      <label><input type="checkbox" id="optTop" checked> 上方ビューを表示する</label>
+      <label><input type="checkbox" id="optAids" checked> 補助表示（進路の線・荷役の図解）</label>
       <label><input type="checkbox" id="optAssist" checked> AI誘導員の補助（運転者モード）</label>
     </div>
     <p class="lvdesc" id="lvDesc"></p>
@@ -546,7 +548,7 @@ body.fs{overflow:hidden;--fsbar:46px}
       <li>誘導員モード：合図ボタン（または声）でAI運転者を動かします。</li>
       <li>2人プレイ：1人が運転、もう1人が声で誘導します。</li>
     </ul>
-    <div class="row"><button class="go" id="tutToMenu" type="button">本番を始める</button><button class="btn-ghost" id="tutAgain" type="button">もう一度練習する</button></div>
+    <div class="row"><button class="go" id="tutToMenu" type="button">Lv1から始める</button><button class="btn-ghost" id="tutAgain" type="button">もう一度練習する</button></div>
   </div>
 </div>
 
@@ -570,8 +572,8 @@ const W=26,H=16;
 const EYE_H=1.95, EYE_OFF=-0.1, FRONT=0.95, NEAR=0.12, FOV=100*Math.PI/180;
 const SPEED_LIMIT=6/3.6;
 const AXLE=0.55,STEER_K=1.4;
-/* 坂（Lv3以上）：荷物置き場の周りが上り坂。uxは上り方向 */
-function slopeDeg(){return (!G||G.tut||settings.level<3)?0:settings.level>=4?6:4;}
+/* 坂（Lv4以上）：荷物置き場の周りが上り坂。uxは上り方向 */
+function slopeDeg(){return (!G||G.tut||!LV().slope)?0:LV().slope;}
 function slopeAt(x){const d=slopeDeg();if(!d)return null;if(x<6.6)return {deg:d,ux:-1,x0:0,x1:6.6};if(x>20.6)return {deg:d,ux:1,x0:20.6,x1:W};return null;}
 function pitchDeg(){const fl=G.fl,sl=slopeAt(fl.x);return sl?sl.deg*Math.cos(fl.th)*sl.ux:0;} // 車体の前が上がっていればプラス
 function effTilt(){return G.fl.mast+(G.pitch||0);} // 地面（重力）に対する荷の傾き：プラス＝手前（後ろ）に倒れている // 前輪車軸の位置（車体中心から前へ）と、ハンドルいっぱいでの曲がりやすさ
@@ -587,7 +589,16 @@ const CARGO={
   LONG:{w:2.4,d:0.8,h:0.6,name:'長尺',col:'#4f8a5b',long:true,desc:'幅2.4m。棚や柱の間はぎりぎり'}
 };
 const SLOT={S:{x:3.2,y:2.4,tx:22.6,ty:13.2},F:{x:3.2,y:2.4,tx:22.6,ty:13.2},M:{x:3.2,y:5.8,tx:22.6,ty:5.8},L:{x:3.2,y:13.2,tx:22.6,ty:2.4},LONG:{x:3.2,y:9.4,tx:22.6,ty:9.4}};
-const CARGO_BY_LEVEL={1:['S','M','L'],2:['F','M','L'],3:['F','M','L','LONG'],4:['F','M','L','LONG'],5:['F','M','L','LONG']};
+// レベルごとの荷物：[種類, 取りに行く位置(y), 置き場(y)]。置き場は右側、荷物は左側
+const CARGO_BY_LEVEL={
+  1:[['S',5.8,5.8]],
+  2:[['M',5.8,5.8],['M',9.4,9.4]],
+  3:[['M',5.8,5.8],['L',13.2,13.2]],
+  4:[['F',2.4,13.2],['M',5.8,5.8],['L',13.2,2.4]],
+  5:[['F',2.4,13.2],['M',5.8,5.8],['L',13.2,2.4],['LONG',9.4,9.4]],
+  6:[['F',2.4,13.2],['M',5.8,5.8],['L',13.2,2.4],['LONG',9.4,9.4]],
+  7:[['F',2.4,13.2],['M',5.8,5.8],['L',13.2,2.4],['LONG',9.4,9.4]]};
+const LV_MAX=7;
 const INTR={
   person:{name:'作業員',r:0.3,h:1.7,sp:1.15,desc:'ヘルメットと反射ベストの作業員。通路の途中で立ち止まることがあります。'},
   dog:{name:'犬',r:0.35,h:0.55,sp:2.0,desc:'迷い込んだ犬。左右にふらつきながら速く走ります。'},
@@ -606,11 +617,20 @@ const STAGES={
 };
 const STAGE_ORDER=['warehouse','freezer','night','yard'];
 const LEVELS={
-  1:{name:'入門',drv:0.30,delay:0.40,freq:[16,22],isp:0.80,stopSee:'all',desc:'運転者はゆっくり（約2.7 km/h）。荷物は小・中・大の3つ。見えている相手には運転者が自分で止まります。'},
-  2:{name:'初級',drv:0.40,delay:0.45,freq:[12,17],isp:0.90,stopSee:'all',desc:'運転者の速度 約3.6 km/h。小さな荷物がワレモノになります。'},
-  3:{name:'標準',drv:0.50,delay:0.55,freq:[9,13],isp:1.00,stopSee:'all',desc:'運転者の速度 約4.5 km/h。幅2.4mの長尺物が加わり、荷物は4つ。'},
-  4:{name:'上級',drv:0.58,delay:0.65,freq:[6,10],isp:1.15,stopSee:'person',desc:'運転者の速度 約5.2 km/h。反応が遅れ、人以外（動物・キャラ）には気づきません。'},
-  5:{name:'実戦',drv:0.65,delay:0.75,freq:[4,7],isp:1.30,stopSee:'none',desc:'運転者の速度 約5.9 km/h。運転者は自分では止まりません。誘導員の「停止」だけが頼りです。'}
+  1:{name:'入門',sub:'小さな荷物を1つ',drv:0.30,delay:0.40,freq:[28,40],isp:0.70,stopSee:'all',slope:0,only:['person','chick'],
+     desc:'小さな荷物を1つ、まっすぐ向かいの置き場へ。前がよく見えるので、取る・運ぶ・下ろすの流れに慣れよう。通路にはときどき作業員やひよこが来ます。'},
+  2:{name:'初級',sub:'中くらいの荷物を2つ',drv:0.35,delay:0.45,freq:[20,28],isp:0.80,stopSee:'all',slope:0,only:['person','chick','cat','cone'],
+     desc:'中くらいの荷物（高さ1.1m）を2つ。足元や小さな動物が荷に隠れます。通路の手前で止まって指差確認をしよう。'},
+  3:{name:'中級',sub:'大きな荷物で前が見えない',drv:0.42,delay:0.50,freq:[16,22],isp:0.90,stopSee:'all',slope:0,only:['person','chick','cat','cone','dog'],
+     desc:'中と大の荷物を1つずつ。大（高さ1.9m）は前がほぼ見えないので、後進で運ぶのが基本。荷揺れにも注意。'},
+  4:{name:'中級＋',sub:'ワレモノと坂道',drv:0.46,delay:0.50,freq:[12,17],isp:0.95,stopSee:'all',slope:4,
+     desc:'ワレモノ・中・大の3つ。置き場が斜め向かいになり、通路を斜めに渡ります。荷物置き場の周りは上り坂（約7%）。'},
+  5:{name:'標準',sub:'長尺物で4つ',drv:0.50,delay:0.55,freq:[9,13],isp:1.00,stopSee:'all',slope:4,
+     desc:'幅2.4mの長尺物が加わり、荷物は4つ。運転者の速度 約4.5 km/h。'},
+  6:{name:'上級',sub:'急な坂と遅れる反応',drv:0.58,delay:0.65,freq:[6,10],isp:1.15,stopSee:'person',slope:6,
+     desc:'坂が急に（約10%）。運転者の反応が遅れ、人以外（動物・キャラ）には気づきません。'},
+  7:{name:'実戦',sub:'誘導員の「停止」が頼り',drv:0.65,delay:0.75,freq:[4,7],isp:1.30,stopSee:'none',slope:6,
+     desc:'運転者の速度 約5.9 km/h。運転者は自分では止まりません。誘導員の「停止」だけが頼りです。'}
 };
 const ACH=[
   {id:'tutorial',name:'基本をマスター',desc:'基本のチュートリアルを完了する'},
@@ -623,7 +643,7 @@ const ACH=[
   {id:'nospill',name:'荷崩れゼロ',desc:'Lv3以上で荷崩れなしに完了する'},
   {id:'voice',name:'声だけで誘導',desc:'誘導員モードで、すべての合図を声で出して完了する'},
   {id:'duo',name:'名コンビ',desc:'2人プレイで完了する'},
-  {id:'lv5',name:'実戦合格',desc:'Lv5をB以上で完了する'},
+  {id:'lv5',name:'実戦合格',desc:'Lv7（実戦）をB以上で完了する'},
   {id:'freezer',name:'氷上の運転手',desc:'冷凍倉庫を完了する'},
   {id:'night',name:'夜勤明け',desc:'夜間ステージを完了する'},
   {id:'yard',name:'雨にも負けず',desc:'屋外ヤードを完了する'},
@@ -633,8 +653,9 @@ const ACH=[
 ];
 const MODE_NAME={driver:'運転者モード',guide:'誘導員モード',duo:'2人プレイ'};
 
-const settings={mode:'driver',level:3,stage:'warehouse',assist:true,stick:'pedal',open:true,aids:true};
+const settings={mode:'driver',level:1,stage:'warehouse',assist:true,stick:'pedal',open:true,aids:true,top:true};
 const aidsOn=()=>settings.aids||!driverLike();
+const topOn=()=>settings.top||!driverLike();
 const STICK_TITLE={pedal:'左手の ◀ ▶ でハンドル、右手の「前進」「バック」は押している間だけ進みます',easy:'スティック：倒した方向へ進みます（その場で向きを変えます）。後ろへは「バック」',map:'スティック：倒した方向へ進みます（車体の後ろ側へ倒すと後進）',car:'スティック：上で前進・下で後進、左右でハンドル'};
 const stick={x:0,y:0,on:false,dir:1,dirSet:false};
 const LV=()=>LEVELS[settings.level];
@@ -715,7 +736,7 @@ function newGame(){
     btnSig:0,voiceSig:0,duo:null,duoStop:null,duoObey:0,duoIgnore:0,lastAssist:'',newAch:[],newDex:[],
     cp:LANES.map(()=>({done:false,warned:false})),
     fl:{x:10.6,y:8,th:Math.PI,v:0,steer:0,fork:0,forkT:0,load:null,mast:0,mastT:0,ss:0},mastDet:0,inThr:0,forkMode:false,holdT:0,fineHold:0,prevFork:0,relId:null,insId:null,dragWarned:false,
-    blocks:CARGO_BY_LEVEL[settings.level].map((k,idx)=>({id:idx+1,kind:k,...CARGO[k],...SLOT[k],ang:0,state:'floor',broken:false})),
+    blocks:CARGO_BY_LEVEL[settings.level].map(([k,sy,ty],idx)=>({id:idx+1,kind:k,...CARGO[k],x:3.2,y:sy,tx:22.6,ty,ang:0,state:'floor',broken:false})),
     statics:settings.open?[]:[
       {kind:'rack',label:settings.stage==='yard'?'コンテナ':'棚',x:13,y:4.75,hw:3,hh:0.45,z:2.6,col:st.rack[0],top:st.rack[1]},
       {kind:'rack',label:settings.stage==='yard'?'コンテナ':'棚',x:13,y:11.25,hw:3,hh:0.45,z:2.6,col:(st.rack2||st.rack)[0],top:(st.rack2||st.rack)[1]},
@@ -850,19 +871,35 @@ function setForkMode(on){
 }
 function release(){
   const fl=G.fl,b=fl.load;const lr=loadRect(fl,b);
-  b.x=lr.x;b.y=lr.y;b.ang=fl.th;fl.load=null;G.tilt=0;G.relId=b.id;G.insId=b.id;
+  b.x=lr.x;b.y=lr.y;b.ang=fl.th;b.moved=true;fl.load=null;G.tilt=0;G.relId=b.id;G.insId=b.id;
   if(driverLike()&&fl.mast>3){b.x-=Math.cos(fl.th)*0.25;b.y-=Math.sin(fl.th)*0.25;G.score-=3;log('後傾のまま下ろしたため、荷が手前にずれました（−3）。下ろす前に水平に戻しましょう','warn');}
-  if(Math.abs(b.x-b.tx)<0.45&&Math.abs(b.y-b.ty)<0.45&&angOK(b,0,0.35)){
+  if(inZone(b)){
     b.state='done';SFX.deliver();log(`荷物${b.id}を${b.id}番置き場へ下ろしました${b.broken?'（破損あり）':''}`,b.broken?'warn':'ok');
     if(b.fragile&&!b.broken)unlock('fragile');
-    if(G.blocks.every(x=>x.state==='done')&&!G.tut){G.over=true;setTimeout(showResult,900);}
-  }else{b.state='floor';log(`荷物${b.id}を下ろしました（置き場の枠からずれています）`,'warn');}
+    checkAllDone();
+  }else{b.state='floor';
+    const other=G.blocks.find(o=>o!==b&&Math.abs(b.x-o.tx)<0.9&&Math.abs(b.y-o.ty)<0.9);
+    if(other)log(`ここは${other.id}番置き場です。荷物${b.id}は${b.id}番置き場（番号の書かれた枠）へ運びましょう`,'warn');
+    else if(Math.abs(b.x-b.tx)<1.2&&Math.abs(b.y-b.ty)<1.2)log(`荷物${b.id}が${b.id}番置き場の枠からずれています。持ち上げて置き直そう`,'warn');
+    else log(`荷物${b.id}を床に下ろしました（${b.id}番置き場ではありません）`,'warn');}
+}
+function inZone(b){return Math.abs(b.x-b.tx)<0.45&&Math.abs(b.y-b.ty)<0.45&&angOK(b,0,0.35);}
+function checkAllDone(){if(!G.over&&!G.tut&&G.blocks.every(x=>x.state==='done')){G.over=true;setTimeout(showResult,900);}}
+// 置き直し・押し込みで枠に収まった荷も完了にする。ずれたままの荷はときどき知らせる
+function zoneCheck(dt){
+  for(const b of G.blocks){if(b.state==='floor'&&inZone(b)&&!(G.insId===b.id&&G.fl.fork>0.06)){b.state='done';SFX.deliver();log(`荷物${b.id}が${b.id}番置き場に収まりました`,'ok');}}
+  checkAllDone();
+  if(G.over||G.fl.load)return;
+  const left=G.blocks.filter(b=>b.state!=='done');
+  if(left.length&&left.every(b=>b.state==='floor'&&b.moved)){G.leftT=(G.leftT||0)+dt;
+    if(G.leftT>12){G.leftT=0;log(`まだ完了していない荷物：${left.map(b=>b.id).join('・')}。番号の同じ置き場の枠に、向きをそろえて置き直そう`,'warn');}}
+  else G.leftT=0;
 }
 function breakLoad(b,why){if(!b.fragile||b.broken)return;b.broken=true;G.broken++;G.score-=20;log(`ワレモノ破損：${why}（−20）`,'bad');}
 function spill(){
   const fl=G.fl,b=fl.load;const lr=loadRect(fl,b);const side=G.tiltSide||1;
   const c=Math.cos(fl.th),s=Math.sin(fl.th);const off=side*(b.w/2+0.45);
-  b.x=clamp(lr.x-s*off,1,W-1);b.y=clamp(lr.y+c*off,1,H-1);b.ang=fl.th+rnd(-0.5,0.5);b.state='floor';
+  b.x=clamp(lr.x-s*off,1,W-1);b.y=clamp(lr.y+c*off,1,H-1);b.ang=fl.th+rnd(-0.5,0.5);b.state='floor';b.moved=true;
   fl.load=null;G.tilt=0;G.spills++;G.score-=15;G.flash=0.8;SFX.spill();
   log(`荷崩れ：荷物${b.id}が落下しました（−15）。曲がるときは減速し、爪は後傾に`,'bad');
   breakLoad(b,'荷崩れで落下');
@@ -954,7 +991,7 @@ function rearView(){
   return G.cmd.move<0&&fl.v<=0.05;
 }
 function spawnIntruder(){
-  const type=wpick(ST().weights);const lane=pick(LANES);const dir=Math.random()<0.5?1:-1;
+  const wt={...ST().weights};if(LV().only)for(const k in wt)if(!LV().only.includes(k))wt[k]=0;const type=wpick(wt);const lane=pick(LANES);const dir=Math.random()<0.5?1:-1;
   const pauses=[];
   if(type==='person'&&Math.random()<0.5)pauses.push(rnd(3,13));
   if(type==='chick'){pauses.push(rnd(2,7));pauses.push(rnd(8,13));}
@@ -1116,7 +1153,16 @@ function update(dt){
     const step=sp*dt;let ny=i.y+i.dir*step;
     const ox={dog:Math.sin(i.t*1.8)*0.7,cat:Math.sin(i.t*0.9)*0.3,pallet:Math.sin(i.t*3)*0.6,penguin:Math.sin(i.t*1.2)*0.45}[i.type]||0;
     const nx2=i.bx+ox;
-    if(fpOverlap(nx2,ny,T.r))continue;
+    // フォークリフトにふさがれたら、横によけて回り込む。長く通れなければ引き返す
+    if(!fpOverlap(i.x,i.y,T.r)&&fpOverlap(nx2,ny,T.r)){
+      i.blk=(i.blk||0)+dt;
+      const side=Math.sign(i.x-fl.x)||(i.lane<W/2?-1:1);
+      const sx=i.x+side*Math.max(step,0.6*dt);
+      if(i.blk>0.6&&sx>0.3&&sx<W-0.3&&!fpOverlap(sx,i.y,T.r)){i.bx+=sx-i.x;i.x=sx;}
+      if(i.blk>6){i.dir=-i.dir;i.blk=0;i.pauses=[];}
+      continue;
+    }
+    i.blk=0;
     i.x=nx2;i.y=ny;i.trav+=step;
     if(i.pauses.length&&i.trav>=i.pauses[0]){i.pauses.shift();i.waitT=i.type==='person'?2.6:i.type==='chick'?1.6:1.3;}
     if(!i.near&&!i.hit&&Math.abs(fl.v)>0.4){
@@ -1126,6 +1172,7 @@ function update(dt){
     }
   }
   G.intr=G.intr.filter(i=>{const out=i.y<-1.5||i.y>H+1.5;if(out&&!i.hit)registerDex(i.type);return !out;});
+  zoneCheck(dt);
   G.score=Math.max(0,G.score);
   if(G.tut)tutUpdate(dt);
 }
@@ -1155,7 +1202,7 @@ const TUT=[
 function tutText(st){return st.all||st[settings.stick]||st.map;}
 function tutHighlight(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));if(!G||!G.tut||G.over)return;const st=TUT[G.tut.i];if(!st||!st.hl)return;const sel=st.hl[settings.stick]||st.hl.def;if(sel)document.querySelectorAll(sel).forEach(e=>e.classList.add('hl'));}
 function startTutorial(){
-  actx();settings.stick=$('optStick').value;settings.open=true;settings.aids=true;settings.mode='driver';settings.stage='warehouse';settings.level=1;settings.assist=false;
+  actx();settings.stick=$('optStick').value;settings.open=true;settings.aids=true;settings.top=true;settings.mode='driver';settings.stage='warehouse';settings.level=1;settings.assist=false;
   newGame();
   G.blocks=[{id:1,kind:'S',...CARGO.S,x:3.6,y:3.0,tx:12.6,ty:3.0,ang:0,state:'floor',broken:false}];
   Object.assign(G.fl,{x:2.2,y:10.5,th:0,mast:6,fork:0.6,forkT:0.6});G.prevFork=0.6;G.spawnT=1e9;
@@ -1699,7 +1746,8 @@ function showResult(){
   if(settings.level>=3&&G.spills===0)unlock('nospill');
   if(settings.mode==='guide'&&G.btnSig===0&&G.voiceSig>0)unlock('voice');
   if(settings.mode==='duo')unlock('duo');
-  if(settings.level===5&&grade!=='C')unlock('lv5');
+  if(settings.level===LV_MAX&&grade!=='C')unlock('lv5');
+  if(grade!=='C'&&!G.tut){REC.lvClear=Math.max(REC.lvClear||0,settings.level);saveRec();}
   REC.stages=REC.stages||{};REC.stages[settings.stage]=true;
   if(settings.stage!=='warehouse')unlock(settings.stage);
   if(STAGE_ORDER.every(k=>REC.stages[k]))unlock('allstage');
@@ -1713,7 +1761,7 @@ function showResult(){
   const gains=$('rGains');gains.innerHTML='';
   for(const a of G.newAch){const sp=document.createElement('span');sp.textContent='実績：'+a;gains.appendChild(sp);}
   for(const d of G.newDex){const sp=document.createElement('span');sp.textContent='図鑑：'+d;gains.appendChild(sp);}
-  const nb=$('btnNext');nb.hidden=!(grade!=='C'&&settings.level<5);nb.textContent=`次のレベルへ（Lv${settings.level+1}）`;
+  const nb=$('btnNext');nb.hidden=!(grade!=='C'&&settings.level<LV_MAX);if(settings.level<LV_MAX)nb.textContent=`次のレベルへ（Lv${settings.level+1} ${LEVELS[settings.level+1].sub}）`;
   const rows=[['接触事故（人・動物）',`${G.acc} 件`],['物への衝突',`${G.coll} 件`],['ヒヤリハット',`${G.near} 件`],['尻振りでの接触',`${G.swingHits} 件`],['下り坂を荷を積んで前進',`${G.downFwd.toFixed(1)} m`],['荷崩れ',`${G.spills} 回`],['ワレモノ破損',`${G.broken} 件`],['指差呼称',`${G.calls} 回（未実施の横断 ${G.callMiss} 回）`],['速度超過の時間',`${G.overT.toFixed(1)} 秒`],['見えない荷で前進した距離',`${G.blindFwd.toFixed(1)} m`]];
   if(settings.mode==='guide')rows.push(['運転者が自分で気づいて停止',`${G.autoStops} 回`],['声で出した合図',`${G.voiceSig} 回`]);
   if(settings.mode==='duo')rows.push(['停止の合図に従った',`${G.duoObey} 回`],['停止の合図に従わなかった',`${G.duoIgnore} 回`]);
@@ -1777,6 +1825,9 @@ $('recReset').onclick=()=>{const b=$('recReset');if(Date.now()-resetArmed<4000){
 /* ---------- 開始・画面構成 ---------- */
 function renderStart(){
   $('tutRow').classList.toggle('first',!REC.tutSeen);
+  {const sel=$('optLevel'),cur=sel.value||String(Math.min(LV_MAX,(REC.lvClear||0)+1));sel.innerHTML='';
+   for(let n=1;n<=LV_MAX;n++){const o=document.createElement('option');o.value=String(n);o.textContent=`Lv${n} ${LEVELS[n].name}：${LEVELS[n].sub}${(REC.lvClear||0)>=n?' ✓':''}`;sel.appendChild(o);}
+   sel.value=cur;}
   const sc=$('stageCards');sc.innerHTML='';
   for(const k of STAGE_ORDER){const S=STAGES[k];const lab=document.createElement('label');lab.className='mode';
     lab.innerHTML=`<input type="radio" name="stage" value="${k}"${k===settings.stage?' checked':''}><span><b></b><em></em></span>`;
@@ -1785,11 +1836,11 @@ function renderStart(){
 }
 function showLvDesc(){
   const lv=+$('optLevel').value;const l=LEVELS[lv];$('lvDesc').textContent=`Lv${lv} ${l.name}：${l.desc}`;
-  const tl=$('taskList');tl.innerHTML='';CARGO_BY_LEVEL[lv].forEach((k,idx)=>{const c=CARGO[k];const d=document.createElement('div');d.innerHTML='<b></b>';d.querySelector('b').textContent=`荷物 ${idx+1}（${c.name}）`;d.appendChild(document.createTextNode(c.desc));tl.appendChild(d);});
+  const tl=$('taskList');tl.innerHTML='';CARGO_BY_LEVEL[lv].forEach(([k],idx)=>{const c=CARGO[k];const d=document.createElement('div');d.innerHTML='<b></b>';d.querySelector('b').textContent=`荷物 ${idx+1}（${c.name}）`;d.appendChild(document.createTextNode(c.desc));tl.appendChild(d);});
 }
 function startGame(){
   actx();
-  settings.mode=document.querySelector('input[name=mode]:checked').value;settings.level=+$('optLevel').value;settings.assist=$('optAssist').checked;settings.stick=$('optStick').value;settings.open=$('optOpen').checked;settings.aids=$('optAids').checked;
+  settings.mode=document.querySelector('input[name=mode]:checked').value;settings.level=+$('optLevel').value;settings.assist=$('optAssist').checked;settings.stick=$('optStick').value;settings.open=$('optOpen').checked;settings.aids=$('optAids').checked;settings.top=$('optTop').checked;REC.prefTop=settings.top;saveRec();
   $('stickTitle').textContent=STICK_TITLE[settings.stick];
   const sr=document.querySelector('input[name=stage]:checked');settings.stage=sr?sr.value:'warehouse';
   newGame();G.paused=false;keepAwake();$('startOv').hidden=true;$('resultOv').hidden=true;$('tutOv').hidden=true;applyModeUI();tutHighlight();
@@ -1804,13 +1855,14 @@ function applyModeUI(){
   document.body.classList.toggle('easy',settings.stick==='easy'&&!g);
   for(const k of ['pedal','easy','map','car'])document.body.classList.toggle('scheme-'+k,settings.stick===k&&!g);
   document.body.classList.remove('forkmode');
-  document.body.classList.toggle('noaids',!aidsOn());if(!aidsOn())primary='cab',layoutViews();
+  document.body.classList.toggle('noaids',!aidsOn());document.body.classList.toggle('notop',!topOn());if(!topOn())primary='cab',layoutViews();
   $('cabCap').textContent=g?'運転者から見える景色':'運転席ビュー';
   $('btnPause').textContent='一時停止';
   if(!voiceOn)voiceMsg(VOICE_HINT[settings.mode]);
 }
 let primary='cab';
 function layoutViews(){
+  if(G&&!topOn())primary='cab';
   const st=$('stage'),top=$('vTop'),cab=$('vCab');
   const [m,s]=primary==='cab'?[cab,top]:[top,cab];
   st.prepend(m);m.classList.remove('sub');s.classList.add('sub');
@@ -1910,7 +1962,7 @@ document.addEventListener('visibilitychange',()=>{
 $('btnStart').onclick=startGame;
 $('btnTut').onclick=startTutorial;
 $('tutAgain').onclick=startTutorial;
-$('tutToMenu').onclick=()=>{$('tutOv').hidden=true;renderStart();$('startOv').hidden=false;};
+$('tutToMenu').onclick=()=>{$('tutOv').hidden=true;$('optLevel').value='1';renderStart();$('startOv').hidden=false;};
 $('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G.blocks[0];
   const front=()=>{fl.th=-Math.PI/2;fl.x=b.x;fl.ss=0;};
   switch(T.i){
@@ -1934,7 +1986,7 @@ $('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G
   T.okT=0.01;};
 $('tutQuit').onclick=()=>{if(!G)return;G.over=true;G.tut=null;document.body.classList.remove('forkmode');document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));renderStart();$('startOv').hidden=false;};
 $('btnAgain').onclick=()=>{$('resultOv').hidden=true;startGame();};
-$('btnNext').onclick=()=>{$('optLevel').value=String(Math.min(5,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
+$('btnNext').onclick=()=>{$('optLevel').value=String(Math.min(LV_MAX,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
 $('optLevel').addEventListener('change',showLvDesc);
 $('btnMenu').onclick=()=>{$('resultOv').hidden=true;renderStart();$('startOv').hidden=false;};
 $('btnPause').onclick=()=>{if(!G||G.over||!$('startOv').hidden)return;G.paused=!G.paused;$('btnPause').textContent=G.paused?'再開':'一時停止';if(!G.paused){last=performance.now();keepAwake();}};
@@ -1977,6 +2029,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{if(KD[e.code])keys[KD[e.code]]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 
+if(REC.prefTop===false)$('optTop').checked=false;
 renderStart();newGame();applyModeUI();resize();
 let last=performance.now();
 function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;

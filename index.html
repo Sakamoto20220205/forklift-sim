@@ -1,0 +1,1990 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#181b1d">
+<meta name="description" content="フォークリフトの運転者・誘導員を体験する安全訓練ゲーム。荷物で見えない死角、荷崩れ、指差呼称、かわいいおじゃま虫キャラと図鑑、声での誘導、2人プレイに対応。">
+<meta property="og:title" content="フォークリフト誘導訓練">
+<meta property="og:description" content="運転者／誘導員／2人プレイで遊べるフォークリフト安全訓練ゲーム。声で合図も出せます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sakamoto20220205.github.io/forklift-sim/">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>フォークリフト誘導訓練</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: 計器盤のような上部ステータス → 2画面（上方ビュー＋運転席ビュー）→ 合図パネルと操作盤。単一の工場ダークテーマ */
+:root{
+  --bg:#181b1d; --panel:#212629; --panel2:#2a3034; --line:#3a4246;
+  --ink:#ebe7dc; --mute:#9ea6a8; --yel:#f2c418; --red:#e5493c; --grn:#46b26a; --blu:#5fa8d8;
+  --f-disp:"Dela Gothic One","Zen Kaku Gothic New",system-ui,sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-num:"Share Tech Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:14px;line-height:1.55;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 28px;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior:none}
+canvas,.k,.view{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+button{touch-action:manipulation;font-family:inherit;color:inherit;cursor:pointer}
+.app{max-width:1240px;margin:0 auto;display:grid;gap:12px}
+button:focus-visible,input:focus-visible+span,select:focus-visible{outline:2px solid var(--yel);outline-offset:2px}
+
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px;position:relative;overflow:hidden}
+.bar::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:repeating-linear-gradient(-45deg,var(--yel) 0 10px,#111 10px 20px)}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand h1{font-family:var(--f-disp);font-weight:400;font-size:20px;margin:0;letter-spacing:.02em;text-wrap:balance}
+.brand small{color:var(--mute);font-size:12px}
+.stats{display:flex;flex-wrap:wrap;gap:6px 18px;margin-left:auto}
+.stat{display:grid;line-height:1.2}
+.stat .sk{font-size:11px;color:var(--mute);letter-spacing:.08em}
+.stat .v{font-family:var(--f-num);font-size:19px;font-variant-numeric:tabular-nums}
+.stat .v.warn{color:var(--red)}
+.stat .v.caution{color:var(--yel)}
+.tools{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.btn-ghost{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:6px 12px;font-size:13px}
+.btn-ghost[aria-pressed=true]{border-color:var(--yel);color:var(--yel)}
+.btn-ghost[aria-pressed=false]{color:var(--mute)}
+
+.stage{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;align-items:start;position:relative}
+.ticker{display:none}
+.hl{outline:3px solid var(--yel)!important;outline-offset:2px;animation:hlp 1s ease-in-out infinite}
+@keyframes hlp{50%{outline-color:rgba(242,196,24,.2)}}
+.tutbtns{display:flex;gap:6px;flex-wrap:wrap;grid-column:1/-1;margin-top:4px}
+.tutbtns .btn-ghost{font-size:12px;padding:4px 9px}
+.signal.tut .voice{display:none}
+.signal.tut .sigK{color:var(--yel)}
+.tutrow{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--yel);border-radius:6px;background:#2b2a1e}
+.tutrow p{flex:1 1 220px;color:var(--ink)}
+.tutrow.first{animation:hlp 1.2s ease-in-out infinite;outline:2px solid var(--yel)}
+.view{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:0}
+.view figcaption{display:flex;justify-content:space-between;gap:8px;font-size:12px;letter-spacing:.06em;color:var(--mute);padding:6px 10px;border-bottom:1px solid var(--line)}
+.view figcaption b{color:var(--ink);font-weight:700}
+.view canvas{display:block;width:100%;height:auto}
+#cTop{aspect-ratio:26/16;--ar:1.625}
+#cCab{aspect-ratio:16/10;--ar:1.6}
+
+.deck{display:grid;grid-template-columns:minmax(0,250px) minmax(0,1fr) minmax(0,290px);gap:12px;align-items:stretch}
+.signal{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;align-content:start;gap:4px;border-left:6px solid var(--mute);min-width:0}
+.signal[data-tone=stop]{border-left-color:var(--red)}
+.signal[data-tone=warn]{border-left-color:var(--yel)}
+.signal[data-tone=go]{border-left-color:var(--grn)}
+.sigK{font-size:11px;color:var(--mute);letter-spacing:.08em}
+.sigV{font-family:var(--f-disp);font-size:30px;line-height:1.15}
+.signal[data-tone=stop] .sigV{color:var(--red)}
+.signal[data-tone=warn] .sigV{color:var(--yel)}
+.sigSub{font-size:12.5px;color:var(--mute);min-height:2.6em}
+
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;display:grid;gap:8px;min-width:0}
+.ctl-title{font-size:11px;color:var(--mute);letter-spacing:.08em}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(54px,72px)) 14px repeat(2,minmax(64px,88px));grid-template-rows:repeat(2,54px);gap:6px;justify-content:center}
+.k{background:var(--panel2);border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;font-size:15px;font-weight:700;display:grid;place-items:center;line-height:1.1;user-select:none;-webkit-user-select:none;touch-action:none;padding:2px}
+.k small{display:block;font-size:10px;font-weight:500;color:var(--mute)}
+.k.on,.k:active{background:#3a4348;border-bottom-width:1px;transform:translateY(2px)}
+.k.fork{background:#33302a;border-color:#5a4f2c}
+.k.stop{background:#4a2420;border-color:#7a3a33;color:#ffd9d4}
+.k.chk{background:#23382b;border-color:#3d6a4b;color:#cdeed6;font-size:13px}
+.pad .chk{grid-column:1;grid-row:1}.pad .up{grid-column:2;grid-row:1}.pad .lt{grid-column:1;grid-row:2}.pad .dn{grid-column:2;grid-row:2}.pad .rt{grid-column:3;grid-row:2}
+.pad .fu{grid-column:5;grid-row:1}.pad .fd{grid-column:5;grid-row:2}
+.drive{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;justify-content:center}
+.stick{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#30373b 0 54%,#262c30 55% 100%);border:2px solid var(--line);position:relative;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.stick .ar{position:absolute;color:#5b666c;font-size:12px;line-height:1}
+.stick .ar.t{top:6px;left:50%;transform:translateX(-50%)}.stick .ar.b{bottom:6px;left:50%;transform:translateX(-50%)}
+.stick .ar.l{left:7px;top:50%;transform:translateY(-50%)}.stick .ar.r{right:7px;top:50%;transform:translateY(-50%)}
+.stick .knob{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;background:#3d464b;border:2px solid #5a656b;box-shadow:0 4px 10px rgba(0,0,0,.5);pointer-events:none}
+.stick.on .knob{background:var(--yel);border-color:#fff3b0}
+.dbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:48px;gap:6px;max-width:300px;width:100%}
+.dbtns .chk{grid-column:1/-1}
+.easy .dbtns .chk{grid-column:auto}
+.easyOnly{display:none!important}
+.easy .easyOnly{display:grid!important}
+.k.back{background:#3a2f22;border-color:#6a5230;color:#ffe2b8}
+.k.go2{background:#22372a;border-color:#3d6a4b;color:#d6f5de}
+.k.steer{font-size:24px}
+.k.fmode{background:#3a3420;border-color:#8a7428;color:#ffe9a6}
+.k.ss,.k.rot{background:#25303a;border-color:#3e5068;color:#d5e3f5}
+.dbtns .wide{grid-column:1/-1}
+.sugg{outline:3px solid var(--yel)!important;outline-offset:2px;animation:hlp 0.9s ease-in-out infinite}
+.pedal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:56px 56px 46px;gap:6px;max-width:520px;width:100%;margin:0 auto}
+.pedal .pl{grid-column:1;grid-row:1/3}.pedal .pr{grid-column:2;grid-row:1/3}.pedal .pf{grid-column:3/5;grid-row:1}.pedal .pb{grid-column:3/5;grid-row:2}.pedal .pm{grid-column:1/3;grid-row:3}.pedal .pc{grid-column:3/5;grid-row:3}
+.forkpanel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:46px 46px 42px 36px;gap:6px;max-width:520px;width:100%;margin:0 auto}
+.forkpanel .f3{grid-column:3/5;grid-row:1}.forkpanel .f6{grid-column:3/5;grid-row:2}.forkpanel .f11{grid-column:1/-1;grid-row:4;font-size:13px}
+.forkpanel .k{font-size:15px}
+body.scheme-pedal .drive{display:none}
+body:not(.scheme-pedal) .pedal{display:none}
+body.forkmode .drive,body.forkmode .pedal{display:none}
+body:not(.forkmode) .forkpanel{display:none}
+body.forkmode .stage .view.sub{display:none!important}
+body.forkmode .stage{grid-template-columns:1fr}
+body.fs.forkmode .signal{display:none}
+body.noaids #vTop{display:none!important}
+body.noaids #btnSub{display:none}
+body.noaids .stage{grid-template-columns:1fr}
+.view.tappable{cursor:pointer}
+.k.tilt{background:#262f3a;border-color:#3e5068;color:#d5e3f5}
+.sig-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.sig-grid .k{min-height:56px;padding:4px;font-size:14px}
+.keys{font-size:11.5px;color:var(--mute)}
+.keys kbd{font-family:var(--f-num);background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:0 4px;color:var(--ink)}
+
+.voice{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;grid-column:1/-1}
+.vbtn{display:inline-flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;white-space:nowrap}
+.vbtn .dot{width:9px;height:9px;border-radius:50%;background:var(--mute)}
+.vbtn[aria-pressed=true]{border-color:var(--red);background:#3a2422}
+.vbtn[aria-pressed=true] .dot{background:var(--red);animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+.vstat{font-size:11.5px;color:var(--mute);flex:1 1 140px;min-width:0}
+.vstat.bad{color:#ff9a8f}
+.vstat.heard{color:var(--ink)}
+.log{list-style:none;margin:0;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px;display:grid;align-content:start;gap:4px;font-size:12.5px;min-height:120px;min-width:0}
+.log li{display:grid;grid-template-columns:44px 1fr;gap:6px}
+.log time{font-family:var(--f-num);color:var(--mute)}
+.log .bad span{color:#ff9a8f}.log .warn span{color:var(--yel)}.log .ok span{color:#8fd8a5}
+
+.toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:60;background:#2b2a1e;border:1px solid var(--yel);color:var(--ink);border-radius:8px;padding:8px 14px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;gap:10px;align-items:center;max-width:calc(100vw - 32px)}
+.toast b{color:var(--yel);font-family:var(--f-disp);font-weight:400;white-space:nowrap}
+
+.overlay{position:fixed;inset:0;background:rgba(10,12,13,.84);display:flex;z-index:50;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow:auto}
+.sheet{min-width:0;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;max-width:820px;width:100%;padding:22px;display:grid;gap:16px;position:relative;overflow:hidden}
+.sheet::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:repeating-linear-gradient(-45deg,var(--yel) 0 12px,#111 12px 24px)}
+.sheet h2{font-family:var(--f-disp);font-weight:400;font-size:26px;margin:4px 0 0;text-wrap:balance}
+.sheet h3{font-size:13px;color:var(--mute);letter-spacing:.08em;margin:0;font-weight:500}
+.sheet p{margin:0;color:var(--mute);max-width:65ch}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.mode{display:block;position:relative;cursor:pointer}
+.mode input{position:absolute;opacity:0}
+.mode span{display:grid;gap:4px;border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:var(--panel2);height:100%}
+.mode b{font-size:16px}
+.mode em{font-style:normal;font-size:12.5px;color:var(--mute)}
+.mode input:checked+span{border-color:var(--yel);box-shadow:inset 0 0 0 1px var(--yel)}
+.modes.small .mode span{padding:9px 12px}
+.modes.small b{font-size:14.5px}
+.opts{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:13px;align-items:center}
+.opts label{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;max-width:100%}
+.opts select{max-width:100%;min-width:0}
+.sheet *{min-width:0}
+.sheet p,.sheet li,.mode em{overflow-wrap:anywhere}
+.opts select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:5px 6px;font-family:inherit;font-size:14px}
+.lvdesc{font-size:12.5px;border-left:3px solid var(--yel);padding:2px 0 2px 10px}
+.task{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.task div{border:1px dashed var(--line);border-radius:6px;padding:8px 10px;font-size:12.5px;color:var(--mute)}
+.task b{display:block;color:var(--ink);font-size:14px}
+.go{justify-self:start;background:var(--yel);color:#1a1a1a;border:0;border-radius:5px;padding:12px 26px;font-family:var(--f-disp);font-size:18px}
+.rules{font-size:12.5px;color:var(--mute);margin:0;padding-left:1.2em;display:grid;gap:2px}
+.grade{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.grade .g{font-family:var(--f-disp);font-size:72px;line-height:1;color:var(--yel)}
+.grade .s{font-family:var(--f-num);font-size:34px}
+.newbest{display:inline-block;background:var(--yel);color:#1a1a1a;font-weight:700;border-radius:4px;padding:1px 8px;font-size:12px;margin-left:6px}
+.rtable{width:100%;border-collapse:collapse;font-size:13.5px}
+.rtable td,.rtable th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+.rtable th{font-size:11.5px;color:var(--mute);font-weight:500}
+.rtable td:last-child{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.notes{margin:0;padding-left:1.2em;display:grid;gap:4px;font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.gains{display:flex;flex-wrap:wrap;gap:6px}
+.gains span{border:1px solid var(--yel);color:var(--yel);border-radius:999px;padding:2px 10px;font-size:12.5px}
+
+.rec-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 12px;font-size:14px;color:var(--mute)}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--yel);font-weight:700}
+.dex{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:6px;padding:10px;display:grid;gap:4px;background:var(--panel2);align-content:start}
+.card canvas{width:100%;aspect-ratio:1;background:#2f3539;border-radius:4px}
+.card b{font-size:14px}
+.card small{font-size:11.5px;color:var(--mute)}
+.card .cnt{font-family:var(--f-num);color:var(--yel);font-size:12px}
+.card .rare{color:#f0a6ff;font-size:11px;font-weight:700}
+.achs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.achs li{border:1px solid var(--line);border-radius:6px;padding:9px 11px;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center;background:var(--panel2)}
+.achs .ic{grid-row:1/3;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);color:var(--mute);font-weight:700}
+.achs li.got .ic{border-color:var(--yel);color:#1a1a1a;background:var(--yel)}
+.achs b{font-size:13.5px}
+.achs small{font-size:11.5px;color:var(--mute)}
+.achs li:not(.got) b{color:var(--mute)}
+.danger{border-color:#7a3a33;color:#ffb3aa}
+
+@media (max-width:980px){
+  .deck{grid-template-columns:1fr}
+  .log{min-height:0}
+}
+.swap-hint{display:none}
+@media (max-width:760px){
+  body{padding-block:6px 16px}
+  .app{gap:8px}
+  .bar{padding:9px 10px 7px;gap:4px 10px}
+  .brand small,.tools .btn-ghost{font-size:11px}
+  .tools .btn-ghost{padding:4px 8px}
+  .stats{margin-left:0;width:100%;justify-content:space-between;gap:4px 8px}
+  .stat .sk{font-size:9.5px;letter-spacing:.02em}
+  .stat .sk i{display:none}
+  .stat .v{font-size:15px}
+  .brand h1{font-size:16px;white-space:nowrap}
+  .brand{flex-direction:column;align-items:flex-start;gap:0}
+  .stage{grid-template-columns:1fr;position:relative;gap:0}
+  .view figcaption{padding:4px 8px;font-size:11px}
+  .view figcaption span{display:none}
+  .stage .view.sub{position:absolute;top:28px;right:6px;width:42%;z-index:2;box-shadow:0 6px 18px rgba(0,0,0,.6);cursor:pointer}
+  .stage .view.sub figcaption{padding:2px 6px;font-size:9.5px}
+  .stage .view.sub .swap-hint{display:inline;color:var(--yel)}
+  .deck{gap:8px}
+  .signal{grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:12px;padding:8px 10px}
+  .signal .sigK{grid-column:1/3}
+  .sigV{font-size:24px;white-space:nowrap}
+  .sigSub{min-height:0;font-size:12px}
+  .controls{padding:8px}
+  .pad{width:100%;grid-template-columns:repeat(3,minmax(0,1fr)) 6px repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,64px)}
+  .drive{gap:10px}
+  .stick{width:140px;height:140px}
+  .dbtns{grid-auto-rows:44px}
+  .dbtns .k{font-size:14px}
+  .k{font-size:16px}
+  .keys{display:none}
+  .sig-grid .k{font-size:13px;min-height:54px}
+  .log{min-height:0;max-height:8.5em;overflow:hidden}
+  .sheet{padding:18px 16px;gap:12px}
+  .sheet h2{font-size:22px}
+  .dex{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* スマホ横向き：左に映像、右に操作盤 */
+@media (orientation:landscape) and (max-height:520px){
+  body{padding-block:4px}
+  .app{grid-template-columns:minmax(0,1fr) minmax(260px,36%);grid-template-areas:"bar bar" "stage deck";gap:6px 10px;max-width:none}
+  .bar{grid-area:bar;padding:7px 10px 5px;gap:2px 12px;flex-wrap:nowrap}
+  .bar .brand{display:none}
+  .stats{width:auto;margin-left:0;flex-wrap:nowrap;flex:1;min-width:0;overflow:hidden}
+  .stat .sk i{display:none}
+  .stat .v{font-size:15px}
+  .tools{flex-wrap:nowrap}
+  .tools .btn-ghost{padding:4px 7px;font-size:11px}
+  .stage{grid-area:stage;grid-template-columns:1fr;position:relative;gap:0;align-self:start}
+  .view figcaption{padding:3px 8px;font-size:10.5px}
+  .view figcaption span{display:none}
+  .stage .view.sub{position:absolute;top:24px;right:6px;width:36%;z-index:2;box-shadow:0 6px 18px rgba(0,0,0,.6);cursor:pointer}
+  .stage .view.sub .swap-hint{display:inline;color:var(--yel)}
+  .stage .view:not(.sub) canvas{width:min(100%,calc((100dvh - 96px) * 1.6));margin:0 auto}
+  .deck{grid-area:deck;grid-template-columns:1fr;gap:6px;align-content:start}
+  .signal{grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:10px;padding:6px 10px}
+  .signal .sigK{grid-column:1/3}
+  .sigV{font-size:20px;white-space:nowrap}
+  .sigSub{min-height:0;font-size:11px}
+  .controls{padding:6px}
+  .ctl-title,.keys{display:none}
+  .pad{width:100%;grid-template-columns:repeat(3,minmax(0,1fr)) 4px repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,50px);gap:5px}
+  .stick{width:120px;height:120px}
+  .stick .knob{width:52px;height:52px;margin:-26px 0 0 -26px}
+  .dbtns{grid-auto-rows:38px;gap:5px}
+  .dbtns .k{font-size:13px}
+  .sig-grid .k{min-height:44px;font-size:12px}
+  .log{display:none}
+}
+/* 小窓なし */
+.nosub .view.sub{display:none!important}
+.nosub .stage{grid-template-columns:1fr}
+.nosub .stage .view:not(.sub){width:min(100%,calc((100dvh - 120px) * 1.6),1100px);justify-self:center}
+
+/* 全画面モード */
+body.fs{overflow:hidden;--fsbar:46px}
+.fs .bar{position:fixed;left:0;right:0;top:0;z-index:31;border-radius:0;border:0;border-bottom:1px solid var(--line);background:rgba(24,27,29,.88);padding:calc(7px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 5px max(10px,env(safe-area-inset-left,0px));flex-wrap:nowrap;gap:10px}
+.fs .bar::before{height:3px}
+.fs .brand{display:none}
+.fs .stats{margin-left:0;width:auto;flex:1;flex-wrap:nowrap;justify-content:flex-start;gap:12px;min-width:0;overflow:hidden}
+.fs .stat .sk{font-size:9px;letter-spacing:.02em}
+.fs .stat .sk i{display:none}
+.fs .stat .v{font-size:15px}
+.fs .tools{flex-wrap:nowrap}
+.fs .tools .btn-ghost{padding:4px 8px;font-size:11px;white-space:nowrap}
+.fs .stage{position:fixed;inset:0;z-index:30;background:#0d0f10;display:flex;align-items:center;justify-content:center;gap:0;padding-top:calc(var(--fsbar) + env(safe-area-inset-top,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
+.fs .stage .view:not(.sub){background:none;border:0;border-radius:0;width:100%;justify-self:auto}
+.fs .stage .view:not(.sub) figcaption{display:none}
+.fs .stage .view:not(.sub) canvas{width:min(100%,calc((100dvh - var(--fsbar) - 2px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * var(--ar)));margin:0 auto}
+.fs .stage .view.sub{position:absolute;top:calc(var(--fsbar) + 6px + env(safe-area-inset-top,0px));right:max(8px,env(safe-area-inset-right,0px));width:min(34%,320px);z-index:2;box-shadow:0 6px 18px rgba(0,0,0,.6);cursor:pointer}
+.fs .stage .view.sub figcaption{padding:2px 6px;font-size:10px}
+.fs .stage .view.sub figcaption span:not(.swap-hint){display:none}
+.fs .swap-hint{display:inline!important;color:var(--yel)}
+.fs .signal{position:fixed;z-index:32;left:max(8px,env(safe-area-inset-left,0px));top:calc(var(--fsbar) + 6px + env(safe-area-inset-top,0px));max-width:min(58%,360px);background:rgba(33,38,41,.9);padding:6px 10px;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:10px}
+.fs .signal .sigK{display:none}
+.fs .sigV{font-size:20px;white-space:nowrap}
+.fs .sigSub{font-size:11px;min-height:0}
+.fs .vstat{font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs .controls{position:fixed;z-index:32;left:0;right:0;bottom:0;border:0;border-radius:0;background:linear-gradient(rgba(13,15,16,0),rgba(13,15,16,.9) 35%);padding:16px max(10px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.fs .ctl-title,.fs .keys,.fs .log{display:none}
+.fs .k{background:rgba(42,48,52,.8)}
+.fs .k.fork{background:rgba(51,48,42,.85)}
+.fs .k.stop{background:rgba(74,36,32,.88)}
+.fs .k.chk{background:rgba(35,56,43,.88)}
+.fs .k.tilt{background:rgba(38,47,58,.88)}
+@media (orientation:portrait){
+  body.fs{--fsbar:84px}
+  .fs .stage{align-items:flex-start}
+  .fs .signal{top:calc(var(--fsbar) + env(safe-area-inset-top,0px) + 100vw / 1.6 + 8px);left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));max-width:none}
+  body.fs.forkmode .signal{display:grid}
+  .fs .bar{flex-wrap:wrap;row-gap:4px}
+  .fs .stats{flex:1 1 100%;justify-content:space-between}
+  .fs .tools{flex:1 1 100%;justify-content:flex-end}
+}
+@media (orientation:landscape){
+  .fs .controls{background:none;pointer-events:none;padding-top:0}
+  .fs .controls .pad,.fs .controls .sig-grid{pointer-events:none}
+  .fs .controls .k{pointer-events:auto}
+  .fs .pad{width:100%;grid-template-columns:repeat(3,62px) 1fr 80px;grid-template-rows:repeat(2,58px);gap:6px}
+  .fs .drive{display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
+  .fs .stick{pointer-events:auto;width:150px;height:150px;background:radial-gradient(circle at 50% 50%,rgba(48,55,59,.75) 0 54%,rgba(38,44,48,.75) 55% 100%)}
+  .fs .dbtns{pointer-events:none;width:200px;grid-auto-rows:40px}
+  .fs .pedal{max-width:none;grid-template-columns:76px 76px 1fr 150px;grid-template-rows:54px 54px 40px;pointer-events:none}
+  .fs .pedal .pf{grid-column:4;grid-row:1}.fs .pedal .pb{grid-column:4;grid-row:2}.fs .pedal .pm{grid-column:1/3;grid-row:3}.fs .pedal .pc{grid-column:4;grid-row:3}
+  .fs .forkpanel{max-width:none;grid-template-columns:66px 66px 1fr 66px 66px;grid-template-rows:46px 46px 40px;pointer-events:none}
+  .fs .forkpanel .f1{grid-area:1/1}.fs .forkpanel .f2{grid-area:1/2}.fs .forkpanel .f4{grid-area:2/1}.fs .forkpanel .f5{grid-area:2/2}
+  .fs .forkpanel .f3{grid-area:1/4/2/6}.fs .forkpanel .f6{grid-area:2/4/3/6}.fs .forkpanel .f7{grid-area:3/1}.fs .forkpanel .f8{grid-area:3/2}
+  .fs .forkpanel .f9{grid-area:3/4}.fs .forkpanel .f10{grid-area:3/5}.fs .forkpanel .f11{grid-area:3/3;justify-self:center;width:min(200px,100%);font-size:12px}
+  .fs .stage .view.sub{width:min(30%,300px)}
+  .fs .sig-grid{grid-template-columns:64px 64px 1fr 64px 64px 64px;grid-template-rows:repeat(2,52px);gap:6px}
+  .fs .sig-grid .k{min-height:0;font-size:12px}
+  .fs .sig-grid .k:nth-child(1){grid-area:1/1}.fs .sig-grid .k:nth-child(2){grid-area:1/2}
+  .fs .sig-grid .k:nth-child(3){grid-area:2/1}.fs .sig-grid .k:nth-child(4){grid-area:2/2}
+  .fs .sig-grid .k:nth-child(5){grid-area:1/4}.fs .sig-grid .k:nth-child(6){grid-area:1/5}.fs .sig-grid .k:nth-child(7){grid-area:1/6}
+  .fs .sig-grid .k:nth-child(8){grid-area:2/4}.fs .sig-grid .k:nth-child(9){grid-area:2/5}.fs .sig-grid .k:nth-child(10){grid-area:2/6}
+}
+/* スマホ縦向き：スクロールなしの1画面レイアウト */
+@media (max-width:760px) and (orientation:portrait){
+  body:not(.fs){overflow:hidden;padding-block:4px}
+  body:not(.fs) .app{height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 8px);grid-template-rows:auto auto auto minmax(0,1fr);gap:6px}
+  body:not(.fs) .brand{display:none}
+  body:not(.fs) .bar{padding:8px 8px 6px;gap:5px 8px}
+  body:not(.fs) .stats{gap:2px 6px}
+  .deck{display:contents}
+  .log{display:none!important}
+  .controls{align-self:end}
+  .ctl-title,.keys{display:none}
+  .signal{padding:6px 10px;gap:2px}
+  .sigV{font-size:21px}
+  .sigSub{font-size:11.5px}
+  .voice{margin-top:2px}
+  .vbtn{padding:4px 10px;font-size:12px}
+  .vstat{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stick{width:132px;height:132px}
+  .dbtns{grid-auto-rows:41px}
+  .sig-grid .k{min-height:50px}
+}
+.phoneTicker,.fs .ticker{display:block}
+@media (max-width:760px) and (orientation:portrait),(orientation:landscape) and (max-height:520px){
+  .ticker{display:block}
+  body:not(.fs){overflow:hidden}
+}
+.ticker{position:absolute;left:6px;bottom:6px;z-index:3;max-width:calc(100% - 12px);background:rgba(20,24,26,.88);border-left:4px solid var(--mute);border-radius:4px;padding:4px 8px;font-size:11.5px;line-height:1.35;pointer-events:none}
+.ticker.bad{border-left-color:var(--red);color:#ffb3aa}.ticker.warn{border-left-color:var(--yel);color:#ffe9a6}.ticker.ok{border-left-color:var(--grn);color:#bfeccc}
+.fs .ticker{position:fixed;left:50%;transform:translateX(-50%);bottom:auto;top:calc(var(--fsbar) + 64px + env(safe-area-inset-top,0px));max-width:min(70vw,520px);z-index:33}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand"><h1>フォークリフト誘導訓練</h1><small id="sMode">—</small></div>
+    <div class="stats">
+      <div class="stat"><span class="sk">スコア</span><span class="v" id="sScore">100</span></div>
+      <div class="stat"><span class="sk">搬送</span><span class="v" id="sDone">0/3</span></div>
+      <div class="stat"><span class="sk">経過</span><span class="v" id="sTime">00:00</span></div>
+      <div class="stat"><span class="sk">速度 km/h<i>（制限6）</i></span><span class="v" id="sSpd">0.0</span></div>
+      <div class="stat"><span class="sk">フォーク</span><span class="v" id="sFork">下</span></div>
+      <div class="stat"><span class="sk">チルト</span><span class="v" id="sMast">水平</span></div>
+      <div class="stat"><span class="sk">荷揺れ</span><span class="v" id="sTilt">—</span></div>
+    </div>
+    <div class="tools">
+      <button class="btn-ghost" id="btnSub" type="button" aria-pressed="true">小窓</button>
+      <button class="btn-ghost" id="btnFS" type="button">全画面</button>
+      <button class="btn-ghost" id="btnSnd" type="button" aria-pressed="true">音</button>
+      <button class="btn-ghost" id="btnRec" type="button">記録</button>
+      <button class="btn-ghost" id="btnPause" type="button">一時停止</button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <figure class="view" id="vTop"><figcaption><b>上方ビュー</b><span>倉庫全体・赤い扇形は運転者の死角</span><span class="swap-hint">⇄</span></figcaption><canvas id="cTop"></canvas></figure>
+    <figure class="view" id="vCab"><figcaption><b id="cabCap">運転席ビュー</b><span id="cabSub">運転者の目線（後進時は後方）</span><span class="swap-hint">⇄</span></figcaption><canvas id="cCab"></canvas></figure>
+    <div class="ticker" id="ticker" hidden></div>
+  </main>
+
+  <section class="deck">
+    <div class="signal" id="signalBox" data-tone="go">
+      <span class="sigK" id="sigWho">誘導員の合図</span>
+      <span class="sigV" id="sigV">—</span>
+      <span class="sigSub" id="sigSub"></span>
+      <div class="tutbtns" id="tutBtns" hidden><button type="button" class="btn-ghost" id="tutSkip">この手順を飛ばす</button><button type="button" class="btn-ghost" id="tutQuit">チュートリアルを終える</button></div>
+      <div class="voice">
+        <button type="button" class="vbtn" id="btnVoice" aria-pressed="false"><span class="dot"></span><span id="voiceLbl">音声</span></button>
+        <span class="vstat" id="voiceStat"></span>
+      </div>
+    </div>
+
+    <div class="controls" id="ctlDriver">
+      <span class="ctl-title" id="stickTitle">スティック：倒した方向へ進みます</span>
+      <div class="pedal">
+        <button type="button" class="k steer pl" id="pL" data-hold="left">◀<small>ハンドル左</small></button>
+        <button type="button" class="k steer pr" id="pR" data-hold="right">▶<small>ハンドル右</small></button>
+        <button type="button" class="k go2 pf" id="pFwd" data-hold="up">前進<small>押している間</small></button>
+        <button type="button" class="k back pb" id="pBack" data-hold="back">バック<small>押している間</small></button>
+        <button type="button" class="k fmode pm" id="btnForkMode" data-act="forkmode">フォーク操作<small>荷を取る・置く G</small></button>
+        <button type="button" class="k chk pc" id="pChk" data-act="check">指差確認<small>通路の手前で C</small></button>
+      </div>
+      <div class="drive">
+        <div class="stick" id="stick" aria-label="走行スティック"><span class="ar t">▲</span><span class="ar b">▼</span><span class="ar l">◀</span><span class="ar r">▶</span><div class="knob" id="knob"></div></div>
+        <div class="dbtns">
+          <button type="button" class="k fork" data-act="up">上げ<small>フォーク Q</small></button>
+          <button type="button" class="k fork" data-act="down">下げ<small>フォーク E</small></button>
+          <button type="button" class="k back easyOnly" data-hold="back">バック<small>まっすぐ後ろへ B</small></button>
+          <button type="button" class="k chk" data-act="check">指差確認<small>通路の手前で C</small></button>
+          <button type="button" class="k fmode wide" id="btnForkMode2" data-act="forkmode">フォーク操作<small>荷を取る・置く G</small></button>
+        </div>
+      </div>
+      <div class="forkpanel">
+        <button type="button" class="k ss f1" id="fkSL" data-hold="ssl">◀<small>爪を左へ</small></button>
+        <button type="button" class="k ss f2" id="fkSR" data-hold="ssr">▶<small>爪を右へ</small></button>
+        <button type="button" class="k go2 f3" id="fkInF" data-hold="inf">前進<small>長押しで加速</small></button>
+        <button type="button" class="k rot f4" id="fkRL" data-hold="rotl">↺<small>左に回す</small></button>
+        <button type="button" class="k rot f5" id="fkRR" data-hold="rotr">↻<small>右に回す</small></button>
+        <button type="button" class="k back f6" id="fkInB" data-hold="inb">バック<small>長押しで加速</small></button>
+        <button type="button" class="k fork f7" id="fkUp" data-hold="fup">上げ<small>押している間</small></button>
+        <button type="button" class="k fork f8" id="fkDn" data-hold="fdn">下げ<small>押している間</small></button>
+        <button type="button" class="k tilt f9" id="fkTF" data-hold="tfwd">前傾<small>Z</small></button>
+        <button type="button" class="k tilt f10" id="fkTB" data-hold="tback">後傾<small>X</small></button>
+        <button type="button" class="k fmode f11" id="fkExit" data-act="drive">走行モードに戻る<small>G</small></button>
+      </div>
+      <div class="keys">キーボード：<kbd>↑↓</kbd> 前進・後進、<kbd>←→</kbd> ハンドル（<kbd>WASD</kbd> も可）、<kbd>G</kbd> フォーク操作の切替（フォーク操作中：<kbd>↑↓</kbd> ゆっくり前進・バック、<kbd>←→</kbd> 爪を左右へ、<kbd>,</kbd> <kbd>.</kbd> 回す、<kbd>Q</kbd> <kbd>E</kbd> 上げ・下げ、<kbd>Z</kbd> <kbd>X</kbd> 前傾・後傾）、<kbd>C</kbd> 指差確認、<kbd>P</kbd> 一時停止、<kbd>F</kbd> 全画面、<kbd>V</kbd> 小窓、<kbd>M</kbd> 音</div>
+    </div>
+
+    <div class="controls" id="ctlGuide" hidden>
+      <span class="ctl-title">合図を出す（運転者はレベルに応じて0.4〜0.75秒後に従います）</span>
+      <div class="sig-grid">
+        <button type="button" class="k" data-cmd="fwd">前進<small>W</small></button>
+        <button type="button" class="k" data-cmd="back">後進<small>S</small></button>
+        <button type="button" class="k" data-cmd="left">左へ<small>A</small></button>
+        <button type="button" class="k" data-cmd="right">右へ<small>D</small></button>
+        <button type="button" class="k" data-cmd="straight">まっすぐ<small>X</small></button>
+        <button type="button" class="k stop" data-cmd="stop">停止<small>Space</small></button>
+        <button type="button" class="k" data-cmd="slow">徐行<small>Z</small></button>
+        <button type="button" class="k fork" data-cmd="up">上げ<small>Q</small></button>
+        <button type="button" class="k fork" data-cmd="down">下げ<small>E</small></button>
+        <button type="button" class="k chk" data-cmd="check">指差<small>確認 C</small></button>
+      </div>
+      <div class="keys">合図は次の合図まで続きます。「停止」を出すまで運転者は止まりません（レベルによっては見えている人にだけ自分で止まります）。</div>
+    </div>
+
+    <ol class="log" id="log"></ol>
+  </section>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="overlay" id="startOv">
+  <div class="sheet">
+    <h2>フォークリフト誘導訓練</h2>
+    <p>倉庫内の荷物を、同じ番号の置き場へ運びます。荷物が大きいほど運転席から前が見えなくなります。歩行者通路には作業員や動物、ちょっと変わった仲間たちが入ってきます。</p>
+    <div class="tutrow" id="tutRow"><p>はじめての方は、まず<b>基本のチュートリアル</b>（約4分）で、走る・曲がる・荷を取る・運ぶ・下ろすを1つずつ練習しましょう。</p><button class="go" id="btnTut" type="button">チュートリアルを始める</button></div>
+    <h3>モード</h3>
+    <div class="modes">
+      <label class="mode"><input type="radio" name="mode" value="driver" id="mDriver" checked><span><b>運転者モード</b><em>自分で運転します。AI誘導員が「停止」「徐行」などの合図で補助します。</em></span></label>
+      <label class="mode"><input type="radio" name="mode" value="guide" id="mGuide"><span><b>誘導員モード</b><em>合図でAI運転者を誘導します。ボタンのほか声でも合図できます。</em></span></label>
+      <label class="mode"><input type="radio" name="mode" value="duo" id="mDuo"><span><b>2人プレイ</b><em>1人がボタンで運転し、もう1人が声で誘導します。聞き取った合図が画面に大きく出ます。</em></span></label>
+    </div>
+    <h3>ステージ</h3>
+    <div class="modes small" id="stageCards"></div>
+    <div class="opts">
+      <label>レベル
+        <select id="optLevel">
+          <option value="1">Lv1 入門</option><option value="2">Lv2 初級</option><option value="3" selected>Lv3 標準</option><option value="4">Lv4 上級</option><option value="5">Lv5 実戦</option>
+        </select>
+      </label>
+      <label>操作
+        <select id="optStick"><option value="pedal" selected>ボタン（ハンドル＋前進・バック）</option><option value="easy">スティック：かんたん</option><option value="map">スティック：地図基準</option><option value="car">スティック：車体基準</option></select>
+      </label>
+      <label><input type="checkbox" id="optOpen" checked> 初心者コース（棚・柱なし・減点なし）</label>
+      <label><input type="checkbox" id="optAids" checked> 練習用の補助表示（上方ビュー・進路の線・荷役の図解）</label>
+      <label><input type="checkbox" id="optAssist" checked> AI誘導員の補助（運転者モード）</label>
+    </div>
+    <p class="lvdesc" id="lvDesc"></p>
+    <div class="task" id="taskList"></div>
+    <ul class="rules">
+      <li>走行：スティックを倒した方向へ進みます。車体の後ろ側へ倒すと後進します。黄色の点線が進路の予測です。</li>
+      <li>荷取り：爪を「水平」にして、フォークを下げたまま荷物の正面にまっすぐ差し込み、「上げ」。長尺物は長い辺から差し込みます。</li>
+      <li>チルト：持ち上げたら「後傾」で爪を手前に起こして走ると荷崩れしにくくなります。下ろす前に「前傾」で水平に戻します。</li>
+      <li>荷下ろし：置き場の枠内で停止し「下げ」。向きもそろえます。</li>
+      <li>背の高い荷を積んで速く曲がると荷が揺れ、「荷揺れ」ゲージが振り切れると荷崩れします。</li>
+      <li>歩行者通路の手前で止まって「指差確認」（声なら「右よし、左よし」）をすると加点。</li>
+      <li>減点：接触事故 −30、荷崩れ −15、割れ物破損 −20、衝突 −5、ヒヤリハット −5、速度超過（6 km/h超）2秒ごとに −1。</li>
+    </ul>
+    <div class="row">
+      <button class="go" id="btnStart" type="button">訓練を開始</button>
+      <button class="btn-ghost" id="btnRec2" type="button">図鑑・実績を見る</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="resultOv" hidden>
+  <div class="sheet">
+    <h2>訓練結果</h2>
+    <div class="grade"><span class="g" id="rGrade">A</span><div><div class="s" id="rScore">0 点</div><div id="rMode" style="color:var(--mute)"></div><div id="rBest" style="color:var(--mute);font-size:13px"></div></div></div>
+    <div class="gains" id="rGains"></div>
+    <table class="rtable"><tbody id="rRows"></tbody></table>
+    <ul class="notes" id="rNotes"></ul>
+    <div class="row">
+      <button class="go" id="btnNext" type="button" hidden>次のレベルへ</button>
+      <button class="btn-ghost" id="btnAgain" type="button">同じ条件でもう一度</button>
+      <button class="btn-ghost" id="btnMenu" type="button">モード選択に戻る</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="tutOv" hidden>
+  <div class="sheet">
+    <h2>チュートリアル完了</h2>
+    <p>走る・曲がる・バック・フォーク操作（向き・左右・高さを合わせて差し込む）・持ち上げ・指差呼称・荷下ろし・爪の抜き取りの基本ができました。本番では、歩行者や動物が通路に入ってきます。荷物が大きいと前が見えないので、後進で運ぶか、誘導員の合図に従いましょう。</p>
+    <ul class="rules">
+      <li>誘導員モード：合図ボタン（または声）でAI運転者を動かします。</li>
+      <li>2人プレイ：1人が運転、もう1人が声で誘導します。</li>
+    </ul>
+    <div class="row"><button class="go" id="tutToMenu" type="button">本番を始める</button><button class="btn-ghost" id="tutAgain" type="button">もう一度練習する</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="recOv" hidden>
+  <div class="sheet">
+    <div class="rec-head"><h2>記録</h2><button class="btn-ghost" id="recClose" type="button">閉じる</button></div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="dex" aria-selected="true">おじゃま虫図鑑</button>
+      <button type="button" role="tab" data-tab="ach" aria-selected="false">実績</button>
+      <button type="button" role="tab" data-tab="best" aria-selected="false">自己ベスト</button>
+    </div>
+    <div id="recBody"></div>
+    <div class="row"><small style="color:var(--mute);flex:1">記録はこの端末のブラウザにだけ保存されます。</small><button class="btn-ghost danger" id="recReset" type="button">記録を消す</button></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const W=26,H=16;
+const EYE_H=1.95, EYE_OFF=-0.1, FRONT=0.95, NEAR=0.12, FOV=100*Math.PI/180;
+const SPEED_LIMIT=6/3.6;
+const AXLE=0.55,STEER_K=1.4;
+/* 坂（Lv3以上）：荷物置き場の周りが上り坂。uxは上り方向 */
+function slopeDeg(){return (!G||G.tut||settings.level<3)?0:settings.level>=4?6:4;}
+function slopeAt(x){const d=slopeDeg();if(!d)return null;if(x<6.6)return {deg:d,ux:-1,x0:0,x1:6.6};if(x>20.6)return {deg:d,ux:1,x0:20.6,x1:W};return null;}
+function pitchDeg(){const fl=G.fl,sl=slopeAt(fl.x);return sl?sl.deg*Math.cos(fl.th)*sl.ux:0;} // 車体の前が上がっていればプラス
+function effTilt(){return G.fl.mast+(G.pitch||0);} // 地面（重力）に対する荷の傾き：プラス＝手前（後ろ）に倒れている // 前輪車軸の位置（車体中心から前へ）と、ハンドルいっぱいでの曲がりやすさ
+const LANES=[7.5,18.5];
+const LAMPS=[[4.5,3],[4.5,13],[13,2.2],[13,13.8],[21.5,3],[21.5,13]];
+
+/* ---------- データ ---------- */
+const CARGO={
+  S:{w:0.8,d:0.8,h:0.5,name:'小',col:'#3f86c2',desc:'高さ0.5m。前方はよく見える'},
+  F:{w:0.8,d:0.8,h:0.5,name:'小・ワレモノ',col:'#c4453c',fragile:true,desc:'ワレモノ。ぶつけたり荷崩れすると破損'},
+  M:{w:1.1,d:1.1,h:1.1,name:'中',col:'#d07f2c',desc:'高さ1.1m。足元や小さな動物が隠れる'},
+  L:{w:1.4,d:1.4,h:1.9,name:'大',col:'#8b5aa0',desc:'高さ1.9m。前方がほぼ見えない。荷崩れ注意'},
+  LONG:{w:2.4,d:0.8,h:0.6,name:'長尺',col:'#4f8a5b',long:true,desc:'幅2.4m。棚や柱の間はぎりぎり'}
+};
+const SLOT={S:{x:3.2,y:2.4,tx:22.6,ty:13.2},F:{x:3.2,y:2.4,tx:22.6,ty:13.2},M:{x:3.2,y:5.8,tx:22.6,ty:5.8},L:{x:3.2,y:13.2,tx:22.6,ty:2.4},LONG:{x:3.2,y:9.4,tx:22.6,ty:9.4}};
+const CARGO_BY_LEVEL={1:['S','M','L'],2:['F','M','L'],3:['F','M','L','LONG'],4:['F','M','L','LONG'],5:['F','M','L','LONG']};
+const INTR={
+  person:{name:'作業員',r:0.3,h:1.7,sp:1.15,desc:'ヘルメットと反射ベストの作業員。通路の途中で立ち止まることがあります。'},
+  dog:{name:'犬',r:0.35,h:0.55,sp:2.0,desc:'迷い込んだ犬。左右にふらつきながら速く走ります。'},
+  cat:{name:'猫',r:0.22,h:0.3,sp:1.5,desc:'背が低く、荷物の陰にすっぽり隠れます。'},
+  chick:{name:'ヘルメットひよこ',r:0.2,h:0.42,sp:0.6,desc:'黄色いヘルメットのひよこ。よちよち歩きで、何度も立ち止まります。'},
+  cone:{name:'コーンちゃん',r:0.25,h:0.7,sp:1.3,desc:'カラーコーンに手足が生えた子。ぴょこぴょこ跳ねて横断します。'},
+  pallet:{name:'パレットの精',r:0.25,h:0.45,sp:1.8,rare:true,desc:'木製パレットにすむ妖精。めったに現れず、ジグザグに素早く走ります。'},
+  penguin:{name:'迷子のペンギン',r:0.25,h:0.6,sp:0.55,rare:true,desc:'冷凍倉庫から逃げてきた子。足が遅く、ジグザグに歩きます。'}
+};
+const INTR_ORDER=['person','dog','cat','chick','cone','pallet','penguin'];
+const STAGES={
+  warehouse:{name:'標準倉庫',desc:'明るい屋内倉庫。まずはここから。',floor:'#b4b7ae',floorCab:['#8e9189','#b4b7ae'],grid:'rgba(40,45,40,.12)',wall:['#5c656a','#535b60'],wallH:3.4,sky:['#2a3034','#4b5357'],rack:['#3e4b54','#5a6a74'],goods:'#d2832e',pillar:['#8d8f88','#a9aaa3'],phys:{acc:1.4,dec:3.4,steer:4,tilt:1},weights:{person:4,dog:1.2,cat:1.2,chick:1.2,cone:1.2,pallet:0.35,penguin:0.15}},
+  freezer:{name:'冷凍倉庫',desc:'床が凍って滑りやすく、止まるまでの距離が伸びます。ペンギンがよく出ます。',floor:'#c6d8e0',floorCab:['#9fb6c1','#d3e3ea'],grid:'rgba(60,90,110,.15)',wall:['#7896a4','#6c8896'],wallH:3.4,sky:['#3a4b55','#62808e'],rack:['#4f6f80','#6d8fa0'],goods:'#e4edf1',pillar:['#9fb2bb','#bccbd2'],phys:{acc:0.9,dec:1.2,steer:2,tilt:1.1},weights:{person:3,dog:0.3,cat:0.3,chick:0.8,cone:0.6,pallet:0.35,penguin:2.4},fx:'frost'},
+  night:{name:'夜間',desc:'照明が落ちて暗く、ライトの届く範囲しか見えません。青色警告灯が床を照らします。',floor:'#b4b7ae',floorCab:['#8e9189','#b4b7ae'],grid:'rgba(40,45,40,.12)',wall:['#5c656a','#535b60'],wallH:3.4,sky:['#2a3034','#4b5357'],rack:['#3e4b54','#5a6a74'],goods:'#d2832e',pillar:['#8d8f88','#a9aaa3'],phys:{acc:1.4,dec:3.4,steer:4,tilt:1},weights:{person:3,dog:1,cat:2,chick:1,cone:1.6,pallet:0.45,penguin:0.15},fx:'night'},
+  yard:{name:'屋外ヤード（雨）',desc:'雨で視界が悪く、路面も少し滑ります。棚はコンテナに変わります。',floor:'#62676a',floorCab:['#4b5053','#6b7073'],grid:'rgba(255,255,255,.06)',wall:['#6d7468','#646b5f'],wallH:2.0,sky:['#4f585f','#7e888f'],rack:['#2f6d8c','#3b84a8'],rack2:['#9a3b2e','#b54a3b'],goods:null,pillar:['#d9822b','#efa04a'],phys:{acc:1.2,dec:2.2,steer:3,tilt:1.05},weights:{person:3,dog:2,cat:0.6,chick:0.6,cone:2,pallet:0.3,penguin:0.1},fx:'rain'}
+};
+const STAGE_ORDER=['warehouse','freezer','night','yard'];
+const LEVELS={
+  1:{name:'入門',drv:0.30,delay:0.40,freq:[16,22],isp:0.80,stopSee:'all',desc:'運転者はゆっくり（約2.7 km/h）。荷物は小・中・大の3つ。見えている相手には運転者が自分で止まります。'},
+  2:{name:'初級',drv:0.40,delay:0.45,freq:[12,17],isp:0.90,stopSee:'all',desc:'運転者の速度 約3.6 km/h。小さな荷物がワレモノになります。'},
+  3:{name:'標準',drv:0.50,delay:0.55,freq:[9,13],isp:1.00,stopSee:'all',desc:'運転者の速度 約4.5 km/h。幅2.4mの長尺物が加わり、荷物は4つ。'},
+  4:{name:'上級',drv:0.58,delay:0.65,freq:[6,10],isp:1.15,stopSee:'person',desc:'運転者の速度 約5.2 km/h。反応が遅れ、人以外（動物・キャラ）には気づきません。'},
+  5:{name:'実戦',drv:0.65,delay:0.75,freq:[4,7],isp:1.30,stopSee:'none',desc:'運転者の速度 約5.9 km/h。運転者は自分では止まりません。誘導員の「停止」だけが頼りです。'}
+};
+const ACH=[
+  {id:'tutorial',name:'基本をマスター',desc:'基本のチュートリアルを完了する'},
+  {id:'first',name:'はじめの一歩',desc:'訓練を1回完了する'},
+  {id:'safe',name:'無事故',desc:'事故・衝突・ヒヤリハットなしで完了する'},
+  {id:'streak5',name:'無事故5回連続',desc:'無事故での完了を5回続ける'},
+  {id:'reverse',name:'後進マスター',desc:'前が見えない荷物を、前進せず後進で運び切る'},
+  {id:'call10',name:'指差呼称の達人',desc:'指差呼称を累計10回成功させる'},
+  {id:'fragile',name:'ワレモノ名人',desc:'割れ物を無傷で置き場に届ける'},
+  {id:'nospill',name:'荷崩れゼロ',desc:'Lv3以上で荷崩れなしに完了する'},
+  {id:'voice',name:'声だけで誘導',desc:'誘導員モードで、すべての合図を声で出して完了する'},
+  {id:'duo',name:'名コンビ',desc:'2人プレイで完了する'},
+  {id:'lv5',name:'実戦合格',desc:'Lv5をB以上で完了する'},
+  {id:'freezer',name:'氷上の運転手',desc:'冷凍倉庫を完了する'},
+  {id:'night',name:'夜勤明け',desc:'夜間ステージを完了する'},
+  {id:'yard',name:'雨にも負けず',desc:'屋外ヤードを完了する'},
+  {id:'allstage',name:'全ステージ制覇',desc:'4つのステージをすべて完了する'},
+  {id:'rare',name:'レア遭遇',desc:'パレットの精を安全にやり過ごす'},
+  {id:'dex',name:'図鑑コンプリート',desc:'おじゃま虫7種すべてを図鑑に登録する'}
+];
+const MODE_NAME={driver:'運転者モード',guide:'誘導員モード',duo:'2人プレイ'};
+
+const settings={mode:'driver',level:3,stage:'warehouse',assist:true,stick:'pedal',open:true,aids:true};
+const aidsOn=()=>settings.aids||!driverLike();
+const STICK_TITLE={pedal:'左手の ◀ ▶ でハンドル、右手の「前進」「バック」は押している間だけ進みます',easy:'スティック：倒した方向へ進みます（その場で向きを変えます）。後ろへは「バック」',map:'スティック：倒した方向へ進みます（車体の後ろ側へ倒すと後進）',car:'スティック：上で前進・下で後進、左右でハンドル'};
+const stick={x:0,y:0,on:false,dir:1,dirSet:false};
+const LV=()=>LEVELS[settings.level];
+const ST=()=>STAGES[settings.stage];
+const driverLike=()=>settings.mode!=='guide';
+let G=null, iid=0;
+const keys={};
+
+/* ---------- 記録（この端末に保存） ---------- */
+const STORE_KEY='forklift-sim-v1';
+let REC={dex:{},ach:{},best:{},streak:0,calls:0,stages:{}};
+function loadRec(){try{const j=JSON.parse(localStorage.getItem(STORE_KEY)||'null');if(j&&typeof j==='object')REC=Object.assign(REC,j);}catch(_){}}
+function saveRec(){try{localStorage.setItem(STORE_KEY,JSON.stringify(REC));}catch(_){}}
+loadRec();
+
+/* ---------- helpers ---------- */
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function angMod(a,b,q){let d=((a-b)%q+q)%q;return Math.min(d,q-d);}
+function angOK(b,a,tol){return angMod(b.ang,a,b.long?Math.PI:Math.PI/2)<tol;}
+function local(px,py,r){const c=Math.cos(r.ang),s=Math.sin(r.ang),dx=px-r.x,dy=py-r.y;return [dx*c+dy*s,-dx*s+dy*c];}
+function inRect(px,py,r){const [lx,ly]=local(px,py,r);return Math.abs(lx)<=r.hw&&Math.abs(ly)<=r.hh;}
+function circRect(cx,cy,cr,r){const [lx,ly]=local(cx,cy,r);const qx=clamp(lx,-r.hw,r.hw),qy=clamp(ly,-r.hh,r.hh);return Math.hypot(lx-qx,ly-qy)<cr;}
+function rectPts(r){const c=Math.cos(r.ang),s=Math.sin(r.ang),o=[];for(const [a,b] of [[1,1],[1,-1],[-1,-1],[-1,1],[1,0],[-1,0],[0,1],[0,-1]]){const lx=a*r.hw,ly=b*r.hh;o.push([r.x+lx*c-ly*s,r.y+lx*s+ly*c]);}return o;}
+function blockRect(b){return {x:b.x,y:b.y,hw:b.d/2,hh:b.w/2,ang:b.ang};}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);const f=v=>clamp(Math.round(v*k),0,255);return `rgb(${f(n>>16)},${f(n>>8&255)},${f(n&255)})`;}
+function fmtT(t){const m=Math.floor(t/60),s=Math.floor(t%60);return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function wpick(w){let tot=0;for(const k in w)tot+=w[k];let r=Math.random()*tot;for(const k in w){r-=w[k];if(r<=0)return k;}return 'person';}
+
+/* ---------- 音（笛・効果音） ---------- */
+const SND={on:true,ac:null};
+function actx(){
+  if(!SND.ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;try{SND.ac=new A();}catch(_){return null;}}
+  if(SND.ac.state==='suspended')SND.ac.resume().catch(()=>{});
+  return SND.ac;
+}
+function blip({f=880,f2=0,dur=0.12,type='sine',vol=0.12,at=0,vib=0}){
+  if(!SND.on)return;const a=actx();if(!a)return;const t=a.currentTime+at;
+  const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+  if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  if(vib){const l=a.createOscillator(),lg=a.createGain();l.frequency.value=vib;lg.gain.value=f*0.025;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+dur+0.05);}
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.015);g.gain.setValueAtTime(vol,t+Math.max(0.02,dur-0.04));g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+0.05);
+}
+function noise({dur=0.3,vol=0.25,at=0,lp=700}){
+  if(!SND.on)return;const a=actx();if(!a)return;const t=a.currentTime+at;
+  const n=Math.floor(a.sampleRate*dur),buf=a.createBuffer(1,n,a.sampleRate),d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+  const s=a.createBufferSource();s.buffer=buf;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;const g=a.createGain();g.gain.value=vol;
+  s.connect(f);f.connect(g);g.connect(a.destination);s.start(t);
+}
+const SFX={
+  whistle(p){let t=0;for(const d of p){blip({f:2850,dur:d,vol:0.07,at:t,vib:26});t+=d+0.09;}},
+  sig(c){({stop:()=>this.whistle([0.8]),fwd:()=>this.whistle([0.11,0.11,0.11]),back:()=>this.whistle([0.11,0.11]),slow:()=>this.whistle([0.11]),
+    left:()=>this.whistle([0.3]),right:()=>this.whistle([0.3]),straight:()=>this.whistle([0.2]),up:()=>{blip({f:520,f2:780,dur:0.18,vol:0.08});},down:()=>{blip({f:780,f2:520,dur:0.18,vol:0.08});}}[c]||(()=>{}))();},
+  deliver(){blip({f:660,dur:0.12,vol:0.1,type:'triangle'});blip({f:990,dur:0.22,vol:0.1,at:0.12,type:'triangle'});},
+  check(){blip({f:880,dur:0.08,vol:0.09,type:'triangle'});blip({f:1320,dur:0.16,vol:0.09,at:0.08,type:'triangle'});},
+  bump(){noise({dur:0.22,vol:0.35,lp:420});blip({f:140,f2:70,dur:0.18,vol:0.18});},
+  accident(){for(let k=0;k<3;k++){blip({f:620,dur:0.16,vol:0.08,type:'square',at:k*0.36});blip({f:460,dur:0.16,vol:0.08,type:'square',at:k*0.36+0.18});}},
+  spill(){noise({dur:0.6,vol:0.4,lp:900});blip({f:160,f2:50,dur:0.4,vol:0.2,at:0.05});},
+  beep(){blip({f:1150,dur:0.2,vol:0.035,type:'square'});},
+  creak(){blip({f:210,f2:160,dur:0.25,vol:0.05,type:'sawtooth'});},
+  ach(){[523,659,784,1047].forEach((f,k)=>blip({f,dur:0.14,vol:0.08,at:k*0.09,type:'triangle'}));},
+  dex(){blip({f:1047,dur:0.1,vol:0.07,type:'triangle'});blip({f:1568,dur:0.16,vol:0.07,at:0.1,type:'triangle'});}
+};
+document.addEventListener('pointerdown',()=>{actx();},{once:true,capture:true});
+
+/* ---------- トースト ---------- */
+const toastQ=[];let toastBusy=false;
+function toast(head,msg){toastQ.push([head,msg]);if(!toastBusy)nextToast();}
+function nextToast(){const t=$('toast');const it=toastQ.shift();if(!it){t.hidden=true;toastBusy=false;return;}toastBusy=true;t.innerHTML='<b></b><span></span>';t.querySelector('b').textContent=it[0];t.querySelector('span').textContent=it[1];t.hidden=false;setTimeout(nextToast,2600);}
+
+/* ---------- game ---------- */
+function newGame(){
+  iid=0;const st=ST();
+  G={t:0,paused:true,over:false,score:100,coll:0,acc:0,near:0,overT:0,overAcc:0,blindFwd:0,carriedBlind:false,autoStops:0,softTouch:0,
+    spills:0,broken:0,swingHits:0,swingLbl:null,pitch:0,downFwd:0,downWarned:false,tilt:0,tiltSide:1,tiltWarned:false,creakT:0,calls:0,callMiss:0,beepT:0,vPrev:0,
+    btnSig:0,voiceSig:0,duo:null,duoStop:null,duoObey:0,duoIgnore:0,lastAssist:'',newAch:[],newDex:[],
+    cp:LANES.map(()=>({done:false,warned:false})),
+    fl:{x:10.6,y:8,th:Math.PI,v:0,steer:0,fork:0,forkT:0,load:null,mast:0,mastT:0,ss:0},mastDet:0,inThr:0,forkMode:false,holdT:0,fineHold:0,prevFork:0,relId:null,insId:null,dragWarned:false,
+    blocks:CARGO_BY_LEVEL[settings.level].map((k,idx)=>({id:idx+1,kind:k,...CARGO[k],...SLOT[k],ang:0,state:'floor',broken:false})),
+    statics:settings.open?[]:[
+      {kind:'rack',label:settings.stage==='yard'?'コンテナ':'棚',x:13,y:4.75,hw:3,hh:0.45,z:2.6,col:st.rack[0],top:st.rack[1]},
+      {kind:'rack',label:settings.stage==='yard'?'コンテナ':'棚',x:13,y:11.25,hw:3,hh:0.45,z:2.6,col:(st.rack2||st.rack)[0],top:(st.rack2||st.rack)[1]},
+      {kind:'pillar',label:settings.stage==='yard'?'照明柱':'柱',x:13,y:8,hw:0.3,hh:0.3,z:settings.stage==='yard'?5:3.4,col:st.pillar[0],top:st.pillar[1]}
+    ],
+    intr:[],spawnT:6,cmd:{move:0,steer:0,slow:false},queue:[],lastSig:'合図待ち',collCool:0,tips:{},flash:0,overWarned:false,
+    rain:Array.from({length:90},()=>[Math.random(),Math.random(),rnd(0.6,1.4)])};
+  $('log').innerHTML='';
+}
+function forkZ(){return 0.02+G.fl.fork*0.33;}
+const TOL=()=>settings.open?{lat:0.12,ang:0.10}:{lat:0.06,ang:0.05};
+function sAng(b,th){const q=b.long?Math.PI:Math.PI/2;let d=((b.ang-th)%q+q)%q;if(d>q/2)d-=q;return d;}
+function loadRect(s,b){const off=FRONT+0.05+b.d/2,ss=G.fl.ss||0,c=Math.cos(s.th),n=Math.sin(s.th);return {x:s.x+c*off-n*ss,y:s.y+n*off+c*ss,hw:b.d/2,hh:b.w/2,ang:s.th};}
+function bodyCircles(s){const c=Math.cos(s.th),n=Math.sin(s.th);return [[-0.75,0.6],[0.35,0.6]].map(([f,r])=>({x:s.x+c*f,y:s.y+n*f,r}));}
+function forkPts(s){const c=Math.cos(s.th),n=Math.sin(s.th),o=[],ss=G.fl.ss||0;for(const f of [1.45,2.05])for(const l of [-0.3+ss,0.3+ss])o.push([s.x+c*f-n*l,s.y+n*f+c*l]);return o;}
+/* 爪と荷物（パレット差し込み口）の位置関係 */
+function forkFit(b,s){
+  const fl=G.fl;s=s||fl;const [f,l]=local(b.x,b.y,{x:s.x,y:s.y,ang:s.th});
+  const e=l-(fl.ss||0),a=Math.abs(sAng(b,s.th)),face=f-b.d/2,depth=(FRONT+1.1)-face,ratio=clamp(depth/Math.min(1.1,b.d),0,1);
+  const tol=TOL();const inLat=Math.abs(l)<b.w/2+0.45;
+  const enterOK=Math.abs(e)<=tol.lat&&a<=tol.ang&&fl.fork<=0.15&&Math.abs(fl.mast)<=2;
+  return {f,l,e,a,sa:sAng(b,s.th),face,depth,ratio,inserted:depth>0.02&&inLat&&face>FRONT-0.3,enterOK};
+}
+function insertedBlock(){if(G.fl.load||G.insId==null)return null;const b=G.blocks.find(x=>x.id===G.insId&&x.state!=='carried');return b&&forkFit(b).depth>0.02?b:null;}
+function overlapBlock(){if(G.fl.load)return null;for(const b of G.blocks){if(b.state==='carried'||b.id===G.insId)continue;const ft=forkFit(b);if(ft.depth>0.02&&Math.abs(ft.l)<b.w/2+0.4&&ft.face>FRONT-0.3)return b;}return null;}
+function trackInsertion(){
+  const fl=G.fl;if(fl.load){G.insId=null;return;}
+  if(G.insId!=null){const b=G.blocks.find(x=>x.id===G.insId);if(!b||b.state==='carried'||forkFit(b).depth<=0.02)G.insId=null;}
+  if(G.insId==null)for(const b of G.blocks){if(b.state==='carried')continue;const ft=forkFit(b);if(ft.depth>0.02&&ft.depth<0.6&&ft.enterOK&&Math.abs(ft.l)<b.w/2+0.45){G.insId=b.id;break;}}
+}
+function forkTarget(){
+  const fl=G.fl;if(fl.load)return null;let best=null,bs=1e9;
+  for(const b of G.blocks){if(b.state==='carried')continue;const ft=forkFit(b);
+    if(b.id===G.insId&&ft.depth>0.02)return {b,ft};
+    const gap=ft.face-FRONT;if(gap<-0.3||gap>4.5||Math.abs(ft.l)>1.8)continue;const sc=gap+Math.abs(ft.l)*2;if(sc<bs){bs=sc;best={b,ft};}}
+  return best;
+}
+
+function obstacles(){
+  const o=[];
+  for(const st of G.statics)o.push({key:st.kind+st.y,kind:st.kind,label:st.label,rect:{x:st.x,y:st.y,hw:st.hw,hh:st.hh,ang:0}});
+  for(const b of G.blocks)if(b.state!=='carried')o.push({key:'b'+b.id,kind:'block',label:`荷物${b.id}`,obj:b,rect:blockRect(b)});
+  for(const i of G.intr)o.push({key:'i'+i.id,kind:'intruder',label:INTR[i.type].name,obj:i,circ:{x:i.x,y:i.y,r:INTR[i.type].r}});
+  return o;
+}
+function hits(s){
+  const fl=G.fl,out=[],obs=obstacles(),seen=new Set();
+  const add=(o,ex)=>{if(!seen.has(o.key)){seen.add(o.key);out.push(ex?{...o,...ex}:o);}};
+  const wall={key:'wall',kind:'wall',label:settings.stage==='yard'?'フェンス':'壁'};
+  bodyCircles(s).forEach((c,ci)=>{const ex=ci===0?{rear:true}:null;
+    if(c.x-c.r<0||c.x+c.r>W||c.y-c.r<0||c.y+c.r>H)add(wall,ex);
+    for(const o of obs){if(o.rect&&circRect(c.x,c.y,c.r,o.rect))add(o,ex);if(o.circ&&Math.hypot(c.x-o.circ.x,c.y-o.circ.y)<c.r+o.circ.r)add(o,ex);}
+  });
+  if(!fl.load){
+    for(const [px,py] of forkPts(s)){
+      if(px<0||px>W||py<0||py>H)add(wall);
+      for(const o of obs){
+        if(o.rect&&inRect(px,py,o.rect)){
+          if(o.kind!=='block')add(o);
+          else if(driverLike()){if(o.obj.id!==G.insId&&!forkFit(o.obj,s).enterOK)add({...o,key:'f'+o.key,byFork:true});}
+          else if(fl.fork>0.3)add(o);
+        }
+        if(o.circ&&Math.hypot(px-o.circ.x,py-o.circ.y)<o.circ.r)add(o);
+      }
+    }
+    if(driverLike()){const c=Math.cos(s.th),n=Math.sin(s.th),ss=fl.ss||0;
+      for(const lo of [-0.3+ss,0.3+ss]){const fr={x:s.x+c*(FRONT+0.55)-n*lo,y:s.y+n*(FRONT+0.55)+c*lo,hw:0.55,hh:0.06,ang:s.th};
+        for(const o of obs)if(o.kind==='block'&&o.obj.id!==G.insId&&!forkFit(o.obj,s).enterOK&&rectPts(o.rect).some(([px,py])=>inRect(px,py,fr)))add({...o,key:'f'+o.key,byFork:true});}}
+  }else{
+    const lr=loadRect(s,fl.load);
+    for(const [px,py] of rectPts(lr).concat([[lr.x,lr.y]])){
+      if(px<0||px>W||py<0||py>H)add(wall);
+      for(const o of obs)if(o.rect&&inRect(px,py,o.rect))add(o);
+    }
+    for(const o of obs){
+      if(o.rect&&rectPts(o.rect).some(([px,py])=>inRect(px,py,lr)))add(o);
+      if(o.circ&&circRect(o.circ.x,o.circ.y,o.circ.r,lr))add(o);
+    }
+  }
+  return out;
+}
+function alignedBlock(b){
+  const fl=G.fl;const [f,l]=local(b.x,b.y,{x:fl.x,y:fl.y,ang:fl.th});
+  const want=FRONT+0.05+b.d/2;
+  return {ok:Math.abs(l)<0.32&&f>want-0.22&&f<want+0.35&&angOK(b,fl.th,0.3),near:Math.abs(l)<Math.max(0.9,b.w/2)&&f>want-0.4&&f<want+0.9,l,f,want};
+}
+function log(msg,type='info'){
+  const li=document.createElement('li');li.className=type;
+  li.innerHTML=`<time>${fmtT(G.t)}</time><span></span>`;li.querySelector('span').textContent=msg;
+  const L=$('log');L.prepend(li);while(L.children.length>7)L.lastChild.remove();
+  const tk=$('ticker');tk.textContent=msg;tk.className='ticker '+type;tk.hidden=false;clearTimeout(log.tm);log.tm=setTimeout(()=>{tk.hidden=true;},4200);
+}
+function tip(key,msg){if(G.tips[key])return;G.tips[key]=1;log(msg,'warn');}
+function unlock(id){
+  if(REC.ach[id])return;const a=ACH.find(x=>x.id===id);if(!a)return;
+  REC.ach[id]=new Date().toISOString().slice(0,10);saveRec();if(G)G.newAch.push(a.name);
+  toast('実績解除',a.name);SFX.ach();
+}
+function blindLoad(b){const top=0.35+b.h;return top>=EYE_H-0.5;}
+
+function pickUp(got){
+  const fl=G.fl;fl.load=got;got.state='carried';G.tilt=0;G.tiltWarned=false;G.relId=null;G.insId=null;log(`荷物${got.id}（${got.name}）を持ち上げました`,'ok');
+  if(blindLoad(got)){G.carriedBlind=true;tip('L','大きな荷物で前方が見えません。後進で運ぶか、誘導員の合図に従いましょう');}
+  if(got.long)tip('LONG','長尺物は幅2.4m。棚と柱の間はぎりぎりです');
+  if(got.fragile)tip('F','ワレモノです。ぶつけたり、急に曲がったりしないように');
+}
+function forkUp(){
+  if(driverLike()){G.fl.forkT=1;return;}
+  const fl=G.fl;if(fl.forkT===1)return;
+  if(!fl.load&&fl.fork<0.12){
+    if(settings.mode==='guide'){fl.mast=0;fl.mastT=0;}
+    let got=null,nearB=null;
+    for(const b of G.blocks){if(b.state!=='floor')continue;const a=alignedBlock(b);if(a.ok){got=b;break;}if(a.near)nearB={b,a};}
+    if(got&&Math.abs(fl.mast)>2){log(fl.mast>0?'爪が後傾（手前に起きた状態）で差し込めません。「前傾」で水平に戻してください':'爪が前傾していて床に当たります。「後傾」で水平に戻してください','warn');got=null;nearB=null;fl.forkT=1;return;}
+    if(got){pickUp(got);if(settings.mode==='guide')fl.mastT=8;}
+    else if(nearB){const a=nearB.a;let why=Math.abs(a.l)>=0.32?(a.l>0?'右に':'左に')+'ずれています':!angOK(nearB.b,fl.th,0.3)?(nearB.b.long?'長い辺から差し込んでください':'荷物に対して斜めです'):a.f>=a.want+0.35?'差し込みが浅いです':'位置が合っていません';
+      log(`爪が荷物${nearB.b.id}に入っていません（${why}）`,'warn');}
+  }
+  fl.forkT=1;
+}
+function forkDown(){G.fl.forkT=0;if(settings.mode==='guide')G.fl.mastT=0;}
+function forkCaption(){
+  const on=G&&G.forkMode;$('vCab').classList.toggle('tappable',!!on&&aidsOn());
+  $('cabCap').textContent=!on?(settings.mode==='guide'?'運転者から見える景色':'運転席ビュー'):G.forkDiag?'荷役ビュー（図解）・タップで運転席の視点':(aidsOn()?'運転席から爪先を見る・タップで図解':'運転席から爪先を見る');
+}
+function setForkMode(on){
+  if(!G||!driverLike())return;G.forkMode=on;document.body.classList.toggle('forkmode',on);
+  const fl=G.fl;fl.v=0;fl.steer=0;stick.on=false;stick.x=0;stick.y=0;for(const k of ['up','down','left','right','back'])keys[k]=false;
+  if(on){G.prevPrimary=primary;primary='cab';log('フォーク操作モード：爪の左右・高さ・向きを合わせて、ゆっくり差し込もう','info');}
+  else{primary=G.prevPrimary||primary;}
+  G.forkDiag=on&&aidsOn();layoutViews();forkCaption();tutHighlight();
+}
+function release(){
+  const fl=G.fl,b=fl.load;const lr=loadRect(fl,b);
+  b.x=lr.x;b.y=lr.y;b.ang=fl.th;fl.load=null;G.tilt=0;G.relId=b.id;G.insId=b.id;
+  if(driverLike()&&fl.mast>3){b.x-=Math.cos(fl.th)*0.25;b.y-=Math.sin(fl.th)*0.25;G.score-=3;log('後傾のまま下ろしたため、荷が手前にずれました（−3）。下ろす前に水平に戻しましょう','warn');}
+  if(Math.abs(b.x-b.tx)<0.45&&Math.abs(b.y-b.ty)<0.45&&angOK(b,0,0.35)){
+    b.state='done';SFX.deliver();log(`荷物${b.id}を${b.id}番置き場へ下ろしました${b.broken?'（破損あり）':''}`,b.broken?'warn':'ok');
+    if(b.fragile&&!b.broken)unlock('fragile');
+    if(G.blocks.every(x=>x.state==='done')&&!G.tut){G.over=true;setTimeout(showResult,900);}
+  }else{b.state='floor';log(`荷物${b.id}を下ろしました（置き場の枠からずれています）`,'warn');}
+}
+function breakLoad(b,why){if(!b.fragile||b.broken)return;b.broken=true;G.broken++;G.score-=20;log(`ワレモノ破損：${why}（−20）`,'bad');}
+function spill(){
+  const fl=G.fl,b=fl.load;const lr=loadRect(fl,b);const side=G.tiltSide||1;
+  const c=Math.cos(fl.th),s=Math.sin(fl.th);const off=side*(b.w/2+0.45);
+  b.x=clamp(lr.x-s*off,1,W-1);b.y=clamp(lr.y+c*off,1,H-1);b.ang=fl.th+rnd(-0.5,0.5);b.state='floor';
+  fl.load=null;G.tilt=0;G.spills++;G.score-=15;G.flash=0.8;SFX.spill();
+  log(`荷崩れ：荷物${b.id}が落下しました（−15）。曲がるときは減速し、爪は後傾に`,'bad');
+  breakLoad(b,'荷崩れで落下');
+}
+const SIGNAME={fwd:'前進',back:'後進',left:'左へ',right:'右へ',straight:'まっすぐ',stop:'停止',up:'フォーク上げ',down:'フォーク下げ',slow:'徐行',check:'右よし左よし'};
+function applyCmd(c){
+  switch(c){case'fwd':G.cmd.move=1;G.cmd.slow=false;break;case'back':G.cmd.move=-1;G.cmd.slow=false;break;
+    case'slow':G.cmd.slow=true;if(!G.cmd.move)G.cmd.move=1;break;case'left':G.cmd.steer=-1;break;case'right':G.cmd.steer=1;break;
+    case'straight':G.cmd.steer=0;break;case'stop':G.cmd.move=0;break;case'up':forkUp();break;case'down':forkDown();break;}
+}
+function sendSignal(c,byVoice){
+  if(!G||G.paused||G.over)return;
+  if(c==='check'){callCheck(byVoice);return;}
+  if(byVoice)G.voiceSig++;else G.btnSig++;
+  SFX.sig(c);G.lastSig=SIGNAME[c];G.queue.push({c,at:G.t+LV().delay});
+}
+function duoSignal(c){
+  if(!G||G.paused||G.over)return;
+  if(c==='check'){callCheck(true);return;}
+  SFX.sig(c);G.duo={c,t:G.t};
+  if(c==='stop')G.duoStop=G.t;
+}
+/* 指差呼称：歩行者通路の手前で停止中に確認 */
+function crossingState(){
+  const fl=G.fl;let best=null;
+  LANES.forEach((L,idx)=>{const d=Math.abs(fl.x-L);if(d>0.8+1.0&&d<0.8+4.5&&(!best||d<best.d))best={idx,d};});
+  return best;
+}
+function callCheck(quiet){
+  if(!G||G.paused||G.over)return;
+  const cs=crossingState(),fl=G.fl;
+  if(cs&&Math.abs(fl.v)<0.08){
+    const cp=G.cp[cs.idx];if(cp.done){if(!quiet)log('この通路はもう確認済みです','info');return;}
+    cp.done=true;G.calls++;REC.calls=(REC.calls||0)+1;saveRec();G.score+=3;SFX.check();
+    log('指差呼称「右よし、左よし」 +3','ok');if(REC.calls>=10)unlock('call10');
+  }else if(cs){if(!quiet)log('いったん止まってから確認しましょう','warn');}
+  else if(!quiet)log('確認ポイント（歩行者通路の手前）で止まって使います','info');
+}
+function onHit(h){
+  const fl=G.fl;const swing=h.rear&&Math.abs(fl.steer)>0.3;if(swing)G.swingHits++;const pre=swing?'尻振り：':'';
+  if(h.kind==='intruder'){
+    const i=h.obj;if(!i.hit){i.hit=true;G.acc++;G.score-=30;G.flash=1;SFX.accident();log(`${pre}接触事故：${INTR[i.type].name}に${swing?'車体の後ろが':''}接触しました（−30）`,'bad');if(fl.load)breakLoad(fl.load,'接触の衝撃');}
+    i.waitT=Math.max(i.waitT,2);
+  }else if(h.byFork){
+    if(G.collCool<=0){G.collCool=1.5;SFX.bump();const ft=forkFit(h.obj);const tol=TOL();
+      const why=Math.abs(fl.mast)>2?'爪が傾いています':ft.a>tol.ang?'向きがずれています':Math.abs(ft.e)>tol.lat?'左右がずれています':fl.fork>0.15?'爪が高すぎます':'位置が合っていません';
+      if(settings.open)log(`爪がパレットに当たりました（${why}）`,'warn');else{G.coll++;G.score-=3;log(`爪がパレットに当たりました（${why}）−3`,'bad');}}
+  }else if(h.kind==='block'&&!fl.load&&(driverLike()?forkFit(h.obj).enterOK:(fl.fork<0.3&&alignedBlock(h.obj).ok))){
+    if(!G.softTouch){G.softTouch=1;log(`荷物${h.obj.id}に爪が差し込まれました。フォークを上げてください`,'info');}
+  }else if(settings.open){
+    if(G.collCool<=0){G.collCool=2.5;SFX.bump();log(`${pre}${h.label}に${swing?'車体の後ろが':''}ぶつかりました（初心者コースなので減点なし）`,'info');}
+  }else if(G.collCool<=0){
+    G.coll++;G.score-=5;G.collCool=1.2;SFX.bump();log(`${pre}${h.label}に${swing?'車体の後ろが':''}衝突しました（−5）`,'bad');
+    if(fl.load)breakLoad(fl.load,`${h.label}に衝突`);
+  }
+  if(settings.mode==='guide')G.cmd.move=0;
+}
+function eyeFrame(x,y){const fl=G.fl,c=Math.cos(fl.th),s=Math.sin(fl.th);const ex=fl.x+c*EYE_OFF,ey=fl.y+s*EYE_OFF;const dx=x-ex,dy=y-ey;return [dx*c+dy*s,-dx*s+dy*c];}
+function blindInfo(){
+  const b=G.fl.load;if(!b)return null;
+  const top=forkZ()+0.04+b.h,dn=FRONT+0.05-EYE_OFF,df=dn+b.d;
+  const D0=top>=EYE_H-0.02?16:Math.min(16,EYE_H*df/(EYE_H-top));
+  return {top,dn,df,D0,half:b.w/2};
+}
+function hiddenFromDriver(i){
+  const bi=blindInfo();if(!bi)return false;const [fd,ld]=eyeFrame(i.x,i.y);const T=INTR[i.type];
+  if(fd<bi.dn)return false;
+  if(Math.abs(ld)-T.r>bi.half*fd/bi.dn)return false;
+  if(bi.top>=EYE_H-0.02)return true;
+  return T.h<EYE_H-(EYE_H-bi.top)*fd/bi.df;
+}
+function inDark(i){
+  if(settings.stage!=='night')return false;const fl=G.fl;
+  const hx=fl.x+Math.cos(fl.th)*2,hy=fl.y+Math.sin(fl.th)*2;
+  if(Math.hypot(i.x-hx,i.y-hy)<4.5)return false;
+  for(const [lx,ly] of LAMPS)if(Math.hypot(i.x-lx,i.y-ly)<2.4)return false;
+  return i.type!=='person'&&i.type!=='cone';
+}
+function driverSees(i,dirSign){
+  const [fd,ld]=eyeFrame(i.x,i.y);const d=Math.hypot(fd,ld);
+  if(inDark(i))return false;
+  const range=settings.stage==='yard'?3.4:4.2;
+  if(dirSign>=0){if(fd<0.3||Math.abs(ld)>fd*1.19)return false;return !hiddenFromDriver(i)&&d<range;}
+  if(fd>0||Math.abs(ld)>-fd*1.19)return false;return d<range;
+}
+function rearView(){
+  const fl=G.fl;if(fl.v<-0.05)return true;
+  if(driverLike())return ((keys.down&&!keys.up&&settings.stick!=='easy')||keys.back||keys.inb||G.inThr<0)&&fl.v<=0.05;
+  return G.cmd.move<0&&fl.v<=0.05;
+}
+function spawnIntruder(){
+  const type=wpick(ST().weights);const lane=pick(LANES);const dir=Math.random()<0.5?1:-1;
+  const pauses=[];
+  if(type==='person'&&Math.random()<0.5)pauses.push(rnd(3,13));
+  if(type==='chick'){pauses.push(rnd(2,7));pauses.push(rnd(8,13));}
+  if(type==='penguin'&&Math.random()<0.6)pauses.push(rnd(4,12));
+  if((type==='dog'||type==='cat'||type==='cone')&&Math.random()<0.3)pauses.push(rnd(4,12));
+  pauses.sort((a,b)=>a-b);
+  const i={id:++iid,type,lane,bx:lane+rnd(-0.4,0.4),x:0,y:dir>0?-0.6:H+0.6,dir,t:rnd(0,6),trav:0,waitT:0,pauses,near:false,hit:false,seen:false};
+  i.x=i.bx;G.intr.push(i);
+  const T=INTR[type];
+  if(T.rare&&!(type==='penguin'&&settings.stage==='freezer'))log(`レア！${T.name}が${dir>0?'北':'南'}側から現れました`,'ok');
+  else log(`${T.name}が${dir>0?'北':'南'}側の通路口から入ってきました`,'info');
+}
+function fpOverlap(cx,cy,r){
+  const fl=G.fl;for(const c of bodyCircles(fl))if(Math.hypot(cx-c.x,cy-c.y)<r+c.r)return true;
+  if(fl.load&&circRect(cx,cy,r,loadRect(fl,fl.load)))return true;return false;
+}
+function registerDex(type){
+  const first=!REC.dex[type];REC.dex[type]=(REC.dex[type]||0)+1;saveRec();
+  if(first){G.newDex.push(INTR[type].name);toast('図鑑に登録',INTR[type].name);SFX.dex();}
+  if(type==='pallet')unlock('rare');
+  if(INTR_ORDER.every(k=>REC.dex[k]))unlock('dex');
+}
+
+function update(dt){
+  const fl=G.fl,ph=ST().phys;G.t+=dt;G.collCool-=dt;G.flash=Math.max(0,G.flash-dt*1.5);
+  let thr=0,st=0;
+  let spin=0;
+  const insB=driverLike()?insertedBlock():null;
+  if(driverLike()&&G.forkMode){
+    // フォーク操作モード：インチング・サイドシフト・回転・爪の上下
+    let fwd=(keys.inf||keys.up)?1:0,bwd=(keys.inb||keys.down||keys.back)?1:0;let sx=((keys.ssr||keys.right)?1:0)-((keys.ssl||keys.left)?1:0);
+    if(stick.on&&settings.stick!=='pedal'){if(stick.y<-0.25)fwd=1;else if(stick.y>0.25)bwd=1;if(Math.abs(stick.x)>0.25)sx=Math.sign(stick.x);}
+    if(fwd||bwd)G.fineHold+=dt;else G.fineHold=0;
+    const nearP=!!insB||!!overlapBlock()||(()=>{const t=forkTarget();return !!t&&t.ft.face-FRONT-1.1<0.6&&Math.abs(t.ft.l)<0.9;})();
+    const cap=nearP?0.12:0.3,sp=Math.min(cap,0.05+G.fineHold*0.12);
+    thr=fwd?sp:bwd?-sp:0;
+    if(sx){const nss=clamp(fl.ss+sx*0.15*dt,-0.15,0.15);if(!insB||Math.abs(forkFit(insB).l-nss)<=TOL().lat)fl.ss=nss;}
+    if(!insB)spin=((keys.rotr?1:0)-(keys.rotl?1:0))*0.08*dt;
+    else if(keys.rotr||keys.rotl)tip('rotIns','爪が刺さっている間は回せません');
+    const df=((keys.fup||keys.q)?1:0)-((keys.fdn||keys.e)?1:0);if(df){fl.fork=clamp(fl.fork+df*0.45*dt,0,1);fl.forkT=fl.fork;}
+  }else if(driverLike()&&settings.stick==='pedal'){
+    const fw=keys.up&&!keys.back,bk=keys.back||keys.down;
+    if(fw||bk)G.holdT+=dt;else G.holdT=0;
+    if(fw)thr=Math.min(0.62,0.12+G.holdT*0.3);else if(bk)thr=-Math.min(0.5,0.12+G.holdT*0.3);
+    st=(keys.right?1:0)-(keys.left?1:0);
+  }else if(driverLike()&&settings.stick==='easy'){
+    // かんたん操作：倒した方向へその場で向きを変えて進む（矢印キーも地図の向き）
+    let vx=stick.on?stick.x:0,vy=stick.on?stick.y:0;
+    if(!stick.on){vx=(keys.right?1:0)-(keys.left?1:0);vy=(keys.down?1:0)-(keys.up?1:0);}
+    const mag=Math.min(1,Math.hypot(vx,vy));
+    if(keys.back){thr=-0.45;}
+    else if(mag>0.18){const psi=Math.atan2(vy,vx);const d=Math.atan2(Math.sin(psi-fl.th),Math.cos(psi-fl.th));
+      const rot=(1.0+1.6*mag)*dt;spin=clamp(d,-rot,rot);thr=Math.abs(d)<0.5?0.62*Math.pow(mag,1.6)*Math.cos(d):0;}
+  }else if(driverLike()){
+    thr=(keys.up?1:0)-(keys.down?1:0);st=(keys.right?1:0)-(keys.left?1:0);
+    const mag=Math.min(1,Math.hypot(stick.x,stick.y));
+    if(stick.on&&mag>0.18){
+      if(settings.stick==='car'){thr=-stick.y*(stick.y<0?0.65:1);st=clamp(stick.x*1.3,-1,1);if(Math.abs(thr)<0.2)thr=0;}
+      else{
+        const psi=Math.atan2(stick.y,stick.x);const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+        const d=wrap(psi-fl.th);
+        if(!stick.dirSet&&mag>=0.35){stick.dir=Math.abs(d)<=Math.PI/2+0.2?1:-1;stick.dirSet=true;}
+        else if(stick.dirSet){if(stick.dir===1&&Math.abs(d)>2.0)stick.dir=-1;else if(stick.dir===-1&&Math.abs(d)<1.15)stick.dir=1;}
+        if(!stick.dirSet){thr=0;st=0;}
+        else if(stick.dir===1){st=clamp(d*1.8,-1,1);thr=0.65*mag*(Math.abs(d)>0.9?0.4:1);}
+        else{const d2=wrap(psi-fl.th-Math.PI);st=-clamp(d2*1.8,-1,1);thr=-mag*(Math.abs(d2)>0.9?0.4:1);}
+      }
+    }
+  }
+  else{while(G.queue.length&&G.queue[0].at<=G.t)applyCmd(G.queue.shift().c);
+    const dirS=G.cmd.move;
+    const ss=LV().stopSee;if(dirS!==0&&ss!=='none')for(const i of G.intr){if(ss==='person'&&i.type!=='person')continue;if(!i.seen&&driverSees(i,dirS)){i.seen=true;G.cmd.move=0;G.autoStops++;log(`運転者：${INTR[i.type].name}が見えたので停止しました`,'info');}}
+    thr=G.cmd.move*LV().drv*(G.cmd.slow?0.5:1);st=G.cmd.steer;
+    const dm=fl.mastT-fl.mast;fl.mast+=Math.sign(dm)*Math.min(Math.abs(dm),8*dt);}
+  if(driverLike()){
+    // チルト（前傾・後傾）
+    if(G.mastDet>0)G.mastDet-=dt;
+    else{const dm=(keys.tback?1:0)-(keys.tfwd?1:0);
+      if(dm){const nm=clamp(fl.mast+dm*7*dt,-6,12);if(fl.mast!==0&&Math.sign(nm)!==Math.sign(fl.mast)){fl.mast=0;G.mastDet=0.45;}else fl.mast=nm;}}
+  }
+  G.inThr=thr;
+  const target=thr>0?thr*2.5:thr<0?thr*1.6:0;
+  const diff=target-fl.v;const rate=(Math.abs(fl.v)<0.02||Math.sign(diff)===Math.sign(fl.v))?ph.acc:(target===0?ph.dec*1.3:ph.dec);
+  fl.v+=Math.sign(diff)*Math.min(Math.abs(diff),rate*dt);
+  fl.steer+=(st-fl.steer)*Math.min(1,dt*ph.steer);
+  if(insB)spin=0;
+  // 後輪操舵：前輪の車軸が進行方向へ進み、車体の後ろが外へ振り出す
+  const om=fl.v*(insB?0:fl.steer)*STEER_K;const th2=fl.th+om*dt+spin,thm=fl.th+om*dt*0.5;
+  const fx=fl.x+Math.cos(fl.th)*AXLE+Math.cos(thm)*fl.v*dt,fy=fl.y+Math.sin(fl.th)*AXLE+Math.sin(thm)*fl.v*dt;
+  const nx={x:fx-Math.cos(th2)*AXLE,y:fy-Math.sin(th2)*AXLE,th:th2};
+  if(driverLike()&&Math.abs(fl.steer)>0.6&&Math.abs(fl.v)>0.3)tip('swing','ハンドルを切ると、車体の後ろが外側へ振り出します（尻振り）。上方ビューの赤い帯に注意しよう');
+  const cur=new Set(hits(fl).map(h=>h.key));const nh=hits(nx).filter(h=>!cur.has(h.key));
+  if(nh.length){fl.v=0;onHit(nh.find(h=>h.kind==='intruder')||nh[0]);}
+  else{
+    const moved=Math.hypot(nx.x-fl.x,nx.y-fl.y);
+    // 爪を下げきらずに抜くと荷を引きずる
+    if(insB&&fl.v<-0.01&&fl.fork>0.06){insB.x+=nx.x-fl.x;insB.y+=nx.y-fl.y;
+      if(!G.dragWarned){G.dragWarned=true;if(settings.open)log('爪が荷に当たったまま抜いています。「下げ」で下げきってから抜こう','warn');else{G.score-=2;log('爪が荷に当たったまま抜き、荷を引きずりました（−2）。下げきってから抜こう','bad');}}
+      if(insB.state==='done'&&!(Math.abs(insB.x-insB.tx)<0.45&&Math.abs(insB.y-insB.ty)<0.45)){insB.state='floor';log(`荷物${insB.id}が置き場からずれました`,'warn');}}
+    if(fl.load&&fl.v>0.1){const bi=blindInfo();if(bi.D0>6)G.blindFwd+=moved;}
+    fl.x=nx.x;fl.y=nx.y;fl.th=th2;if(moved>0.01)G.softTouch=0;
+  }
+  // 後退警報音
+  if(fl.v<-0.05){G.beepT-=dt;if(G.beepT<=0){SFX.beep();G.beepT=0.55;}}else G.beepT=0;
+  // フォーク
+  if(!(driverLike()&&G.forkMode)){const fd=fl.forkT-fl.fork;fl.fork+=Math.sign(fd)*Math.min(Math.abs(fd),1.6*dt);}
+  if(driverLike()){
+    const pf=G.prevFork;
+    if(!fl.load&&pf<=0.15&&fl.fork>0.15){
+      const b=insertedBlock();
+      if(b){const ft=forkFit(b);
+        if(ft.ratio>=0.75)pickUp(b);
+        else{fl.fork=0.15;fl.forkT=0.15;if(G.collCool<=0){G.collCool=1.2;log(`差し込みが浅いので持ち上げられません（${Math.round(ft.ratio*100)}%）。奥まで差し込もう`,'warn');}}}
+    }else if(fl.load&&pf>0.15&&fl.fork<=0.15)release();
+    trackInsertion();
+    if(!insertedBlock())G.dragWarned=false;
+  }else if(fl.load&&fl.forkT===0&&fl.fork<=0.02)release();
+  G.prevFork=fl.fork;
+  // 坂：車体の傾き（前上がりがプラス）
+  G.pitch+=(pitchDeg()-G.pitch)*Math.min(1,dt*6);
+  if(fl.load&&driverLike()&&fl.v>0.2&&G.pitch<-1.5){G.downFwd+=Math.abs(fl.v)*dt;
+    if(!G.downWarned){G.downWarned=true;if(settings.open)log('下り坂を、荷を積んだまま前進で下りています。荷を坂の上側にして「バック」で下りよう','warn');else{G.score-=3;log('下り坂を荷を積んだまま前進で下りました（−3）。荷を坂の上側にして後進で下りよう','bad');}}}
+  if(!fl.load)G.downWarned=false;
+  // 荷の傾き（荷崩れ）
+  if(fl.load){
+    const b=fl.load;const lat=Math.abs(fl.v*fl.v*fl.steer*0.7);const acc=Math.abs((fl.v-G.vPrev)/Math.max(dt,1e-3));
+    const et=effTilt();const mf=et>=4?0.65:et<=-2?1.4+(-et-2)*0.08:1;
+    const hf=(forkZ()+0.04+b.h)/1.2*(b.fragile?1.25:1)*(b.long?0.85:1)*ph.tilt*mf;
+    if(driverLike()&&Math.abs(fl.v)>0.5){if(et<1&&Math.abs(G.pitch)<0.5)tip('mast','荷を持ったら「後傾」で爪を手前に起こすと、荷崩れしにくくなります');if(et<=-2)tip('mastF',Math.abs(G.pitch)>0.5?'坂で荷が前に傾いています。坂に合わせてチルトを調整しよう（荷が地面に対して少し手前に倒れているのが安全）':'荷が前に傾いています。前に落ちやすくなります');}
+    const risk=lat*hf+Math.max(0,acc-2.2)*0.25*hf;
+    if(risk>1.0){G.tilt+=(risk-1.0)*0.55*dt;if(Math.abs(fl.steer)>0.1)G.tiltSide=-Math.sign(fl.steer);}
+    else G.tilt=Math.max(0,G.tilt-0.3*dt);
+    if(G.tilt>0.45&&!G.tiltWarned){G.tiltWarned=true;log('荷が揺れています！減速して、ゆっくり曲がりましょう','warn');}
+    if(G.tilt>0.55){G.creakT-=dt;if(G.creakT<=0){SFX.creak();G.creakT=0.6;}}
+    if(G.tilt>=1)spill();
+    else{const lr=loadRect(fl,b);b.x=lr.x;b.y=lr.y;b.ang=fl.th;}
+  }
+  G.vPrev=fl.v;
+  // 速度
+  if(Math.abs(fl.v)>SPEED_LIMIT+0.02){G.overT+=dt;G.overAcc+=dt;if(!G.overWarned){G.overWarned=true;log('速度超過：構内の制限は6 km/hです','warn');}
+    while(G.overAcc>=2){G.overAcc-=2;G.score-=1;}}
+  // 歩行者通路の横断チェック
+  LANES.forEach((L,idx)=>{const d=Math.abs(fl.x-L),cp=G.cp[idx];
+    if(d<0.8+1.0&&Math.abs(fl.v)>0.3&&!cp.done&&!cp.warned){cp.warned=true;G.callMiss++;log('指差呼称をせずに歩行者通路を横断しました','warn');}
+    if(d>0.8+5.5){cp.done=false;cp.warned=false;}});
+  // 2人プレイ：停止の合図に従ったか
+  if(G.duoStop!=null){
+    if(Math.abs(fl.v)<0.05){G.duoObey++;G.score+=2;log('停止の合図に従いました +2','ok');G.duoStop=null;}
+    else if(G.t-G.duoStop>2.5){G.duoIgnore++;G.score-=5;log('停止の合図に従いませんでした（−5）','bad');G.duoStop=null;}
+  }
+  // おじゃま虫
+  G.spawnT-=dt;if(G.spawnT<=0){spawnIntruder();const f=LV().freq;G.spawnT=rnd(f[0],f[1]);}
+  for(const i of G.intr){
+    const T=INTR[i.type];i.t+=dt;
+    if(i.waitT>0){i.waitT-=dt;continue;}
+    let sp=T.sp*LV().isp;
+    if(i.type==='chick'||i.type==='penguin')sp*=0.55+0.45*Math.abs(Math.sin(i.t*6));
+    if(i.type==='cone')sp*=Math.max(0,Math.sin(i.t*7))*1.6;
+    const step=sp*dt;let ny=i.y+i.dir*step;
+    const ox={dog:Math.sin(i.t*1.8)*0.7,cat:Math.sin(i.t*0.9)*0.3,pallet:Math.sin(i.t*3)*0.6,penguin:Math.sin(i.t*1.2)*0.45}[i.type]||0;
+    const nx2=i.bx+ox;
+    if(fpOverlap(nx2,ny,T.r))continue;
+    i.x=nx2;i.y=ny;i.trav+=step;
+    if(i.pauses.length&&i.trav>=i.pauses[0]){i.pauses.shift();i.waitT=i.type==='person'?2.6:i.type==='chick'?1.6:1.3;}
+    if(!i.near&&!i.hit&&Math.abs(fl.v)>0.4){
+      let d=99;for(const c of bodyCircles(fl))d=Math.min(d,Math.hypot(i.x-c.x,i.y-c.y)-c.r);
+      if(fl.load){const lr=loadRect(fl,fl.load);const [lx,ly]=local(i.x,i.y,lr);d=Math.min(d,Math.hypot(lx-clamp(lx,-lr.hw,lr.hw),ly-clamp(ly,-lr.hh,lr.hh)));}
+      if(d-T.r<0.7){i.near=true;G.near++;G.score-=5;log(`ヒヤリハット：${T.name}のすぐ近くを走行しました（−5）`,'warn');}
+    }
+  }
+  G.intr=G.intr.filter(i=>{const out=i.y<-1.5||i.y>H+1.5;if(out&&!i.hit)registerDex(i.type);return !out;});
+  G.score=Math.max(0,G.score);
+  if(G.tut)tutUpdate(dt);
+}
+
+/* ---------- 基本のチュートリアル ---------- */
+const TUT=[
+  {t:'前に進む',pedal:'右手の「前進」を押している間だけ進みます。指を離すと止まります。1mほど進もう',easy:'スティックを倒すと、その方向へ進みます。右（→）へ倒して、1mほど進もう',map:'スティックを右（→）へ倒すと、車体が右へ向かって進みます。1mほど進もう',car:'スティックを上に倒すと前進します。1mほど進もう',hl:{pedal:'#pFwd',def:'#stick'},ok:T=>T.fwd>=1.0},
+  {t:'曲がる',pedal:'「前進」を押しながら ◀ ▶ でハンドルを切ろう。フォークリフトは後輪で曲がるので、車体の後ろが外側へ振り出します（上方ビューの赤い帯＝尻振り）',easy:'スティックを上（↑）や下（↓）に倒すと、その場で向きを変えてから進みます',map:'スティックを右下（↘）へ倒すと、その方向へ曲がります。黄色の点線が進む道の予測です',car:'上に倒したまま左右に傾けると曲がります。黄色の点線が進む道の予測です',hl:{pedal:'#pR',def:'#stick'},ok:T=>T.turn>=0.7},
+  {t:'バックする',pedal:'「バック」を押している間、後ろに下がります。警報音が鳴り、運転席ビューが後方に切り替わります',easy:'「バック」ボタンを押している間、まっすぐ後ろに下がります',map:'車体の後ろ側（←）へ倒すと後進します',car:'スティックを下に倒すと後進します',hl:{pedal:'#pBack',easy:'[data-hold=back]',def:'#stick'},ok:T=>T.rev>=1.0},
+  {t:'荷物の前へ',all:'上（北）にある荷物1（青い箱）に正面から向かい、1〜2m手前で止まろう。爪は荷物の真ん中に向けます',hl:{pedal:'#pFwd',def:'#stick'},ok:()=>{const ft=forkFit(G.blocks[0]);const gap=ft.face-FRONT-1.1;return gap>-0.05&&gap<2.2&&Math.abs(ft.l)<0.5&&ft.a<0.35&&Math.abs(G.fl.v)<0.05;}},
+  {t:'フォーク操作へ',all:'「フォーク操作」を押そう。ボタンが、荷を扱うための操作に切り替わります',hl:{def:'#btnForkMode,#btnForkMode2'},ok:()=>G.forkMode},
+  {t:'爪を水平にする',all:'爪が後傾（手前に起きた状態）だと差し込めません。「前傾」を押して、チルトを「水平」にしよう',hl:{def:'#fkTF'},ok:()=>G.forkMode&&Math.abs(G.fl.mast)<0.5},
+  {t:'向きを合わせる',all:'右の数値「向き」が OK になるまで、「↺ 左に回す」「↻ 右に回す」で少しずつ回そう',hl:{def:'#fkRL,#fkRR'},ok:()=>forkFit(G.blocks[0]).a<=TOL().ang},
+  {t:'左右を合わせる',all:'「◀ 爪を左へ」「▶ 爪を右へ」で爪だけを左右に動かして、「左右 OK」にしよう（サイドシフト）',hl:{def:'#fkSL,#fkSR'},ok:()=>Math.abs(forkFit(G.blocks[0]).e)<=TOL().lat},
+  {t:'高さを合わせる',all:'「下げ」を押して、爪を差し込み口（2〜12cm）の高さまで下げよう。右の図で爪が緑になればOK',hl:{def:'#fkDn'},ok:()=>G.fl.fork<=0.15},
+  {t:'差し込む',all:'「前進」で奥まで差し込もう（荷物の近くではゆっくり進みます）。下の表示が75%以上になればOK。ずれていると爪がパレットに当たります',hl:{def:'#fkInF'},ok:()=>{const b=G.blocks[0];const ft=forkFit(b);return G.insId===b.id&&ft.ratio>=0.75;}},
+  {t:'持ち上げる',all:'「上げ」を押し続けて、荷を床から持ち上げよう。走るときは床から15cmくらい上げます',hl:{def:'#fkUp'},ok:()=>!!G.fl.load&&G.fl.fork>=0.4},
+  {t:'後傾にする',all:'「後傾」で爪を手前に起こそう（4°以上）。走行中に荷が落ちにくくなります',hl:{def:'#fkTB'},ok:()=>G.fl.mast>=4},
+  {t:'走行に戻る',all:'「走行モードに戻る」を押して、運転の操作に戻ろう',hl:{def:'#fkExit'},ok:()=>!G.forkMode},
+  {t:'指差呼称',all:'右側の歩行者通路（黄色く光る所）の手前で止まって、「指差確認」を押そう。右よし、左よし！',hl:{def:'#pChk,[data-act=check]'},ok:()=>G.calls>=1},
+  {t:'置き場へ運ぶ',all:'右へ曲がって通路を渡り、1番置き場（青い点線の枠）まで運ぼう。荷が枠の中に入ったら止まります',hl:{pedal:'#pFwd',def:'#stick'},ok:()=>{const fl=G.fl,b=fl.load;if(!b)return false;const lr=loadRect(fl,b);return Math.abs(lr.x-b.tx)<0.45&&Math.abs(lr.y-b.ty)<0.45&&angOK({ang:fl.th,long:false},0,0.35)&&Math.abs(fl.v)<0.1;}},
+  {t:'フォーク操作で水平に',all:'「フォーク操作」に切り替えて、「前傾」で爪を水平に戻そう',hl:{def:'#btnForkMode,#btnForkMode2,#fkTF'},ok:()=>G.forkMode&&!!G.fl.load&&Math.abs(G.fl.mast)<=1},
+  {t:'下ろす',all:'「下げ」を押して、荷を床に置こう',hl:{def:'#fkDn'},ok:()=>G.blocks[0].state==='done'},
+  {t:'爪を下げきる',all:'爪がまだ荷に当たっています。「下げ」で一番下まで下げよう。このまま抜くと荷を引きずります',hl:{def:'#fkDn'},ok:()=>G.fl.fork<=0.06},
+  {t:'爪を抜く',all:'「バック」でまっすぐ下がって、爪を抜こう',hl:{def:'#fkInB'},ok:()=>{const b=G.blocks[0];const ft=forkFit(b);return G.insId!==b.id&&ft.face-FRONT-1.1>0.15&&b.state==='done';}}
+];
+function tutText(st){return st.all||st[settings.stick]||st.map;}
+function tutHighlight(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));if(!G||!G.tut||G.over)return;const st=TUT[G.tut.i];if(!st||!st.hl)return;const sel=st.hl[settings.stick]||st.hl.def;if(sel)document.querySelectorAll(sel).forEach(e=>e.classList.add('hl'));}
+function startTutorial(){
+  actx();settings.stick=$('optStick').value;settings.open=true;settings.aids=true;settings.mode='driver';settings.stage='warehouse';settings.level=1;settings.assist=false;
+  newGame();
+  G.blocks=[{id:1,kind:'S',...CARGO.S,x:3.6,y:3.0,tx:12.6,ty:3.0,ang:0,state:'floor',broken:false}];
+  Object.assign(G.fl,{x:2.2,y:10.5,th:0,mast:6,fork:0.6,forkT:0.6});G.prevFork=0.6;G.spawnT=1e9;
+  G.tut={i:0,okT:0,fwd:0,turn:0,rev:0,px:2.2,py:10.5,pth:0};
+  REC.tutSeen=true;saveRec();
+  G.paused=false;keepAwake();$('startOv').hidden=true;$('resultOv').hidden=true;$('tutOv').hidden=true;applyModeUI();
+  $('sMode').textContent='チュートリアル';$('stickTitle').textContent=STICK_TITLE[settings.stick];
+  log('チュートリアル開始：光っているボタンを使って、画面の指示どおりに操作しよう','info');tutHighlight();
+}
+function tutUpdate(dt){
+  const T=G.tut,fl=G.fl;const mv=Math.hypot(fl.x-T.px,fl.y-T.py);
+  if(fl.v>0.05)T.fwd+=mv;else if(fl.v<-0.05)T.rev+=mv;
+  T.turn+=Math.abs(Math.atan2(Math.sin(fl.th-T.pth),Math.cos(fl.th-T.pth)));T.px=fl.x;T.py=fl.y;T.pth=fl.th;
+  if(T.okT>0){T.okT-=dt;if(T.okT<=0){T.i++;T.fwd=0;T.rev=0;T.turn=0;if(T.i>=TUT.length){G.over=true;showTutDone();return;}tutHighlight();}return;}
+  // 先の状態まで進んでいたら、手順を追いつかせる
+  {const b=G.blocks[0];let to=-1;
+    if(b.state==='done'&&T.i<16)to=16;
+    else if(fl.load&&T.i<10)to=10;
+    if(to>=0){T.i=to;T.fwd=0;T.rev=0;T.turn=0;log(`手順「${TUT[to].t}」まで進めました`,'info');tutHighlight();return;}}
+  if(T.i>=11&&T.i<=15&&!fl.load&&G.blocks[0].state==='floor'){T.i=G.forkMode?5:3;log('荷を下ろしてしまいました。もう一度、荷物の前から差し込もう','warn');tutHighlight();return;}
+  const st=TUT[T.i];if(st&&st.ok(T)){T.okT=0.9;SFX.check();}
+}
+function showTutDone(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));unlock('tutorial');$('tutOv').hidden=false;}
+
+/* ---------- フォーク操作のガイド ---------- */
+function forkHint(){
+  const fl=G.fl,tol=TOL(),cm=v=>Math.round(Math.abs(v)*100);
+  if(fl.load){const b=fl.load,lr=loadRect(fl,b);const inZone=Math.abs(lr.x-b.tx)<0.45&&Math.abs(lr.y-b.ty)<0.45&&angOK({ang:fl.th,long:b.long},0,0.35);
+    if(!inZone){if(fl.fork<0.4)return ['もう少し上げる','走行できる高さまで「上げ」で持ち上げよう'];if(effTilt()<3)return ['後傾に','「後傾」で爪を手前に起こしてから運ぼう（坂では坂に合わせて）'];return ['走行に戻る','「走行モードに戻る」を押して、置き場まで運ぼう'];}
+    if(fl.mast>1)return ['水平に','下ろす前に「前傾」で爪を水平に戻そう'];
+    return ['下ろす','「下げ」を押して荷を下ろそう'];}
+  const ov=overlapBlock();if(ov)return ['いったん離れる','爪が荷物に当たっています。「バック」で少し離れてから、向き・左右・高さを合わせ直そう'];
+  const ins=insertedBlock();
+  if(ins&&ins.id===G.relId){if(fl.fork>0.06)return ['下げきる','爪が荷に当たっています。「下げ」で一番下まで下げよう'];return ['抜く','「バック」でまっすぐ下がって爪を抜こう'];}
+  if(ins){const ft=forkFit(ins);if(ft.ratio<0.75)return ['差し込む',`「前進」で奥まで差し込もう（${Math.round(ft.ratio*100)}%）。やめるときは「下げ」で下げきってから「バック」`];return ['持ち上げる','「上げ」で荷を持ち上げよう（やめるときは下げきってから「バック」）'];}
+  const t=forkTarget();
+  if(!t)return ['荷物を探す','荷物の正面に近づいてから使います。「走行モードに戻る」で移動しよう'];
+  const ft=t.ft;
+  if(Math.abs(fl.mast)>2)return ['水平に',fl.mast>0?'爪が後傾しています。「前傾」で水平に戻そう':'爪が前傾しています。「後傾」で水平に戻そう'];
+  if(ft.a>tol.ang)return ['向きを合わせる',`${ft.sa>0?'「↻ 右に回す」':'「↺ 左に回す」'}で ${Math.max(1,Math.round(ft.a*180/Math.PI))}° 回そう`];
+  if(Math.abs(ft.e)>tol.lat){if(Math.abs(ft.l)>0.15+tol.lat)return ['寄せ直す',`ずれが大きい（${cm(ft.l)}cm）ので、走行モードで車体ごと寄せ直そう`];return ['左右を合わせる',`「${ft.e>0?'▶ 爪を右へ':'◀ 爪を左へ'}」であと ${cm(ft.e)}cm`];}
+  if(fl.fork>0.15)return ['高さを合わせる','「下げ」で爪を差し込み口の高さ（2〜12cm）まで下げよう'];
+  return ['差し込む','「前進」でゆっくり差し込もう'];
+}
+function forkSuggest(){
+  const fl=G.fl;if(!driverLike()||G.forkMode)return false;
+  if(fl.load){const lr=loadRect(fl,fl.load);return Math.hypot(lr.x-fl.load.tx,lr.y-fl.load.ty)<1.0&&Math.abs(fl.v)<0.2;}
+  const t=forkTarget();return !!t&&t.ft.face-FRONT<2.2&&Math.abs(t.ft.l)<0.8&&Math.abs(fl.v)<0.3;
+}
+
+/* ---------- AI 誘導員（運転者モード） ---------- */
+function assistSignal(){
+  const fl=G.fl;const c=Math.cos(fl.th),s=Math.sin(fl.th);
+  const dirS=Math.abs(fl.v)>0.05?Math.sign(fl.v):(keys.down?-1:1);
+  let danger=null,caution=null;
+  for(const i of G.intr){
+    const dx=i.x-fl.x,dy=i.y-fl.y,d=Math.hypot(dx,dy),along=(dx*c+dy*s)*dirS;
+    if(along>-0.8&&d<4.6)danger=i;else if(d<7.5)caution=i;
+  }
+  if(danger)return ['停止',`${INTR[danger.type].name}が${dirS>0?'前方':'後方'}にいます。止まってください`,'stop'];
+  {const sw=swingHazard();if(sw)return ['尻振り注意',`曲がると車体の後ろが振り出します。${INTR[sw.type].name}に当たらないよう止まって`,'stop'];}
+  if(forkSuggest())return ['フォーク操作',fl.load?'置き場に着きました。「フォーク操作」に切り替えて下ろそう':'荷物の手前です。止まって「フォーク操作」に切り替えよう','warn'];
+  if(fl.load&&G.tilt>0.35)return ['減速','荷が揺れています。ゆっくり曲がってください','warn'];
+  if(fl.load&&fl.v>0.2&&G.pitch<-1.5)return ['後進で','下り坂です。荷を坂の上側にして「バック」で下りよう','stop'];
+  if(fl.load&&Math.abs(fl.v)>0.3&&effTilt()<-1)return ['チルト調整','坂で荷が前に傾いています。坂に合わせて爪を起こそう','warn'];
+  if(fl.load&&Math.abs(fl.v)>0.3&&Math.abs(G.pitch)<0.5&&fl.mast<3)return ['後傾に','荷を持ったら爪を後傾にして走行しましょう','warn'];
+  if(fl.load&&blindInfo().D0>6&&fl.v>0.2)return ['後進で',settings.stick==='easy'?'荷物で前が見えていません。「バック」で後ろ向きに運びましょう':'荷物で前が見えていません。後進で走行してください','warn'];
+  if(Math.abs(fl.v)>SPEED_LIMIT)return ['減速','制限速度6 km/hを超えています','warn'];
+  const cs=crossingState();
+  if(cs&&!G.cp[cs.idx].done){if(Math.abs(fl.v)<0.08)return ['確認','「指差確認」で右よし、左よし','warn'];return ['一旦停止','歩行者通路の手前です。止まって左右確認','warn'];}
+  if(caution)return ['徐行',`近くに${INTR[caution.type].name}がいます`,'warn'];
+  if(!fl.load&&Math.abs(fl.mast)>2){const a=alignedNear();if(a)return ['水平に','荷を取る前に爪を水平に戻してください','warn'];}
+  return ['よし','周囲に危険はありません','go'];
+}
+function alignedNear(){for(const b of G.blocks){if(b.state!=='floor')continue;if(alignedBlock(b).near)return b;}return null;}
+function objective(){
+  const fl=G.fl;
+  if(fl.load)return {x:fl.load.tx,y:fl.load.ty,txt:`荷物${fl.load.id} → ${fl.load.id}番置き場`};
+  const b=G.blocks.find(b=>b.state==='floor');
+  return b?{x:b.x,y:b.y,txt:`次：荷物${b.id}（${b.name}）`}:null;
+}
+
+/* ---------- キャラクター描画（足元を原点、m=1mあたりのpx） ---------- */
+function eyes(g,x,y,r,gap){g.fillStyle='#1d1d1d';g.beginPath();g.arc(x-gap,y,r,0,7);g.arc(x+gap,y,r,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(x-gap+r*0.35,y-r*0.35,r*0.35,0,7);g.arc(x+gap+r*0.35,y-r*0.35,r*0.35,0,7);g.fill();}
+function blush(g,x,y,r,gap){g.fillStyle='rgba(255,120,140,.55)';g.beginPath();g.ellipse(x-gap,y,r,r*0.6,0,0,7);g.ellipse(x+gap,y,r,r*0.6,0,0,7);g.fill();}
+function drawChar(g,type,m,t){
+  g.save();
+  if(type==='person'){
+    g.fillStyle='#2f3b52';g.fillRect(-0.16*m,-0.85*m,0.12*m,0.85*m);g.fillRect(0.04*m,-0.85*m,0.12*m,0.85*m);
+    g.fillStyle='#ff7a1a';g.fillRect(-0.24*m,-1.45*m,0.48*m,0.62*m);
+    g.fillStyle='#e8f04a';g.fillRect(-0.24*m,-1.2*m,0.48*m,0.06*m);
+    g.fillStyle='#e7c3a0';g.beginPath();g.arc(0,-1.56*m,0.12*m,0,7);g.fill();
+    g.fillStyle='#f4f4f0';g.beginPath();g.ellipse(0,-1.63*m,0.15*m,0.09*m,0,Math.PI,0);g.fill();
+  }else if(type==='dog'){
+    g.fillStyle='#8a5a32';g.fillRect(-0.28*m,-0.32*m,0.07*m,0.32*m);g.fillRect(0.2*m,-0.32*m,0.07*m,0.32*m);
+    g.beginPath();g.ellipse(0,-0.38*m,0.34*m,0.14*m,0,0,7);g.fill();g.beginPath();g.arc(0.3*m,-0.5*m,0.12*m,0,7);g.fill();
+    g.fillStyle='#5c3a1e';g.beginPath();g.ellipse(0.26*m,-0.56*m,0.05*m,0.09*m,0.4,0,7);g.fill();
+  }else if(type==='cat'){
+    g.fillStyle='#6d6f73';g.beginPath();g.ellipse(0,-0.15*m,0.18*m,0.09*m,0,0,7);g.fill();g.beginPath();g.arc(0.17*m,-0.24*m,0.07*m,0,7);g.fill();
+    g.beginPath();g.moveTo(0.12*m,-0.28*m);g.lineTo(0.14*m,-0.36*m);g.lineTo(0.19*m,-0.29*m);g.moveTo(0.18*m,-0.29*m);g.lineTo(0.23*m,-0.36*m);g.lineTo(0.24*m,-0.27*m);g.fill();
+    g.strokeStyle='#6d6f73';g.lineWidth=0.03*m;g.beginPath();g.moveTo(-0.17*m,-0.15*m);g.quadraticCurveTo(-0.3*m,-0.25*m,-0.24*m,-0.35*m);g.stroke();
+  }else if(type==='chick'){
+    const bob=Math.abs(Math.sin(t*6))*0.02*m;g.translate(0,-bob);
+    g.fillStyle='#f29a1f';g.fillRect(-0.08*m,-0.04*m,0.05*m,0.04*m);g.fillRect(0.03*m,-0.04*m,0.05*m,0.04*m);
+    g.fillStyle='#ffd83d';g.beginPath();g.arc(0,-0.18*m,0.16*m,0,7);g.fill();
+    g.fillStyle='#ffe98a';g.beginPath();g.ellipse(0,-0.12*m,0.09*m,0.07*m,0,0,7);g.fill();
+    eyes(g,0,-0.22*m,0.022*m,0.055*m);blush(g,0,-0.17*m,0.025*m,0.09*m);
+    g.fillStyle='#f29a1f';g.beginPath();g.moveTo(-0.03*m,-0.18*m);g.lineTo(0.03*m,-0.18*m);g.lineTo(0,-0.14*m);g.fill();
+    g.fillStyle='#f6f6ef';g.beginPath();g.ellipse(0,-0.31*m,0.15*m,0.08*m,0,Math.PI,0);g.fill();g.fillRect(-0.17*m,-0.315*m,0.34*m,0.025*m);
+    g.fillStyle='#2f9a4b';g.fillRect(-0.012*m,-0.38*m,0.024*m,0.06*m);g.fillRect(-0.03*m,-0.362*m,0.06*m,0.024*m);
+  }else if(type==='cone'){
+    const hop=Math.max(0,Math.sin(t*7))*0.12*m;g.translate(0,-hop);
+    g.fillStyle='#2b2b2b';g.fillRect(-0.06*m,-0.02*m+hop*0.2,0.04*m,0.04*m);g.fillRect(0.02*m,-0.02*m+hop*0.2,0.04*m,0.04*m);
+    g.fillStyle='#3a3a3a';g.fillRect(-0.24*m,-0.08*m,0.48*m,0.07*m);
+    g.fillStyle='#ff6a1a';g.beginPath();g.moveTo(-0.17*m,-0.08*m);g.lineTo(0.17*m,-0.08*m);g.lineTo(0.035*m,-0.68*m);g.lineTo(-0.035*m,-0.68*m);g.closePath();g.fill();
+    g.fillStyle='#f4f4f0';for(const [y0,y1] of [[-0.24,-0.31],[-0.44,-0.5]]){const w0=0.17-(-y0-0.08)/0.6*0.135,w1=0.17-(-y1-0.08)/0.6*0.135;g.beginPath();g.moveTo(-w0*m,y0*m);g.lineTo(w0*m,y0*m);g.lineTo(w1*m,y1*m);g.lineTo(-w1*m,y1*m);g.fill();}
+    eyes(g,0,-0.37*m,0.022*m,0.045*m);blush(g,0,-0.34*m,0.02*m,0.075*m);
+    g.strokeStyle='#ff6a1a';g.lineWidth=0.025*m;g.beginPath();g.moveTo(-0.1*m,-0.3*m);g.lineTo(-0.2*m,-0.22*m);g.moveTo(0.1*m,-0.3*m);g.lineTo(0.2*m,-0.38*m);g.stroke();
+  }else if(type==='pallet'){
+    g.fillStyle='#6b4a2a';g.fillRect(-0.12*m,-0.06*m,0.04*m,0.06*m);g.fillRect(0.08*m,-0.06*m,0.04*m,0.06*m);
+    g.fillStyle='#c79a5b';g.fillRect(-0.22*m,-0.36*m,0.44*m,0.3*m);
+    g.fillStyle='#a77b42';for(let k=0;k<3;k++)g.fillRect(-0.22*m,(-0.33+k*0.1)*m,0.44*m,0.025*m);
+    g.strokeStyle='#6b4a2a';g.lineWidth=0.015*m;g.strokeRect(-0.22*m,-0.36*m,0.44*m,0.3*m);
+    eyes(g,0,-0.24*m,0.025*m,0.07*m);blush(g,0,-0.19*m,0.025*m,0.12*m);
+    g.strokeStyle='#3a8a3e';g.lineWidth=0.02*m;g.beginPath();g.moveTo(0,-0.36*m);g.lineTo(0,-0.45*m);g.stroke();
+    g.fillStyle='#4cb052';g.beginPath();g.ellipse(-0.04*m,-0.46*m,0.045*m,0.022*m,-0.5,0,7);g.ellipse(0.04*m,-0.46*m,0.045*m,0.022*m,0.5,0,7);g.fill();
+  }else if(type==='penguin'){
+    const sway=Math.sin(t*6)*0.08;g.rotate(sway);
+    g.fillStyle='#f29a1f';g.fillRect(-0.09*m,-0.03*m,0.07*m,0.03*m);g.fillRect(0.02*m,-0.03*m,0.07*m,0.03*m);
+    g.fillStyle='#22262b';g.beginPath();g.ellipse(0,-0.3*m,0.18*m,0.29*m,0,0,7);g.fill();
+    g.fillStyle='#f4f4f0';g.beginPath();g.ellipse(0,-0.24*m,0.12*m,0.2*m,0,0,7);g.fill();
+    g.fillStyle='#22262b';g.beginPath();g.ellipse(-0.18*m,-0.28*m,0.04*m,0.12*m,0.3,0,7);g.ellipse(0.18*m,-0.28*m,0.04*m,0.12*m,-0.3,0,7);g.fill();
+    g.fillStyle='#f4f4f0';g.beginPath();g.arc(-0.06*m,-0.45*m,0.04*m,0,7);g.arc(0.06*m,-0.45*m,0.04*m,0,7);g.fill();
+    g.fillStyle='#111';g.beginPath();g.arc(-0.055*m,-0.45*m,0.02*m,0,7);g.arc(0.055*m,-0.45*m,0.02*m,0,7);g.fill();
+    g.fillStyle='#f29a1f';g.beginPath();g.moveTo(-0.035*m,-0.4*m);g.lineTo(0.035*m,-0.4*m);g.lineTo(0,-0.35*m);g.fill();
+    blush(g,0,-0.37*m,0.025*m,0.1*m);
+  }
+  g.restore();
+}
+function drawCharTop(g,i){
+  const T=INTR[i.type];g.save();g.translate(i.x,i.y);
+  if(i.type==='person'){g.rotate(i.dir>0?Math.PI/2:-Math.PI/2);g.fillStyle='#ff7a1a';g.beginPath();g.ellipse(0,0,0.18,0.3,0,0,7);g.fill();g.fillStyle='#f4f4f0';g.beginPath();g.arc(0,0,0.13,0,7);g.fill();g.strokeStyle='#222';g.lineWidth=0.03;g.stroke();}
+  else if(i.type==='dog'){g.rotate(i.dir>0?Math.PI/2:-Math.PI/2);g.fillStyle='#8a5a32';g.beginPath();g.ellipse(0,0,0.38,0.16,0,0,7);g.fill();g.beginPath();g.arc(0.38,0,0.12,0,7);g.fill();}
+  else if(i.type==='cat'){g.rotate(i.dir>0?Math.PI/2:-Math.PI/2);g.fillStyle='#6d6f73';g.beginPath();g.ellipse(0,0,0.22,0.1,0,0,7);g.fill();g.beginPath();g.arc(0.22,0,0.08,0,7);g.fill();}
+  else if(i.type==='chick'){g.fillStyle='#ffd83d';g.beginPath();g.arc(0,0,0.18,0,7);g.fill();g.fillStyle='#f6f6ef';g.beginPath();g.arc(0,0,0.1,0,7);g.fill();g.fillStyle='#2f9a4b';g.fillRect(-0.015,-0.05,0.03,0.1);g.fillRect(-0.05,-0.015,0.1,0.03);}
+  else if(i.type==='cone'){g.fillStyle='#ff6a1a';g.beginPath();g.arc(0,0,0.24,0,7);g.fill();g.strokeStyle='#f4f4f0';g.lineWidth=0.05;g.beginPath();g.arc(0,0,0.14,0,7);g.stroke();g.fillStyle='#ff6a1a';g.beginPath();g.arc(0,0,0.06,0,7);g.fill();}
+  else if(i.type==='pallet'){g.fillStyle='#c79a5b';g.fillRect(-0.22,-0.22,0.44,0.44);g.fillStyle='#a77b42';for(let k=0;k<3;k++)g.fillRect(-0.22,-0.17+k*0.15,0.44,0.05);g.fillStyle='#4cb052';g.beginPath();g.arc(0,0,0.06,0,7);g.fill();}
+  else if(i.type==='penguin'){g.fillStyle='#22262b';g.beginPath();g.ellipse(0,0,0.2,0.24,0,0,7);g.fill();g.fillStyle='#f4f4f0';g.beginPath();g.ellipse(0,i.dir*0.06,0.12,0.14,0,0,7);g.fill();g.fillStyle='#f29a1f';g.beginPath();g.arc(0,i.dir*0.2,0.05,0,7);g.fill();}
+  g.restore();
+  if(INTR[i.type].rare){g.strokeStyle='rgba(240,166,255,.9)';g.lineWidth=0.05;g.beginPath();g.arc(i.x,i.y,T.r+0.18,0,7);g.stroke();}
+}
+
+/* ---------- 上方ビュー ---------- */
+const cTop=$('cTop'),cCab=$('cCab'),gT=cTop.getContext('2d'),gC=cCab.getContext('2d');
+let dpr=1;const darkCv=document.createElement('canvas'),gD=darkCv.getContext('2d');
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);for(const c of [cTop,cCab]){const r=c.getBoundingClientRect();c.width=Math.max(2,Math.round(r.width*dpr));c.height=Math.max(2,Math.round(r.height*dpr));}}
+new ResizeObserver(resize).observe(cTop);new ResizeObserver(resize).observe(cCab);
+function pathPreview(){
+  const fl=G.fl;let dir=Math.abs(fl.v)>0.05?Math.sign(fl.v):Math.sign(G.inThr||0);
+  if(!dir){if(Math.abs(fl.steer)<0.05)return null;dir=1;}
+  let x=fl.x,y=fl.y,th=fl.th;const pts=[];const step=0.12;
+  for(let k=0;k<34;k++){const om=dir*fl.steer*STEER_K*step;const fx=x+Math.cos(th)*AXLE+Math.cos(th+om/2)*step*dir,fy=y+Math.sin(th)*AXLE+Math.sin(th+om/2)*step*dir;th+=om;x=fx-Math.cos(th)*AXLE;y=fy-Math.sin(th)*AXLE;pts.push([x,y,th]);}
+  return {pts,dir};
+}
+function pathEdge(p,dir,lat){const off=dir>0?(G.fl.load?FRONT+0.05+G.fl.load.d:FRONT+1.1):-1.3;const c=Math.cos(p[2]),s=Math.sin(p[2]);return [p[0]+c*off-s*lat,p[1]+s*off+c*lat];}
+function rearCorner(p,l){const c=Math.cos(p[2]),s=Math.sin(p[2]);return [p[0]-c*1.3-s*l,p[1]-s*1.3+c*l];}
+function swingHazard(){
+  const fl=G.fl;if(Math.abs(fl.steer)<0.3)return null;const pp=pathPreview();if(!pp)return null;
+  const pts=[[fl.x,fl.y,fl.th],...pp.pts.slice(0,12)];
+  for(const i of G.intr){const r=INTR[i.type].r+0.45;for(const p of pts)for(const l of [-0.56,0.56]){const q=rearCorner(p,l);if(Math.hypot(q[0]-i.x,q[1]-i.y)<r)return i;}}
+  return null;
+}
+function blueSpots(){const fl=G.fl,c=Math.cos(fl.th),s=Math.sin(fl.th);return [[fl.x+c*3.4,fl.y+s*3.4],[fl.x-c*3.6,fl.y-s*3.6]];}
+
+function drawTop(){
+  if(!aidsOn())return;
+  const c=cTop,g=gT,s=c.width/W,fl=G.fl,stg=ST(),night=stg.fx==='night';
+  g.setTransform(1,0,0,1,0,0);g.fillStyle=stg.floor;g.fillRect(0,0,c.width,c.height);
+  g.setTransform(s,0,0,s,0,0);
+  g.lineWidth=1/s;g.strokeStyle=stg.grid;g.beginPath();
+  for(let x=1;x<W;x++){g.moveTo(x,0);g.lineTo(x,H);}for(let y=1;y<H;y++){g.moveTo(0,y);g.lineTo(W,y);}g.stroke();
+  if(stg.fx==='rain'){g.fillStyle='rgba(30,40,50,.28)';for(const [x,y,r] of [[6,3,1.4],[16,6.5,1.1],[20,14,1.6],[10,13.5,1],[3,10,0.9]]){g.beginPath();g.ellipse(x,y,r,r*0.6,0.3,0,7);g.fill();}}
+  // 坂（上り方向の矢印と勾配）
+  if(slopeDeg()){for(const x0 of [0,20.6]){const sl=slopeAt(x0+0.1);const x1=x0===0?6.6:W;
+    g.fillStyle='rgba(120,90,40,.16)';g.fillRect(x0,0,x1-x0,H);
+    g.strokeStyle='rgba(120,90,40,.45)';g.lineWidth=0.08;for(let y=1.2;y<H;y+=2.2){for(let k=0;k<2;k++){const cx=x0+(x1-x0)*(0.3+k*0.4);g.beginPath();g.moveTo(cx-sl.ux*0.3,y-0.45);g.lineTo(cx+sl.ux*0.3,y);g.lineTo(cx-sl.ux*0.3,y+0.45);g.stroke();}}}}
+  // 歩行者通路と一時停止線
+  for(const L of LANES){
+    g.fillStyle='rgba(76,140,90,.22)';g.fillRect(L-0.8,0,1.6,H);
+    g.strokeStyle='#e9c21a';g.lineWidth=0.08;g.setLineDash([0.5,0.3]);g.beginPath();g.moveTo(L-0.8,0);g.lineTo(L-0.8,H);g.moveTo(L+0.8,0);g.lineTo(L+0.8,H);g.stroke();g.setLineDash([]);
+    g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=0.07;g.beginPath();g.moveTo(L-1.8,0.4);g.lineTo(L-1.8,H-0.4);g.moveTo(L+1.8,0.4);g.lineTo(L+1.8,H-0.4);g.stroke();
+    g.fillStyle='#e9c21a';g.fillRect(L-0.8,-0.05,1.6,0.25);g.fillRect(L-0.8,H-0.2,1.6,0.25);
+  }
+  // 置き場
+  for(const b of G.blocks){const zw=b.d+0.6,zh=b.w+0.6;g.fillStyle=b.state==='done'?'rgba(70,178,106,.25)':'rgba(255,255,255,.18)';g.fillRect(b.tx-zw/2,b.ty-zh/2,zw,zh);
+    g.strokeStyle=b.col;g.lineWidth=0.09;g.setLineDash([0.3,0.18]);g.strokeRect(b.tx-zw/2,b.ty-zh/2,zw,zh);g.setLineDash([]);}
+  // 棚・柱・コンテナ
+  for(const st of G.statics){g.fillStyle=st.col;g.fillRect(st.x-st.hw,st.y-st.hh,st.hw*2,st.hh*2);
+    if(st.kind==='rack'){
+      if(stg.goods){g.fillStyle=stg.goods;for(let x=st.x-st.hw+0.1;x<st.x+st.hw-0.3;x+=1.2)g.fillRect(x,st.y-st.hh+0.1,1.0,st.hh*2-0.2);}
+      else{g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=0.05;g.beginPath();for(let x=st.x-st.hw+0.3;x<st.x+st.hw;x+=0.3){g.moveTo(x,st.y-st.hh);g.lineTo(x,st.y+st.hh);}g.stroke();}
+      g.strokeStyle='#22292d';g.lineWidth=0.06;g.strokeRect(st.x-st.hw,st.y-st.hh,st.hw*2,st.hh*2);}
+    else{g.strokeStyle='#e9c21a';g.lineWidth=0.08;g.strokeRect(st.x-st.hw,st.y-st.hh,st.hw*2,st.hh*2);}}
+  // 死角
+  const bi=blindInfo();
+  if(bi&&!rearView()){
+    const cs=Math.cos(fl.th),sn=Math.sin(fl.th);const ex=fl.x+cs*EYE_OFF,ey=fl.y+sn*EYE_OFF;
+    const P=(f,l)=>[ex+cs*f-sn*l,ey+sn*f+cs*l];const D=bi.D0,w=bi.half*D/bi.dn;
+    const pts=[P(bi.df,bi.half*bi.df/bi.dn),P(D,w),P(D,-w),P(bi.df,-bi.half*bi.df/bi.dn)];
+    const a=P(bi.df,0),b2=P(D,0);const gr=g.createLinearGradient(a[0],a[1],b2[0],b2[1]);
+    const strong=bi.top>=EYE_H-0.02;gr.addColorStop(0,'rgba(229,73,60,.42)');gr.addColorStop(1,strong?'rgba(229,73,60,.18)':'rgba(229,73,60,0)');
+    g.fillStyle=gr;g.beginPath();g.moveTo(...pts[0]);for(const p of pts.slice(1))g.lineTo(...p);g.closePath();g.fill();
+  }
+  // 指差呼称ポイント
+  const cs0=crossingState();
+  if(cs0&&!G.cp[cs0.idx].done){const L=LANES[cs0.idx];const side=fl.x<L?-1:1;g.fillStyle=`rgba(242,196,24,${0.18+0.12*Math.sin(G.t*6)})`;g.fillRect(side<0?L-1.8:L+0.8,0,1.0,H);}
+  const ob=objective();
+  if(ob){g.strokeStyle='rgba(30,40,45,.55)';g.lineWidth=0.06;g.setLineDash([0.25,0.2]);g.beginPath();g.moveTo(fl.x,fl.y);g.lineTo(ob.x,ob.y);g.stroke();g.setLineDash([]);}
+  for(const b of G.blocks)drawBlockTop(g,b);
+  const pp=pathPreview();
+  if(pp){g.strokeStyle='rgba(242,196,24,.9)';g.lineWidth=0.07;g.setLineDash([0.22,0.14]);
+    const hw=(fl.load?Math.max(fl.load.w,1.12):1.12)/2;
+    for(const lat of [-hw,hw]){g.beginPath();pp.pts.forEach((p,k)=>{const [x,y]=pathEdge(p,pp.dir,lat);k?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();}g.setLineDash([]);
+    if(Math.abs(fl.steer)>0.15){const pts=[[fl.x,fl.y,fl.th],...pp.pts.slice(0,20)];const Lt=pts.map(p=>rearCorner(p,-0.56)),Rt=pts.map(p=>rearCorner(p,0.56));
+      g.fillStyle='rgba(229,73,60,.2)';g.beginPath();Lt.concat(Rt.slice().reverse()).forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.closePath();g.fill();
+      g.strokeStyle='rgba(229,73,60,.9)';g.lineWidth=0.05;g.setLineDash([0.15,0.1]);for(const T of [Lt,Rt]){g.beginPath();T.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.stroke();}g.setLineDash([]);
+      const outer=fl.steer>0?Lt:Rt;G.swingLbl=outer[Math.min(outer.length-1,10)];}else G.swingLbl=null;}
+  else G.swingLbl=null;
+  if(stick.on&&settings.stick!=='car'&&driverLike()&&Math.hypot(stick.x,stick.y)>0.18){const a=Math.atan2(stick.y,stick.x);const L=2.6;
+    g.strokeStyle='rgba(95,168,216,.95)';g.fillStyle='rgba(95,168,216,.95)';g.lineWidth=0.12;g.beginPath();g.moveTo(fl.x,fl.y);g.lineTo(fl.x+Math.cos(a)*L,fl.y+Math.sin(a)*L);g.stroke();
+    g.beginPath();g.moveTo(fl.x+Math.cos(a)*(L+0.45),fl.y+Math.sin(a)*(L+0.45));g.lineTo(fl.x+Math.cos(a+2.6)*0.45+Math.cos(a)*L,fl.y+Math.sin(a+2.6)*0.45+Math.sin(a)*L);g.lineTo(fl.x+Math.cos(a-2.6)*0.45+Math.cos(a)*L,fl.y+Math.sin(a-2.6)*0.45+Math.sin(a)*L);g.fill();}
+  drawForkliftTop(g,fl);
+  for(const i of G.intr)drawIntrTop(g,i);
+  g.strokeStyle=settings.stage==='yard'?'#8a917f':'#2b3134';g.lineWidth=0.3;g.strokeRect(0.15,0.15,W-0.3,H-0.3);
+  for(const L of LANES){g.strokeStyle='#e9c21a';g.lineWidth=0.32;g.beginPath();g.moveTo(L-0.8,0.15);g.lineTo(L+0.8,0.15);g.moveTo(L-0.8,H-0.15);g.lineTo(L+0.8,H-0.15);g.stroke();}
+  // 夜間：暗さと照明
+  if(night){
+    if(darkCv.width!==c.width||darkCv.height!==c.height){darkCv.width=c.width;darkCv.height=c.height;}
+    gD.setTransform(1,0,0,1,0,0);gD.globalCompositeOperation='source-over';gD.clearRect(0,0,c.width,c.height);gD.fillStyle='rgba(6,9,20,.7)';gD.fillRect(0,0,c.width,c.height);
+    gD.globalCompositeOperation='destination-out';gD.setTransform(s,0,0,s,0,0);
+    const hole=(x,y,r)=>{const gr=gD.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(0.6,'rgba(0,0,0,.85)');gr.addColorStop(1,'rgba(0,0,0,0)');gD.fillStyle=gr;gD.beginPath();gD.arc(x,y,r,0,7);gD.fill();};
+    for(const [lx,ly] of LAMPS)hole(lx,ly,2.6);
+    hole(fl.x+Math.cos(fl.th)*2.2,fl.y+Math.sin(fl.th)*2.2,4.8);hole(fl.x,fl.y,2);
+    g.setTransform(1,0,0,1,0,0);g.drawImage(darkCv,0,0);g.setTransform(s,0,0,s,0,0);
+    for(const [bx,by] of blueSpots()){const gr=g.createRadialGradient(bx,by,0,bx,by,0.6);gr.addColorStop(0,'rgba(80,160,255,.9)');gr.addColorStop(1,'rgba(80,160,255,0)');g.fillStyle=gr;g.beginPath();g.arc(bx,by,0.6,0,7);g.fill();}
+  }
+  if(stg.fx==='rain'){g.strokeStyle='rgba(200,220,235,.18)';g.lineWidth=0.03;g.beginPath();for(const [rx,ry] of G.rain){const x=rx*W,y=((ry*H+G.t*6)%H);g.moveTo(x,y);g.lineTo(x-0.15,y+0.45);}g.stroke();}
+  // ラベル（ピクセル座標）
+  g.setTransform(1,0,0,1,0,0);
+  const fs=Math.max(10,s*0.42);g.textAlign='center';g.textBaseline='middle';
+  for(const b of G.blocks){if(b.state==='done')continue;g.font=`700 ${fs*1.25}px "Share Tech Mono",monospace`;g.fillStyle='rgba(30,35,38,.55)';g.fillText(String(b.id),b.tx*s,b.ty*s);}
+  g.font=`500 ${fs*0.85}px "Zen Kaku Gothic New",sans-serif`;g.fillStyle=night?'rgba(200,230,200,.6)':'rgba(40,70,48,.85)';
+  for(const L of LANES){g.save();g.translate(L*s,H*s*0.5);g.rotate(-Math.PI/2);g.fillText('歩行者通路',0,0);g.restore();}
+  for(const b of G.blocks){g.font=`700 ${fs}px "Share Tech Mono",monospace`;g.fillStyle='#fff';g.fillText(String(b.id),b.x*s,b.y*s);}
+  if(bi&&!rearView()){const cs=Math.cos(fl.th),sn=Math.sin(fl.th);const d=Math.min(bi.D0,(bi.df+bi.D0)/2);const x=fl.x+cs*(EYE_OFF+d),y=fl.y+sn*(EYE_OFF+d);
+    g.font=`700 ${fs*0.8}px "Zen Kaku Gothic New",sans-serif`;g.fillStyle='rgba(160,30,20,.9)';g.fillText('死角',x*s,y*s);}
+  if(slopeDeg()){g.font=`700 ${fs*0.8}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';g.fillStyle='rgba(110,75,20,.95)';const pct=Math.round(Math.tan(slopeDeg()*Math.PI/180)*100);
+    g.fillText(`← 上り坂 ${pct}%`,3.3*s,H*s-fs*0.9);g.fillText(`上り坂 ${pct}% →`,23.3*s,H*s-fs*0.9);}
+  if(G.swingLbl){g.font=`700 ${fs*0.8}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';g.fillStyle='rgba(180,30,20,.95)';g.fillText('尻振り',G.swingLbl[0]*s,G.swingLbl[1]*s);}
+  if(ob){g.font=`700 ${fs*0.85}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='left';g.fillStyle='rgba(20,25,28,.82)';g.fillRect(6,6,g.measureText(ob.txt).width+14,fs*1.4);g.fillStyle='#f2c418';g.fillText(ob.txt,13,6+fs*0.7);}
+  if(G.flash>0){g.fillStyle=`rgba(229,73,60,${G.flash*0.35})`;g.fillRect(0,0,c.width,c.height);}
+}
+function drawBlockTop(g,b){
+  g.save();g.translate(b.x,b.y);g.rotate(b.ang);
+  const hx=b.d/2,hy=b.w/2;
+  g.fillStyle=b.col;g.fillRect(-hx,-hy,b.d,b.w);
+  g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=0.05;g.strokeRect(-hx,-hy,b.d,b.w);
+  if(b.long){g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=0.04;g.beginPath();for(let x=-hx+0.16;x<hx;x+=0.16){g.moveTo(x,-hy);g.lineTo(x,hy);}g.stroke();}
+  else{g.fillStyle='rgba(240,225,190,.55)';g.fillRect(-hx,-0.06,b.d,0.12);}
+  g.fillStyle='rgba(30,20,10,.35)';for(const o of [-0.3,0.3]){g.fillRect(-hx,o-0.12,b.d,0.24);if(!b.long)g.fillRect(o-0.12,-hy,0.24,b.w);}
+  if(b.fragile){g.fillStyle='#fff';g.beginPath();g.moveTo(-0.12,-0.2);g.lineTo(0.12,-0.2);g.lineTo(0,0.0);g.fill();g.fillRect(-0.015,0,0.03,0.16);g.fillRect(-0.08,0.14,0.16,0.03);}
+  if(b.broken){g.strokeStyle='#1a1a1a';g.lineWidth=0.04;g.beginPath();g.moveTo(-hx,-hy*0.3);g.lineTo(-0.1,0.05);g.lineTo(0.05,-0.15);g.lineTo(hx,hy*0.4);g.stroke();}
+  if(b.state==='done'){g.strokeStyle='#46b26a';g.lineWidth=0.12;g.strokeRect(-hx-0.08,-hy-0.08,b.d+0.16,b.w+0.16);}
+  g.restore();
+}
+function drawForkliftTop(g,fl){
+  g.save();g.translate(fl.x,fl.y);g.rotate(fl.th);
+  const up=fl.fork>0.3;
+  if(!fl.load){g.fillStyle=up?'#d9dcd6':'#6e7375';for(const l of [-0.3+fl.ss,0.3+fl.ss])g.fillRect(0.95,l-0.06,1.1,0.12);}
+  g.fillStyle='#1d2124';for(const [f,l] of [[0.55,-0.62],[0.55,0.48]])g.fillRect(f-0.22,l,0.44,0.14);
+  for(const l of [-0.55,0.55]){g.save();g.translate(-0.95,l);g.rotate(-fl.steer*0.6);g.fillRect(-0.22,-0.07,0.44,0.14);g.restore();}
+  g.fillStyle='#f2c418';g.fillRect(-1.3,-0.56,2.15,1.12);
+  g.fillStyle='#3a3f42';g.fillRect(-1.3,-0.56,0.5,1.12);
+  g.strokeStyle='#1d2124';g.lineWidth=0.07;g.strokeRect(-0.75,-0.5,1.35,1.0);g.beginPath();g.moveTo(-0.75,-0.5);g.lineTo(0.6,0.5);g.moveTo(-0.75,0.5);g.lineTo(0.6,-0.5);g.stroke();
+  g.fillStyle='#2a2f32';g.fillRect(0.82,-0.55,0.13,1.1);
+  if(fl.load&&G.tilt>0.3){g.strokeStyle=`rgba(229,73,60,${G.tilt})`;g.lineWidth=0.1;const lr=FRONT+0.05;g.strokeRect(lr,-fl.load.w/2,fl.load.d,fl.load.w);}
+  g.restore();
+}
+function drawIntrTop(g,i){
+  const T=INTR[i.type];
+  const hidden=(G.fl.load&&hiddenFromDriver(i)&&!rearView())||inDark(i);
+  if(hidden){g.strokeStyle='rgba(229,73,60,.9)';g.lineWidth=0.06;g.setLineDash([0.12,0.1]);g.beginPath();g.arc(i.x,i.y,T.r+0.35,0,7);g.stroke();g.setLineDash([]);}
+  drawCharTop(g,i);
+  if(i.hit){g.strokeStyle='#e5493c';g.lineWidth=0.1;g.beginPath();g.arc(i.x,i.y,T.r+0.2,0,7);g.stroke();}
+}
+
+/* ---------- 運転席ビュー（簡易3D） ---------- */
+let cam,F,CX,HY;
+function toCam(x,y,z){const dx=x-cam.x,dy=y-cam.y;return {r:-dx*cam.s+dy*cam.c,f:dx*cam.c+dy*cam.s,u:z-EYE_H};}
+function P(p){return [CX+p.r/p.f*F,HY-p.u/p.f*F];}
+function clip(pts){
+  const out=[];for(let k=0;k<pts.length;k++){const a=pts[k],b=pts[(k+1)%pts.length];const ain=a.f>=NEAR,bin=b.f>=NEAR;
+    if(ain)out.push(a);if(ain!==bin){const t=(NEAR-a.f)/(b.f-a.f);out.push({r:a.r+(b.r-a.r)*t,f:NEAR,u:a.u+(b.u-a.u)*t});}}
+  return out;
+}
+function poly(g,cp,fill,stroke,lw=1){const c=clip(cp);if(c.length<3)return;g.beginPath();c.forEach((p,k)=>{const [x,y]=P(p);k?g.lineTo(x,y):g.moveTo(x,y);});g.closePath();if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw;g.stroke();}}
+function seg(g,a,b){if(a.f<NEAR&&b.f<NEAR)return;if(a.f<NEAR){const t=(NEAR-a.f)/(b.f-a.f);a={r:a.r+(b.r-a.r)*t,f:NEAR,u:a.u+(b.u-a.u)*t};}if(b.f<NEAR){const t=(NEAR-b.f)/(a.f-b.f);b={r:b.r+(a.r-b.r)*t,f:NEAR,u:b.u+(a.u-b.u)*t};}const [x1,y1]=P(a),[x2,y2]=P(b);g.moveTo(x1,y1);g.lineTo(x2,y2);}
+function wq(pts){return pts.map(([x,y,z])=>toCam(x,y,z));}
+function boxFaces(list,r,zb,zt,col,top,mark,open){
+  const c=Math.cos(r.ang),s=Math.sin(r.ang);const cn=[[1,1],[1,-1],[-1,-1],[-1,1]].map(([a,b])=>[r.x+a*r.hw*c-b*r.hh*s,r.y+a*r.hw*s+b*r.hh*c]);
+  for(let k=0;k<4;k++){const A=cn[k],B=cn[(k+1)%4];const mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2;const nx=mx-r.x,ny=my-r.y;
+    if(nx*(cam.x-mx)+ny*(cam.y-my)<=0)continue;
+    const nl=Math.hypot(nx,ny);const lit=0.62+0.38*Math.max(0,(nx*0.55-ny*0.83)/nl);
+    const d=Math.hypot(cam.x-mx,cam.y-my);
+    list.push({d,fn:g=>{poly(g,wq([[A[0],A[1],zb],[B[0],B[1],zb],[B[0],B[1],zt],[A[0],A[1],zt]]),shade(col,lit),'rgba(0,0,0,.35)');
+      if(open&&(open==='xy'||k%2===0)){const L=Math.hypot(B[0]-A[0],B[1]-A[1]),tx=(B[0]-A[0])/L,ty=(B[1]-A[1])/L;
+        for(const o of [-0.3,0.3]){const p1=[mx+tx*(o-0.12),my+ty*(o-0.12)],p2=[mx+tx*(o+0.12),my+ty*(o+0.12)];poly(g,wq([[p1[0],p1[1],0.02],[p2[0],p2[1],0.02],[p2[0],p2[1],0.12],[p1[0],p1[1],0.12]]),'#1e140a');}}
+      if(mark){const m=toCam(mx,my,(zb+zt)/2);if(m.f>0.5){const [x,y]=P(m);const sz=F/m.f*0.18;g.fillStyle='#fff';g.font=`700 ${sz}px sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(mark,x,y);}}}});}
+  if(zt<EYE_H){const d=Math.hypot(cam.x-r.x,cam.y-r.y)+0.01;list.push({d,fn:g=>poly(g,wq(cn.map(([x,y])=>[x,y,zt])),top||shade(col,1.12),'rgba(0,0,0,.3)')});}
+}
+function floorDisc(g,x,y,r,fill){const pts=[];for(let k=0;k<16;k++){const a=k/16*Math.PI*2;pts.push(toCam(x+Math.cos(a)*r,y+Math.sin(a)*r,0.01));}poly(g,pts,fill);}
+function drawCab(){
+  if(G.forkMode&&G.forkDiag){drawForkView();return;}
+  const c=cCab,g=gC,w=c.width,h=c.height,fl=G.fl,stg=ST();const rear=rearView();
+  const cs=Math.cos(fl.th),sn=Math.sin(fl.th);
+  cam=rear?{x:fl.x-cs*0.2,y:fl.y-sn*0.2,th:fl.th+Math.PI}:{x:fl.x+cs*EYE_OFF,y:fl.y+sn*EYE_OFF,th:fl.th};
+  cam.c=Math.cos(cam.th);cam.s=Math.sin(cam.th);
+  F=w/2/Math.tan(FOV/2);CX=w/2;HY=(G.forkMode&&!rear?h*0.03:h*0.25)+(rear?-1:1)*Math.tan((G.pitch||0)*Math.PI/180)*F; // フォーク操作中は視線を下げて爪先を見る
+  let gr=g.createLinearGradient(0,0,0,HY);gr.addColorStop(0,stg.sky[0]);gr.addColorStop(1,stg.sky[1]);g.fillStyle=gr;g.fillRect(0,0,w,HY);
+  gr=g.createLinearGradient(0,HY,0,h);gr.addColorStop(0,stg.floorCab[0]);gr.addColorStop(1,stg.floorCab[1]);g.fillStyle=gr;g.fillRect(0,HY,w,h-HY);
+  g.strokeStyle=stg.grid;g.lineWidth=Math.max(1,w/900);g.beginPath();
+  for(let x=0;x<=W;x+=2)seg(g,toCam(x,0,0),toCam(x,H,0));for(let y=0;y<=H;y+=2)seg(g,toCam(0,y,0),toCam(W,y,0));g.stroke();
+  if(slopeDeg())for(const [x0,x1] of [[0,6.6],[20.6,W]])poly(g,wq([[x0,0,0.005],[x1,0,0.005],[x1,H,0.005],[x0,H,0.005]]),'rgba(120,90,40,.18)');
+  for(const L of LANES){poly(g,wq([[L-0.8,0,0],[L+0.8,0,0],[L+0.8,H,0],[L-0.8,H,0]]),'rgba(76,140,90,.25)');
+    g.strokeStyle='#e9c21a';g.lineWidth=Math.max(2,w/400);g.setLineDash([w/90,w/140]);g.beginPath();seg(g,toCam(L-0.8,0,0),toCam(L-0.8,H,0));seg(g,toCam(L+0.8,0,0),toCam(L+0.8,H,0));g.stroke();g.setLineDash([]);
+    g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=Math.max(1.5,w/500);g.beginPath();seg(g,toCam(L-1.8,0.4,0),toCam(L-1.8,H-0.4,0));seg(g,toCam(L+1.8,0.4,0),toCam(L+1.8,H-0.4,0));g.stroke();}
+  for(const b of G.blocks){const zx=(b.d+0.6)/2,zy=(b.w+0.6)/2;poly(g,wq([[b.tx-zx,b.ty-zy,0],[b.tx+zx,b.ty-zy,0],[b.tx+zx,b.ty+zy,0],[b.tx-zx,b.ty+zy,0]]),b.state==='done'?'rgba(70,178,106,.3)':'rgba(255,255,255,.2)',b.col,Math.max(2,w/350));
+    const p=toCam(b.tx,b.ty,0);if(p.f>1.2&&b.state!=='done'){const [x,y]=P(p);g.fillStyle='rgba(30,35,38,.6)';g.font=`700 ${clamp(F/p.f*0.5,8,60)}px "Share Tech Mono",monospace`;g.textAlign='center';g.textBaseline='middle';g.fillText(String(b.id),x,y);}}
+  const wh=stg.wallH;
+  const walls=[[0,0,W,0,stg.wall[0]],[W,0,W,H,stg.wall[1]],[W,H,0,H,stg.wall[0]],[0,H,0,0,stg.wall[1]]];
+  walls.map(wl=>({wl,d:Math.hypot(cam.x-(wl[0]+wl[2])/2,cam.y-(wl[1]+wl[3])/2)})).sort((a,b)=>b.d-a.d).forEach(({wl})=>{
+    const [x1,y1,x2,y2,col]=wl;poly(g,wq([[x1,y1,0],[x2,y2,0],[x2,y2,wh],[x1,y1,wh]]),col,'rgba(0,0,0,.4)');
+    poly(g,wq([[x1,y1,0],[x2,y2,0],[x2,y2,0.25],[x1,y1,0.25]]),'#c9a414');
+    if(y1===y2)for(const L of LANES){poly(g,wq([[L-0.8,y1,0],[L+0.8,y1,0],[L+0.8,y1,Math.min(2.3,wh)],[L-0.8,y1,Math.min(2.3,wh)]]),'#232a2e','#e9c21a',Math.max(2,w/300));}
+  });
+  if(stg.fx==='night')for(const [bx,by] of blueSpots())floorDisc(g,bx,by,0.5,'rgba(80,160,255,.55)');
+  const list=[];
+  for(const st of G.statics)boxFaces(list,{x:st.x,y:st.y,hw:st.hw,hh:st.hh,ang:0},0,st.z,st.col,st.top);
+  for(const b of G.blocks)if(b.state!=='carried'){boxFaces(list,blockRect(b),0,0.14,'#a07a4a','#b88d57',null,b.long?'x':'xy');boxFaces(list,blockRect(b),0.14,0.14+b.h,b.col,null,b.fragile?'ワレモノ':null);}
+  const reflect=[];
+  for(const i of G.intr)list.push({d:Math.hypot(cam.x-i.x,cam.y-i.y),fn:g=>{const p=toCam(i.x,i.y,0);if(p.f<0.35)return;const [sx,sy]=P(p);const m=F/p.f;g.save();g.translate(sx,sy);drawChar(g,i.type,m,i.t);g.restore();if(i.type==='person'||i.type==='cone')reflect.push([sx,sy,m,i.type,p.f]);}});
+  list.sort((a,b)=>b.d-a.d).forEach(o=>o.fn(g));
+  // 環境効果
+  if(stg.fx==='night'){
+    const gr2=g.createRadialGradient(CX,h*0.78,w*0.08,CX,h*0.7,w*0.72);gr2.addColorStop(0,'rgba(4,6,14,0)');gr2.addColorStop(0.45,'rgba(4,6,14,.55)');gr2.addColorStop(1,'rgba(4,6,14,.93)');g.fillStyle=gr2;g.fillRect(0,0,w,h);
+    g.save();g.globalCompositeOperation='lighter';
+    for(const [sx,sy,m,type,f] of reflect){if(f>14)continue;g.fillStyle=`rgba(220,255,120,${clamp(1-f/14,0.2,0.9)})`;if(type==='person')g.fillRect(sx-0.24*m,sy-1.2*m,0.48*m,0.06*m);else{g.fillRect(sx-0.12*m,sy-0.31*m,0.24*m,0.06*m);}}
+    for(const [bx,by] of blueSpots()){const p=toCam(bx,by,0);if(p.f>0.5){const [x,y]=P(p);const r=F/p.f*0.7;const gg=g.createRadialGradient(x,y,0,x,y,r);gg.addColorStop(0,'rgba(60,140,255,.6)');gg.addColorStop(1,'rgba(60,140,255,0)');g.fillStyle=gg;g.beginPath();g.ellipse(x,y,r,r*0.4,0,0,7);g.fill();}}
+    g.restore();
+  }else if(stg.fx==='frost'){
+    const fg=g.createLinearGradient(0,HY-h*0.08,0,HY+h*0.15);fg.addColorStop(0,'rgba(235,245,250,0)');fg.addColorStop(0.5,'rgba(235,245,250,.35)');fg.addColorStop(1,'rgba(235,245,250,0)');g.fillStyle=fg;g.fillRect(0,0,w,h);
+    const vg=g.createRadialGradient(CX,h*0.5,w*0.35,CX,h*0.5,w*0.75);vg.addColorStop(0,'rgba(230,245,255,0)');vg.addColorStop(1,'rgba(230,245,255,.5)');g.fillStyle=vg;g.fillRect(0,0,w,h);
+  }else if(stg.fx==='rain'){
+    const fg=g.createLinearGradient(0,0,0,h*0.6);fg.addColorStop(0,'rgba(170,180,190,.45)');fg.addColorStop(1,'rgba(170,180,190,0)');g.fillStyle=fg;g.fillRect(0,0,w,h);
+    g.strokeStyle='rgba(210,225,240,.35)';g.lineWidth=Math.max(1,w/700);g.beginPath();
+    for(const [rx,ry,sp] of G.rain){const x=rx*w,y=((ry+G.t*sp*1.4)%1)*h;g.moveTo(x,y);g.lineTo(x-w*0.008,y+h*0.05);}g.stroke();
+  }
+  // 進路予測線
+  const pp=pathPreview();
+  if(aidsOn()&&!G.forkMode&&pp&&((pp.dir>0&&!rear)||(pp.dir<0&&rear))){
+    const hw=(fl.load?Math.max(fl.load.w,1.12):1.12)/2;g.strokeStyle='rgba(242,196,24,.85)';g.lineWidth=Math.max(2,w/320);g.setLineDash([w/80,w/120]);
+    for(const lat of [-hw,hw]){g.beginPath();for(let k=1;k<pp.pts.length;k++){const a=pathEdge(pp.pts[k-1],pp.dir,lat),b2=pathEdge(pp.pts[k],pp.dir,lat);seg(g,toCam(a[0],a[1],0.02),toCam(b2[0],b2[1],0.02));}g.stroke();}
+    g.setLineDash([]);}
+  // 自車
+  const C=(r,f,u)=>({r,f,u});
+  if(!rear){
+    const fz=forkZ()-EYE_H,b=fl.load;
+    const tp=Math.tan(fl.mast*Math.PI/180);
+    if(!b){for(const l of [-0.3+fl.ss,0.3+fl.ss])poly(g,[C(l-0.06,1.05,fz),C(l+0.06,1.05,fz),C(l+0.06,2.15,fz+1.1*tp),C(l-0.06,2.15,fz+1.1*tp)],fl.fork>0.3?'#c9ccc6':'#5f6466','#222',1);}
+    else{
+      const dn=FRONT+0.05-EYE_OFF,hs=b.w/2,top=fz+b.h;
+      const [x1,y1]=P(C(-hs,dn,top)),[x2,y2]=P(C(hs,dn,fz));
+      g.save();const px=(x1+x2)/2,py=y2;g.translate(px,py);g.rotate(G.tilt*0.2*(G.tiltSide||1));g.translate(-px,-py);
+      if(top<0)poly(g,[C(-hs,dn,top),C(hs,dn,top),C(hs,dn+b.d,top),C(-hs,dn+b.d,top)],shade(b.long?b.col:'#c49a63',1.1),'rgba(0,0,0,.4)',2);
+      g.fillStyle=b.long?b.col:'#b88d57';g.fillRect(x1,y1,x2-x1,y2-y1);
+      if(b.long){g.strokeStyle='rgba(255,255,255,.3)';g.lineWidth=2;const n=10;for(let k=1;k<n;k++){const x=x1+(x2-x1)*k/n;g.beginPath();g.moveTo(x,y1);g.lineTo(x,y2);g.stroke();}}
+      else{g.fillStyle=b.col;g.fillRect(x1,y1,x2-x1,Math.min(y2-y1,(x2-x1)*0.05));const ty=(y1+Math.min(y2,h))/2;g.fillStyle='rgba(235,220,180,.75)';g.fillRect(x1,ty-(x2-x1)*0.03,x2-x1,(x2-x1)*0.06);}
+      g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=2;g.strokeRect(x1,y1,x2-x1,y2-y1);
+      g.fillStyle=b.fragile?'#a3261d':'rgba(40,25,10,.8)';g.textAlign='center';g.textBaseline='middle';const fsz=Math.min((x2-x1)*0.11,h*0.06);
+      g.font=`700 ${fsz}px "Zen Kaku Gothic New",sans-serif`;const ly=clamp((y1+Math.min(y2,h))/2-fsz,y1+fsz*1.2,h-fsz*2.2);
+      g.fillText(b.fragile?`No.${b.id} ワレモノ`:`No.${b.id} 取扱注意`,(x1+x2)/2,ly);
+      if(b.broken){g.strokeStyle='#1a1a1a';g.lineWidth=3;g.beginPath();g.moveTo(x1+(x2-x1)*0.2,y1);g.lineTo(x1+(x2-x1)*0.45,ly+fsz*1.5);g.lineTo(x1+(x2-x1)*0.35,ly+fsz*3);g.stroke();}
+      g.restore();
+    }
+    for(const l of [-0.45,0.45])poly(g,[C(l-0.05,1.0,-EYE_H),C(l+0.05,1.0,-EYE_H),C(l+0.05,1.0,0.6),C(l-0.05,1.0,0.6)],'#25292c','#111',1);
+    poly(g,[C(-0.5,1.0,0.45),C(0.5,1.0,0.45),C(0.5,1.0,0.55),C(-0.5,1.0,0.55)],'#25292c');
+    g.fillStyle='#1e2225';g.fillRect(0,0,w,h*0.045);
+    g.fillRect(w*0.06,0,w*0.035,h*0.2);g.fillRect(w*0.905,0,w*0.035,h*0.2);
+    g.beginPath();g.moveTo(0,h);g.lineTo(0,h*0.86);g.quadraticCurveTo(w*0.12,h*0.8,w*0.24,h*0.94);g.lineTo(w*0.24,h);g.fill();
+    g.beginPath();g.moveTo(w,h);g.lineTo(w,h*0.86);g.quadraticCurveTo(w*0.88,h*0.8,w*0.76,h*0.94);g.lineTo(w*0.76,h);g.fill();
+  }else{
+    poly(g,[C(-0.56,0.45,1.15-EYE_H),C(0.56,0.45,1.15-EYE_H),C(0.56,1.1,1.15-EYE_H),C(-0.56,1.1,1.15-EYE_H)],'#3a3f42','#111',2);
+    poly(g,[C(-0.56,1.1,1.15-EYE_H),C(0.56,1.1,1.15-EYE_H),C(0.56,1.1,0.2-EYE_H),C(-0.56,1.1,0.2-EYE_H)],'#2b2f32');
+    g.fillStyle='#1e2225';g.fillRect(0,0,w,h*0.045);
+  }
+  // HUD
+  const fs=Math.max(11,w*0.026);g.font=`700 ${fs}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='left';g.textBaseline='middle';
+  const tag=rear?'後方確認中（後進）':'前方';const tw=g.measureText(tag).width;
+  g.fillStyle=rear?'rgba(242,196,24,.92)':'rgba(20,24,26,.75)';g.fillRect(w*0.12,h*0.07,tw+fs*1.2,fs*1.7);
+  g.fillStyle=rear?'#1a1a1a':'#ebe7dc';g.fillText(tag,w*0.12+fs*0.6,h*0.07+fs*0.85);
+  g.font=`${fs*1.2}px "Share Tech Mono",monospace`;g.textAlign='right';g.fillStyle=Math.abs(fl.v)>SPEED_LIMIT?'#ff7b6e':'#ebe7dc';
+  g.fillText(`${(Math.abs(fl.v)*3.6).toFixed(1)} km/h`,w*0.88,h*0.07+fs*0.85);
+  // チルト図（横から見た爪の角度）とハンドル
+  {const s0=Math.max(46,w*0.1,h*0.17),bx=w*0.03,by=h*0.42;g.fillStyle='rgba(20,24,26,.78)';g.fillRect(bx,by,s0,s0*1.18);
+    const gx=bx+s0*0.35,gy=by+s0*0.82,pr=(G.pitch||0)*Math.PI/180*2,ang=fl.mast*Math.PI/180*2+pr;
+    g.save();g.translate(gx,gy+2);g.rotate(-pr);g.strokeStyle=Math.abs(G.pitch||0)>0.5?'#c49a3a':'#5b666c';g.lineWidth=Math.abs(G.pitch||0)>0.5?2:1;g.beginPath();g.moveTo(-s0*0.3,0);g.lineTo(s0*0.62,0);g.stroke();g.restore();
+    g.save();g.translate(gx,gy);g.rotate(-ang);g.strokeStyle='#d9dcd6';g.lineWidth=Math.max(3,s0*0.07);g.lineCap='round';
+    g.beginPath();g.moveTo(0,0);g.lineTo(0,-s0*0.62);g.stroke();const fy=-s0*0.1-fl.fork*s0*0.3;
+    g.strokeStyle='#f2c418';g.beginPath();g.moveTo(0,fy);g.lineTo(s0*0.52,fy);g.stroke();
+    if(fl.load){g.fillStyle=fl.load.col;g.fillRect(s0*0.08,fy-s0*0.26,s0*0.42,s0*0.24);}
+    g.restore();
+    g.font=`700 ${s0*0.17}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillStyle=Math.abs(fl.mast)<0.5?'#8fd8a5':fl.mast>0?'#9cc8f0':'#f2c418';
+    g.fillText(Math.abs(fl.mast)<0.5?'水平':(fl.mast>0?'後傾 ':'前傾 ')+Math.round(Math.abs(fl.mast))+'°',bx+s0/2,by+s0*1.06);
+    if(Math.abs(G.pitch||0)>0.5){const ps=`${G.pitch>0?'上り':'下り'}${Math.round(Math.abs(G.pitch))}°`;g.fillStyle='rgba(20,24,26,.78)';g.fillRect(bx,by+s0*1.18,s0,s0*0.26);g.fillStyle='#e8c46a';g.font=`700 ${s0*0.15}px "Zen Kaku Gothic New",sans-serif`;g.fillText('坂 '+ps,bx+s0/2,by+s0*1.31);}
+    // 荷揺れゲージ
+    {const gx2=bx+s0+6,gw=Math.max(8,s0*0.18);g.fillStyle='rgba(20,24,26,.78)';g.fillRect(gx2,by,gw,s0*1.18);
+      const tv=fl.load?clamp(G.tilt,0,1):0;const ih=s0*0.92;g.fillStyle=tv>0.7?'#e5493c':tv>0.4?'#f2c418':'#46b26a';g.fillRect(gx2+2,by+3+ih*(1-tv),gw-4,ih*tv);
+      g.font=`700 ${s0*0.13}px "Zen Kaku Gothic New",sans-serif`;g.fillStyle='#ebe7dc';g.textAlign='center';g.fillText('揺れ',gx2+gw/2,by+s0*1.08);}
+    const wx=bx+s0*1.18+Math.max(8,s0*0.18)+s0*0.32,wy=by+s0*0.42,wr=s0*0.3;g.fillStyle='rgba(20,24,26,.6)';g.beginPath();g.arc(wx,wy,wr*1.25,0,7);g.fill();g.strokeStyle='#d9dcd6';g.lineWidth=Math.max(2,s0*0.06);g.beginPath();g.arc(wx,wy,wr,0,7);g.stroke();
+    g.save();g.translate(wx,wy);g.rotate(fl.steer*Math.PI*0.75);g.beginPath();g.moveTo(-wr,0);g.lineTo(wr,0);g.moveTo(0,0);g.lineTo(0,wr);g.stroke();g.fillStyle='#f2c418';g.beginPath();g.arc(0,-wr,s0*0.05,0,7);g.fill();g.restore();}
+  const cs0=crossingState();
+  if(cs0&&!G.cp[cs0.idx].done&&Math.abs(fl.v)<0.08){const msg='指差呼称チャンス：「右よし、左よし」';g.font=`700 ${fs}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';const mw=g.measureText(msg).width;
+    const by=h*0.36;g.fillStyle='rgba(35,56,43,.92)';g.fillRect(CX-mw/2-fs,by,mw+fs*2,fs*1.8);g.fillStyle='#cdeed6';g.fillText(msg,CX,by+fs*0.9);}
+  if(G.flash>0){g.fillStyle=`rgba(229,73,60,${G.flash*0.4})`;g.fillRect(0,0,w,h);}
+}
+
+/* ---------- 荷役ビュー（フォーク操作中） ---------- */
+function drawForkView(){
+  const c=cCab,g=gC,w=c.width,h=c.height,fl=G.fl,tol=TOL();
+  g.setTransform(1,0,0,1,0,0);g.fillStyle='#14181a';g.fillRect(0,0,w,h);
+  const fs=Math.max(11,w*0.026),font=(wt,sz)=>`${wt} ${sz}px "Zen Kaku Gothic New",sans-serif`;
+  const tgt=forkTarget(),ins=insertedBlock();
+  // ---- 左：真上から（車体の前が上）
+  const LW=w*0.5,k=LW/3.0,ox=LW/2,oy=h*0.94;
+  const V=(x,y)=>{const [f,l]=local(x,y,{x:fl.x,y:fl.y,ang:fl.th});return [ox+l*k,oy-(f-FRONT)*k];};
+  const VL=(f,l)=>[ox+l*k,oy-(f-FRONT)*k];
+  g.save();g.beginPath();g.rect(0,0,LW,h);g.clip();
+  g.fillStyle='#b4b7ae';g.fillRect(0,0,LW,h);
+  g.strokeStyle='rgba(40,45,40,.18)';g.lineWidth=1;g.beginPath();for(let l=-2;l<=2;l+=0.5){const [x]=VL(0,l);g.moveTo(x,0);g.lineTo(x,h);}for(let f=FRONT-0.5;f<FRONT+3.5;f+=0.5){const [,y]=VL(f,0);g.moveTo(0,y);g.lineTo(LW,y);}g.stroke();
+  const polyW=(pts,fill,stroke,lw)=>{g.beginPath();pts.forEach((p,i)=>{const [x,y]=V(p[0],p[1]);i?g.lineTo(x,y):g.moveTo(x,y);});g.closePath();if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||2;g.stroke();}};
+  const bpt=(b,lx,ly)=>{const c2=Math.cos(b.ang),s2=Math.sin(b.ang);return [b.x+lx*c2-ly*s2,b.y+lx*s2+ly*c2];};
+  for(const b of G.blocks){const zw=(b.d+0.6)/2,zh=(b.w+0.6)/2;polyW([[b.tx-zw,b.ty-zh],[b.tx+zw,b.ty-zh],[b.tx+zw,b.ty+zh],[b.tx-zw,b.ty+zh]],'rgba(255,255,255,.18)',b.col,2);}
+  for(const b of G.blocks){if(b.state==='carried')continue;const hx=b.d/2,hy=b.w/2;
+    polyW([bpt(b,hx,hy),bpt(b,hx,-hy),bpt(b,-hx,-hy),bpt(b,-hx,hy)],b.col,'rgba(0,0,0,.5)',2);
+    for(const o of [-0.3,0.3]){polyW([bpt(b,hx,o-0.12),bpt(b,hx,o+0.12),bpt(b,-hx,o+0.12),bpt(b,-hx,o-0.12)],'rgba(30,20,10,.45)');
+      if(!b.long)polyW([bpt(b,o-0.12,hy),bpt(b,o+0.12,hy),bpt(b,o+0.12,-hy),bpt(b,o-0.12,-hy)],'rgba(30,20,10,.45)');}}
+  if(tgt&&!fl.load){const b=tgt.b;const ax=Math.abs(Math.cos(b.ang-fl.th))>=Math.abs(Math.sin(b.ang-fl.th));
+    for(const o of [-0.3,0.3]){const p1=ax?bpt(b,0,o):bpt(b,o,0);const [x1,y1]=V(p1[0],p1[1]);const [x2,y2]=V(p1[0]-Math.cos(fl.th)*6,p1[1]-Math.sin(fl.th)*6);
+      g.strokeStyle='rgba(242,196,24,.8)';g.setLineDash([6,5]);g.lineWidth=2;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.setLineDash([]);}}
+  if(fl.load){const lr=loadRect(fl,fl.load);const b=fl.load;const c2=Math.cos(lr.ang),s2=Math.sin(lr.ang);const P4=[[1,1],[1,-1],[-1,-1],[-1,1]].map(([a,bb])=>[lr.x+a*lr.hw*c2-bb*lr.hh*s2,lr.y+a*lr.hw*s2+bb*lr.hh*c2]);polyW(P4,b.col,'#fff',2);}
+  const fitNow=tgt&&!fl.load?tgt.ft:null;
+  const fCol=fl.load?'#d9dcd6':ins?'#46b26a':fitNow&&fitNow.enterOK?'#46b26a':fitNow&&Math.abs(fitNow.e)<0.15&&fitNow.a<0.2?'#f2c418':'#e5493c';
+  for(const l of [-0.3+fl.ss,0.3+fl.ss]){const [x1,y1]=VL(FRONT,l-0.06),[x2,y2]=VL(FRONT+1.1,l+0.06);g.fillStyle=fCol;g.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));g.strokeStyle='#111';g.lineWidth=1.5;g.strokeRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));}
+  {const [x1,y1]=VL(FRONT,-0.56),[x2,y2]=VL(FRONT-1.0,0.56);g.fillStyle='#f2c418';g.fillRect(x1,y1,x2-x1,y2-y1);g.fillStyle='#2a2f32';g.fillRect(x1,y1,x2-x1,(y2-y1)*0.12);}
+  g.fillStyle='rgba(20,24,26,.8)';g.fillRect(0,0,LW,fs*1.6);g.fillStyle='#ebe7dc';g.font=font(700,fs*0.85);g.textAlign='left';g.textBaseline='middle';g.fillText('真上から（車体の前が上）',fs*0.5,fs*0.8);
+  g.restore();
+  // ---- 右：正面から（高さは2倍）
+  const RX=LW,RW=w-LW,kf=RW/2.3,kh=kf*2,cx=RX+RW/2,fy=h*0.84;
+  const FX=l=>cx+l*kf,FY=z=>fy-z*kh;
+  g.save();g.beginPath();g.rect(RX,0,RW,h);g.clip();
+  g.fillStyle='#262c30';g.fillRect(RX,0,RW,h);g.fillStyle='#8e9189';g.fillRect(RX,fy,RW,h-fy);
+  let pb=null,pl=0,pz=0;
+  if(fl.load){pb=fl.load;pl=fl.ss;pz=forkZ()-0.10;}else if(tgt){pb=tgt.b;pl=tgt.ft.l;pz=0;}
+  if(pb){const wv=(pb.long||Math.abs(Math.cos(pb.ang-fl.th))>=0.7)?pb.w:pb.d;
+    g.fillStyle=pb.col;g.fillRect(FX(pl-wv/2),FY(pz+0.14+Math.min(pb.h,0.9)),wv*kf,Math.min(pb.h,0.9)*kh);
+    g.fillStyle='#a07a4a';g.fillRect(FX(pl-wv/2),FY(pz+0.14),wv*kf,0.14*kh);
+    g.fillStyle='#24180d';for(const o of [-0.3,0.3])g.fillRect(FX(pl+o-0.12),FY(pz+0.12),0.24*kf,0.10*kh);
+    g.strokeStyle='rgba(0,0,0,.5)';g.lineWidth=1.5;g.strokeRect(FX(pl-wv/2),FY(pz+0.14),wv*kf,0.14*kh);}
+  const fz=forkZ();
+  for(const side of [-1,1]){const lx=side*0.3+fl.ss;let ok=!!fl.load;
+    if(pb&&!fl.load){const oc=pl+side*0.3;ok=Math.abs(lx-oc)<=0.06+0.001&&fz>=0.02-0.001&&fz+0.05<=0.12+0.001;}
+    g.fillStyle=ok?'#46b26a':'#e5493c';g.fillRect(FX(lx-0.06),FY(fz+0.05),0.12*kf,0.05*kh);g.strokeStyle='#111';g.strokeRect(FX(lx-0.06),FY(fz+0.05),0.12*kf,0.05*kh);}
+  g.fillStyle='rgba(20,24,26,.8)';g.fillRect(RX,0,RW,fs*1.6);g.fillStyle='#ebe7dc';g.font=font(700,fs*0.85);g.textAlign='left';g.fillText('正面から（高さは2倍で表示）',RX+fs*0.5,fs*0.8);
+  // 数値
+  const rows=[];
+  const mastTxt=Math.abs(fl.mast)<0.5?'水平':(fl.mast>0?'後傾 ':'前傾 ')+Math.round(Math.abs(fl.mast))+'°';
+  rows.push([`爪の高さ ${Math.round(fz*100)}cm`,fl.load?'#ebe7dc':fl.fork<=0.15?'#8fd8a5':'#ffb3aa']);
+  rows.push([`チルト ${mastTxt}`,Math.abs(fl.mast)<=2||fl.load?'#8fd8a5':'#ffb3aa']);
+  if(fitNow){rows.push([fitNow.a<=tol.ang?'向き OK':`向き ${fitNow.sa>0?'右':'左'}に${Math.max(1,Math.round(fitNow.a*180/Math.PI))}°`,fitNow.a<=tol.ang?'#8fd8a5':'#ffb3aa']);
+    rows.push([Math.abs(fitNow.e)<=tol.lat?'左右 OK':`左右 ${fitNow.e>0?'右':'左'}へ${Math.round(Math.abs(fitNow.e)*100)}cm`,Math.abs(fitNow.e)<=tol.lat?'#8fd8a5':'#ffb3aa']);
+    rows.push([ins?`差し込み ${Math.round(fitNow.ratio*100)}%`:`荷物まで ${Math.max(0,fitNow.face-FRONT-1.1).toFixed(2)}m`,'#ebe7dc']);}
+  const ry0=document.body.classList.contains('fs')&&matchMedia('(orientation:landscape)').matches?fs*3.8:fs*2;
+  g.font=font(700,fs*0.9);rows.forEach((r,i)=>{g.fillStyle='rgba(20,24,26,.75)';g.fillRect(RX+fs*0.4,ry0+i*fs*1.35,RW*0.62,fs*1.25);g.fillStyle=r[1];g.fillText(r[0],RX+fs*0.8,ry0+fs*0.62+i*fs*1.35);});
+  g.restore();
+  if(document.body.classList.contains('fs')&&matchMedia('(orientation:landscape)').matches){const [t1,t2]=forkHint();const by=fs*1.6;g.fillStyle='rgba(35,56,43,.94)';g.fillRect(0,by,w,fs*2);
+    g.font=font(700,fs*1.0);g.textAlign='left';g.textBaseline='middle';g.fillStyle='#f2c418';g.fillText(t1,fs*0.6,by+fs);const tw=g.measureText(t1).width;
+    g.font=font(500,fs*0.85);g.fillStyle='#e6f4ea';g.fillText(t2,fs*1.4+tw,by+fs);}
+  if(G.flash>0){g.fillStyle=`rgba(229,73,60,${G.flash*0.4})`;g.fillRect(0,0,w,h);}
+}
+
+/* ---------- HUD ---------- */
+const sig=$('signalBox');
+function hud(){
+  const fl=G.fl;
+  $('sScore').textContent=G.score;$('sDone').textContent=`${G.blocks.filter(b=>b.state==='done').length}/${G.blocks.length}`;
+  $('sTime').textContent=fmtT(G.t);const sp=$('sSpd');sp.textContent=(Math.abs(fl.v)*3.6).toFixed(1);sp.classList.toggle('warn',Math.abs(fl.v)>SPEED_LIMIT);
+  $('sFork').textContent=`${Math.round(forkZ()*100)}cm`;
+  const sg=forkSuggest();for(const id of ['btnForkMode','btnForkMode2'])$(id).classList.toggle('sugg',sg&&!(G.tut));
+  $('sMast').textContent=Math.abs(fl.mast)<0.5?'水平':(fl.mast>0?'後':'前')+Math.round(Math.abs(fl.mast))+'°';
+  const tl=$('sTilt');tl.textContent=fl.load?`${Math.round(clamp(G.tilt,0,1)*100)}%`:'—';tl.classList.toggle('warn',fl.load&&G.tilt>0.7);tl.classList.toggle('caution',fl.load&&G.tilt>0.4&&G.tilt<=0.7);
+  sig.classList.toggle('tut',!!G.tut);$('tutBtns').hidden=!G.tut;
+  if(G.tut){const st=TUT[Math.min(G.tut.i,TUT.length-1)];$('sigWho').textContent=`チュートリアル ${Math.min(G.tut.i+1,TUT.length)} / ${TUT.length}（「爪を抜く」まで終えたら完了）`;
+    if(G.tut.okT>0){$('sigV').textContent='OK！';sig.dataset.tone='go';}else{$('sigV').textContent=st.t;sig.dataset.tone='warn';}
+    $('sigSub').textContent=tutText(st);
+  }else if(G.forkMode&&!aidsOn()&&!settings.assist){$('sigWho').textContent='フォーク操作中';$('sigV').textContent='目で合わせる';$('sigSub').textContent='運転席から見える爪先とパレットの差し込み口を見て合わせよう';sig.dataset.tone='';
+  }else if(G.forkMode){const [a,b2]=forkHint();$('sigWho').textContent='フォーク操作中';$('sigV').textContent=a;$('sigSub').textContent=b2;sig.dataset.tone='warn';
+  }else if(settings.mode==='driver'){
+    if(settings.assist){const [v,sub,tone]=assistSignal();$('sigWho').textContent='AI誘導員の合図';$('sigV').textContent=v;$('sigSub').textContent=sub;sig.dataset.tone=tone;
+      if(v!==G.lastAssist){if(v==='停止')SFX.sig('stop');G.lastAssist=v;}}
+    else{$('sigWho').textContent='誘導員';$('sigV').textContent='補助なし';$('sigSub').textContent='自分の目で前後左右を確認してください';sig.dataset.tone='';}
+  }else if(settings.mode==='duo'){
+    $('sigWho').textContent='誘導員（声）の合図';
+    if(G.duo&&G.t-G.duo.t<4){$('sigV').textContent=SIGNAME[G.duo.c];$('sigSub').textContent=G.duo.c==='stop'?'すぐに止まってください':'合図に従って運転してください';sig.dataset.tone=G.duo.c==='stop'?'stop':'warn';}
+    else{$('sigV').textContent='—';$('sigSub').textContent=voiceOn?'誘導員の声を待っています':'「音声」を押すと誘導員の声を聞き取ります';sig.dataset.tone='';}
+  }else{
+    const pend=G.queue.length>0;const mv=(G.cmd.move&&G.cmd.slow?'徐行で':'')+(G.cmd.move>0?'前進中':G.cmd.move<0?'後進中':'停止中');const str=G.cmd.steer>0?'・右へ':G.cmd.steer<0?'・左へ':'';
+    $('sigWho').textContent='あなたの合図';$('sigV').textContent=G.lastSig;
+    $('sigSub').textContent=pend?'運転者が合図を確認しています…':`運転者：${mv}${G.cmd.move?str:''}${fl.load&&blindInfo().D0>6?'／前方が荷で見えていません':''}${fl.load&&G.tilt>0.4?'／荷が揺れています':''}`;
+    sig.dataset.tone=G.lastSig==='停止'?'stop':G.cmd.move?'warn':'go';
+  }
+  $('cabSub').textContent=rearView()?'運転者は後ろを向いて確認中':'運転者の目線（後進時は後方）';
+}
+
+/* ---------- 結果 ---------- */
+function showResult(){
+  const s=G.score;const grade=s>=95&&G.acc===0?'S':s>=80&&G.acc===0?'A':s>=60?'B':'C';
+  const clean=G.acc===0&&G.coll===0&&G.near===0;
+  unlock('first');if(clean)unlock('safe');
+  REC.streak=clean?(REC.streak||0)+1:0;if(REC.streak>=5)unlock('streak5');
+  if(G.carriedBlind&&G.blindFwd<0.3)unlock('reverse');
+  if(settings.level>=3&&G.spills===0)unlock('nospill');
+  if(settings.mode==='guide'&&G.btnSig===0&&G.voiceSig>0)unlock('voice');
+  if(settings.mode==='duo')unlock('duo');
+  if(settings.level===5&&grade!=='C')unlock('lv5');
+  REC.stages=REC.stages||{};REC.stages[settings.stage]=true;
+  if(settings.stage!=='warehouse')unlock(settings.stage);
+  if(STAGE_ORDER.every(k=>REC.stages[k]))unlock('allstage');
+  const key=`${settings.mode}|${settings.stage}|${settings.level}`;const prev=REC.best[key];
+  const better=!prev||s>prev.score||(s===prev.score&&G.t<prev.time);
+  if(better)REC.best[key]={score:s,time:Math.round(G.t),grade,date:new Date().toISOString().slice(0,10)};
+  saveRec();
+  $('rGrade').textContent=grade;$('rScore').innerHTML=`${s} 点${better&&prev?'<span class="newbest">自己ベスト更新</span>':''}`;
+  $('rMode').textContent=`${MODE_NAME[settings.mode]}・${ST().name}・Lv${settings.level} ${LV().name}・所要時間 ${fmtT(G.t)}`;
+  $('rBest').textContent=prev&&!better?`自己ベスト：${prev.score} 点（${fmtT(prev.time)}）`:'';
+  const gains=$('rGains');gains.innerHTML='';
+  for(const a of G.newAch){const sp=document.createElement('span');sp.textContent='実績：'+a;gains.appendChild(sp);}
+  for(const d of G.newDex){const sp=document.createElement('span');sp.textContent='図鑑：'+d;gains.appendChild(sp);}
+  const nb=$('btnNext');nb.hidden=!(grade!=='C'&&settings.level<5);nb.textContent=`次のレベルへ（Lv${settings.level+1}）`;
+  const rows=[['接触事故（人・動物）',`${G.acc} 件`],['物への衝突',`${G.coll} 件`],['ヒヤリハット',`${G.near} 件`],['尻振りでの接触',`${G.swingHits} 件`],['下り坂を荷を積んで前進',`${G.downFwd.toFixed(1)} m`],['荷崩れ',`${G.spills} 回`],['ワレモノ破損',`${G.broken} 件`],['指差呼称',`${G.calls} 回（未実施の横断 ${G.callMiss} 回）`],['速度超過の時間',`${G.overT.toFixed(1)} 秒`],['見えない荷で前進した距離',`${G.blindFwd.toFixed(1)} m`]];
+  if(settings.mode==='guide')rows.push(['運転者が自分で気づいて停止',`${G.autoStops} 回`],['声で出した合図',`${G.voiceSig} 回`]);
+  if(settings.mode==='duo')rows.push(['停止の合図に従った',`${G.duoObey} 回`],['停止の合図に従わなかった',`${G.duoIgnore} 回`]);
+  $('rRows').innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+  const n=[];
+  if(G.acc)n.push('歩行者通路の手前では一旦停止し、左右の安全を確認してから横断しましょう。');
+  if(G.near)n.push('人や動物の近くを通るときは十分に減速し、距離を取りましょう。');
+  if(G.swingHits)n.push('ハンドルを切ると車体の後ろが外側へ振り出します（尻振り）。曲がる前に、後ろ側に人や物がないか確認しましょう。');
+  if(G.downFwd>0.5)n.push('荷を積んで坂を下るときは、荷を坂の上側にして後進で下りましょう。上るときは前進で、チルトは坂に合わせて調整します。');
+  if(G.spills)n.push('カーブの手前で減速し、ハンドルはゆっくり切りましょう。背の高い荷ほど荷崩れしやすくなります。');
+  if(G.broken)n.push('ワレモノは衝突や荷崩れで破損します。積んでいるときは特に慎重に。');
+  if(G.callMiss)n.push('歩行者通路を横断する前に止まり、「右よし、左よし」と指差呼称しましょう。');
+  if(G.overT>2)n.push('構内の制限速度（6 km/h）を守りましょう。');
+  if(G.blindFwd>3)n.push(settings.mode==='guide'?'運転者は荷で前が見えません。誘導員が早めに「停止」を出すことが事故防止の鍵です。':'前方が見えない荷を積んだまま前進しています。後進走行に切り替えるか、誘導員の合図に従いましょう。');
+  if(G.coll)n.push('棚・柱・荷物への衝突がありました。ハンドルは早めに切り、旋回時の後輪の振り出しにも注意しましょう。');
+  if(settings.mode==='duo'&&G.duoIgnore)n.push('誘導員の「停止」には、理由が分からなくてもまず止まりましょう。');
+  if(!n.length)n.push('危険な場面はありませんでした。この調子で指差呼称と後方確認を習慣にしましょう。');
+  $('rNotes').innerHTML='';n.forEach(t=>{const li=document.createElement('li');li.textContent=t;$('rNotes').appendChild(li);});
+  $('resultOv').hidden=false;
+}
+
+/* ---------- 記録画面 ---------- */
+let recTab='dex',resetArmed=0,pausedByRec=false;
+function openRec(tab){recTab=tab||recTab;if(G&&!G.over&&!G.paused&&$('startOv').hidden){G.paused=true;pausedByRec=true;}renderRec();$('recOv').hidden=false;}
+function closeRec(){$('recOv').hidden=true;if(pausedByRec&&G){G.paused=false;last=performance.now();}pausedByRec=false;}
+function renderRec(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===recTab)));
+  const body=$('recBody');body.innerHTML='';
+  if(recTab==='dex'){
+    const got=INTR_ORDER.filter(k=>REC.dex[k]).length;const p=document.createElement('p');p.textContent=`登録 ${got} / ${INTR_ORDER.length}　事故を起こさずにやり過ごすと登録されます。`;body.appendChild(p);
+    const grid=document.createElement('div');grid.className='dex';body.appendChild(grid);
+    for(const k of INTR_ORDER){const T=INTR[k],cnt=REC.dex[k]||0;const card=document.createElement('div');card.className='card';
+      const cv=document.createElement('canvas');cv.width=240;cv.height=240;card.appendChild(cv);
+      const g=cv.getContext('2d');const wid={person:0.5,dog:0.85,cat:0.65,chick:0.4,cone:0.5,pallet:0.5,penguin:0.45}[k];const m=Math.min(150/T.h,180/wid);g.save();g.translate(120,200);drawChar(g,k,m,0.3);g.restore();
+      if(!cnt){g.globalCompositeOperation='source-in';g.fillStyle='#4a5357';g.fillRect(0,0,240,240);g.globalCompositeOperation='source-over';}
+      const b=document.createElement('b');b.textContent=cnt?T.name:'？？？';card.appendChild(b);
+      if(T.rare){const r=document.createElement('span');r.className='rare';r.textContent='レア';card.appendChild(r);}
+      const sm=document.createElement('small');sm.textContent=cnt?T.desc:'まだ出会っていません';card.appendChild(sm);
+      if(cnt){const c2=document.createElement('span');c2.className='cnt';c2.textContent=`やり過ごした回数 ${cnt}`;card.appendChild(c2);}
+      grid.appendChild(card);}
+  }else if(recTab==='ach'){
+    const got=ACH.filter(a=>REC.ach[a.id]).length;const p=document.createElement('p');p.textContent=`解除 ${got} / ${ACH.length}　指差呼称 累計 ${REC.calls||0} 回／無事故連続 ${REC.streak||0} 回`;body.appendChild(p);
+    const ul=document.createElement('ul');ul.className='achs';body.appendChild(ul);
+    for(const a of ACH){const li=document.createElement('li');if(REC.ach[a.id])li.className='got';li.innerHTML='<span class="ic"></span><b></b><small></small>';
+      li.querySelector('.ic').textContent=REC.ach[a.id]?'✓':'?';li.querySelector('b').textContent=a.name;li.querySelector('small').textContent=REC.ach[a.id]?`${a.desc}（${REC.ach[a.id]}）`:a.desc;ul.appendChild(li);}
+  }else{
+    const keys2=Object.keys(REC.best||{});
+    if(!keys2.length){const p=document.createElement('p');p.textContent='まだ記録がありません。訓練を完了すると、モード・ステージ・レベルごとに最高点が残ります。';body.appendChild(p);return;}
+    const wrap=document.createElement('div');wrap.style.overflowX='auto';const t=document.createElement('table');t.className='rtable';
+    t.innerHTML='<thead><tr><th>モード</th><th>ステージ</th><th>レベル</th><th>評価</th><th>最高点（時間）</th></tr></thead>';const tb=document.createElement('tbody');
+    keys2.sort().forEach(k=>{const [m,s,l]=k.split('|');const r=REC.best[k];const tr=document.createElement('tr');
+      [MODE_NAME[m]||m,STAGES[s]?STAGES[s].name:s,`Lv${l}`,r.grade||'',`${r.score} 点（${fmtT(r.time)}）`].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});tb.appendChild(tr);});
+    t.appendChild(tb);wrap.appendChild(t);body.appendChild(wrap);
+  }
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{recTab=b.dataset.tab;renderRec();});
+$('btnRec').onclick=()=>openRec();$('btnRec2').onclick=()=>openRec('dex');$('recClose').onclick=closeRec;
+$('recReset').onclick=()=>{const b=$('recReset');if(Date.now()-resetArmed<4000){REC={dex:{},ach:{},best:{},streak:0,calls:0,stages:{}};saveRec();resetArmed=0;b.textContent='記録を消す';renderRec();toast('記録','すべて消去しました');return;}
+  resetArmed=Date.now();b.textContent='本当に消す？（もう一度押す）';setTimeout(()=>{if(Date.now()-resetArmed>=3900){b.textContent='記録を消す';}},4000);};
+
+/* ---------- 開始・画面構成 ---------- */
+function renderStart(){
+  $('tutRow').classList.toggle('first',!REC.tutSeen);
+  const sc=$('stageCards');sc.innerHTML='';
+  for(const k of STAGE_ORDER){const S=STAGES[k];const lab=document.createElement('label');lab.className='mode';
+    lab.innerHTML=`<input type="radio" name="stage" value="${k}"${k===settings.stage?' checked':''}><span><b></b><em></em></span>`;
+    lab.querySelector('b').textContent=S.name+(REC.stages&&REC.stages[k]?' ✓':'');lab.querySelector('em').textContent=S.desc;sc.appendChild(lab);}
+  showLvDesc();
+}
+function showLvDesc(){
+  const lv=+$('optLevel').value;const l=LEVELS[lv];$('lvDesc').textContent=`Lv${lv} ${l.name}：${l.desc}`;
+  const tl=$('taskList');tl.innerHTML='';CARGO_BY_LEVEL[lv].forEach((k,idx)=>{const c=CARGO[k];const d=document.createElement('div');d.innerHTML='<b></b>';d.querySelector('b').textContent=`荷物 ${idx+1}（${c.name}）`;d.appendChild(document.createTextNode(c.desc));tl.appendChild(d);});
+}
+function startGame(){
+  actx();
+  settings.mode=document.querySelector('input[name=mode]:checked').value;settings.level=+$('optLevel').value;settings.assist=$('optAssist').checked;settings.stick=$('optStick').value;settings.open=$('optOpen').checked;settings.aids=$('optAids').checked;
+  $('stickTitle').textContent=STICK_TITLE[settings.stick];
+  const sr=document.querySelector('input[name=stage]:checked');settings.stage=sr?sr.value:'warehouse';
+  newGame();G.paused=false;keepAwake();$('startOv').hidden=true;$('resultOv').hidden=true;$('tutOv').hidden=true;applyModeUI();tutHighlight();
+  const m={driver:'運転者モード開始：荷物1から順に置き場へ運びましょう',guide:'誘導員モード開始：合図で運転者を荷物1へ誘導しましょう',duo:'2人プレイ開始：運転する人はボタン、誘導する人は声で合図'};
+  log(m[settings.mode],'info');
+  if(settings.mode==='duo'&&!voiceOn)startVoice();
+}
+function applyModeUI(){
+  const g=settings.mode==='guide';$('ctlDriver').hidden=g;$('ctlGuide').hidden=!g;
+  $('sMode').textContent=`${MODE_NAME[settings.mode]}・${ST().name}・Lv${settings.level}`;
+  primary=(g||settings.stick==='easy')?'top':'cab';layoutViews();
+  document.body.classList.toggle('easy',settings.stick==='easy'&&!g);
+  for(const k of ['pedal','easy','map','car'])document.body.classList.toggle('scheme-'+k,settings.stick===k&&!g);
+  document.body.classList.remove('forkmode');
+  document.body.classList.toggle('noaids',!aidsOn());if(!aidsOn())primary='cab',layoutViews();
+  $('cabCap').textContent=g?'運転者から見える景色':'運転席ビュー';
+  $('btnPause').textContent='一時停止';
+  if(!voiceOn)voiceMsg(VOICE_HINT[settings.mode]);
+}
+let primary='cab';
+function layoutViews(){
+  const st=$('stage'),top=$('vTop'),cab=$('vCab');
+  const [m,s]=primary==='cab'?[cab,top]:[top,cab];
+  st.prepend(m);m.classList.remove('sub');s.classList.add('sub');
+  requestAnimationFrame(resize);
+}
+function setSub(on){document.body.classList.toggle('nosub',!on);$('btnSub').setAttribute('aria-pressed',String(on));requestAnimationFrame(resize);}
+$('btnSub').onclick=()=>setSub(document.body.classList.contains('nosub'));
+$('btnSnd').onclick=()=>{SND.on=!SND.on;$('btnSnd').setAttribute('aria-pressed',String(SND.on));if(SND.on)actx();};
+let fsNative=false;
+function setFS(on){
+  document.body.classList.toggle('fs',on);$('btnFS').textContent=on?'全画面を終了':'全画面';
+  const el=document.documentElement;
+  if(on){try{const r=el.requestFullscreen?el.requestFullscreen({navigationUI:'hide'}):el.webkitRequestFullscreen?el.webkitRequestFullscreen():null;if(r&&r.catch)r.catch(()=>{});}catch(_){}}
+  else{try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});else if(document.webkitFullscreenElement&&document.webkitExitFullscreen)document.webkitExitFullscreen();}catch(_){}}
+  requestAnimationFrame(resize);setTimeout(resize,350);
+}
+$('btnFS').onclick=()=>setFS(!document.body.classList.contains('fs'));
+['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{
+  const active=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  if(active)fsNative=true;else if(fsNative){fsNative=false;if(document.body.classList.contains('fs'))setFS(false);}
+  requestAnimationFrame(resize);
+}));
+addEventListener('orientationchange',()=>setTimeout(resize,300));
+
+/* ---------- 音声認識 ---------- */
+const VOICE_HINT={
+  driver:'通路の手前で止まって「右よし、左よし」と声で指差呼称できます',
+  guide:'「オーライ」「バック」「右」「左」「まっすぐ」「ストップ」「徐行」「上げ」「下げ」「右よし」',
+  duo:'誘導する人の声を聞き取り、合図を画面に表示します'
+};
+const VOICE_WORDS=[
+  ['check',['右よし','左よし','みぎよし','ひだりよし','右ヨシ','左ヨシ','右良し','左良し','右オーケー','左オーケー','安全確認','確認よし','ヨシ','よし','良し']],
+  ['stop',['ストップ','すとっぷ','止まれ','とまれ','止まって','とまって','停止','ていし','待て','まて','止め']],
+  ['slow',['ゆっくり','徐行','じょこう','スロー']],
+  ['fwd',['オーライ','おーらい','前進','ぜんしん','前へ','まえへ','進め','すすめ','来い','こい','ゴー']],
+  ['back',['バック','ばっく','後進','こうしん','後ろ','うしろ','下がれ','さがれ','下がって','さがって']],
+  ['straight',['まっすぐ','真っ直ぐ','真っすぐ','直進','ちょくしん','戻せ','もどせ']],
+  ['right',['右','みぎ']],
+  ['left',['左','ひだり']],
+  ['up',['上げ','あげ','アップ']],
+  ['down',['下げ','さげ','ダウン','下ろせ','おろせ']]
+];
+const VW=VOICE_WORDS.flatMap(([c,ws])=>ws.map(w=>[w,c])).sort((a,b)=>b[0].length-a[0].length);
+function parseVoice(t){t=t.replace(/[\s、。！!？?]/g,'');const out=[];let i=0;
+  while(i<t.length){let hit=null;for(const [w,c] of VW){if(t.startsWith(w,i)){hit=[w,c];break;}}if(hit){out.push(hit[1]);i+=hit[0].length;}else i++;}
+  for(let k=0;k<out.length-1;k++)if(out[k]==='slow'&&(out[k+1]==='fwd'||out[k+1]==='back')){out[k]=out[k+1];out[k+1]='slow';k++;}
+  return out;}
+function voiceDispatch(c){
+  if(settings.mode==='guide')sendSignal(c,true);
+  else if(settings.mode==='duo')duoSignal(c);
+  else if(c==='check')callCheck(true);
+}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,voiceOn=false,applied={};
+function inFrame(){try{return window.self!==window.top;}catch(_){return true;}}
+function voiceMsg(t,cls){const v=$('voiceStat');v.textContent=t;v.className='vstat'+(cls?' '+cls:'');}
+function setVoiceUI(on){voiceOn=on;$('btnVoice').setAttribute('aria-pressed',String(on));$('voiceLbl').textContent=on?'聞き取り中':'音声';}
+function startVoice(){
+  if(!SR){voiceMsg('このブラウザは音声認識に対応していません。iPhoneはSafari、PCはChromeで開いてください。','bad');return;}
+  rec=new SR();rec.lang='ja-JP';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=1;applied={};
+  rec.onresult=e=>{
+    for(let k=e.resultIndex;k<e.results.length;k++){
+      const r=e.results[k],t=r[0].transcript.trim(),cmds=parseVoice(t),n=applied[k]||0;
+      for(let j=n;j<cmds.length;j++)voiceDispatch(cmds[j]);
+      if(cmds.length>n){applied[k]=cmds.length;voiceMsg(`「${t}」→ ${cmds.slice(n).map(c=>SIGNAME[c]).join('・')}`,'heard');}
+      else if(r.isFinal&&!cmds.length&&t)voiceMsg(`「${t}」は合図として聞き取れませんでした`);
+    }
+  };
+  rec.onerror=e=>{
+    if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)){
+      stopVoice();
+      voiceMsg(inFrame()?'Claude上のページではマイクが使えません。公開URL（https）で開くと音声が使えます。':'マイクが使えません。ブラウザの設定でこのページのマイクを許可してください。','bad');
+    }else if(e.error==='network'){voiceMsg('音声認識サービスに接続できません。通信状態を確認してください。','bad');}
+  };
+  rec.onend=()=>{if(voiceOn){applied={};setTimeout(()=>{if(voiceOn&&rec)try{rec.start();}catch(_){}},150);}};
+  try{rec.start();setVoiceUI(true);voiceMsg('聞き取り中…短く、はっきり話してください');}
+  catch(_){voiceMsg('音声認識を開始できませんでした。','bad');}
+}
+function stopVoice(){setVoiceUI(false);if(rec){const r=rec;rec=null;r.onend=null;try{r.abort();}catch(_){}}voiceMsg(VOICE_HINT[settings.mode]);}
+$('btnVoice').onclick=()=>voiceOn?stopVoice():startVoice();
+
+/* ---------- 端末まわり ---------- */
+for(const v of [$('vTop'),$('vCab')])v.addEventListener('click',()=>{
+  if(v.id==='vCab'&&G&&G.forkMode&&!v.classList.contains('sub')&&aidsOn()){G.forkDiag=!G.forkDiag;forkCaption();return;}
+  if(!v.classList.contains('sub')||getComputedStyle(v).position!=='absolute')return;
+  primary=v.id==='vCab'?'cab':'top';layoutViews();
+});
+let wakeLock=null;
+async function keepAwake(){try{if(navigator.wakeLock&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;});}}catch(_){}}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){for(const k in keys)keys[k]=false;stick.on=false;stick.x=0;stick.y=0;document.querySelectorAll('.k.on').forEach(b=>b.classList.remove('on'));
+    if(voiceOn)stopVoice();
+    if(G&&!G.over&&!G.paused&&$('startOv').hidden){G.paused=true;$('btnPause').textContent='再開';}}
+  else if(G&&!G.paused)keepAwake();
+});
+['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+$('btnStart').onclick=startGame;
+$('btnTut').onclick=startTutorial;
+$('tutAgain').onclick=startTutorial;
+$('tutToMenu').onclick=()=>{$('tutOv').hidden=true;renderStart();$('startOv').hidden=false;};
+$('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G.blocks[0];
+  const front=()=>{fl.th=-Math.PI/2;fl.x=b.x;fl.ss=0;};
+  switch(T.i){
+    case 3:front();fl.y=b.y+b.d/2+FRONT+1.1+1.0;fl.v=0;break;
+    case 4:if(!G.forkMode)setForkMode(true);break;
+    case 5:fl.mast=0;break;
+    case 6:fl.th=-Math.PI/2;break;
+    case 7:fl.ss=clamp(forkFit(b).l,-0.15,0.15);break;
+    case 8:fl.fork=0.1;fl.forkT=0.1;G.prevFork=0.1;break;
+    case 9:front();fl.mast=0;fl.fork=0.1;fl.forkT=0.1;G.prevFork=0.1;fl.y=b.y+b.d/2+FRONT+0.01;fl.v=0;break;
+    case 10:if(!fl.load){front();fl.y=b.y+b.d/2+FRONT+0.01;pickUp(b);}fl.fork=0.5;fl.forkT=0.5;G.prevFork=0.5;break;
+    case 11:fl.mast=6;break;
+    case 12:if(G.forkMode)setForkMode(false);break;
+    case 13:G.calls=Math.max(G.calls,1);break;
+    case 14:if(fl.load){fl.th=0;fl.ss=0;fl.x=b.tx-(FRONT+0.05+b.d/2);fl.y=b.ty;fl.v=0;}break;
+    case 15:if(!G.forkMode)setForkMode(true);fl.mast=0;break;
+    case 16:if(fl.load){fl.mast=0;release();}fl.fork=0.1;fl.forkT=0.1;G.prevFork=0.1;break;
+    case 17:fl.fork=0.04;fl.forkT=0.04;G.prevFork=0.04;break;
+    case 18:fl.x-=Math.cos(fl.th)*1.6;fl.y-=Math.sin(fl.th)*1.6;fl.v=0;break;
+  }
+  T.okT=0.01;};
+$('tutQuit').onclick=()=>{if(!G)return;G.over=true;G.tut=null;document.body.classList.remove('forkmode');document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));renderStart();$('startOv').hidden=false;};
+$('btnAgain').onclick=()=>{$('resultOv').hidden=true;startGame();};
+$('btnNext').onclick=()=>{$('optLevel').value=String(Math.min(5,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
+$('optLevel').addEventListener('change',showLvDesc);
+$('btnMenu').onclick=()=>{$('resultOv').hidden=true;renderStart();$('startOv').hidden=false;};
+$('btnPause').onclick=()=>{if(!G||G.over||!$('startOv').hidden)return;G.paused=!G.paused;$('btnPause').textContent=G.paused?'再開':'一時停止';if(!G.paused){last=performance.now();keepAwake();}};
+
+document.querySelectorAll('[data-hold]').forEach(b=>{
+  const k=b.dataset.hold;const on=e=>{e.preventDefault();keys[k]=true;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}};
+  const off=()=>{keys[k]=false;b.classList.remove('on');};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+  b.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
+  b.addEventListener('touchend',e=>{e.preventDefault();off();},{passive:false});
+});
+{const el=$('stick'),kn=$('knob');let pid=null;
+  const setFrom=e=>{const r=el.getBoundingClientRect();const R=r.width/2;let dx=(e.clientX-r.left-R)/(R*0.72),dy=(e.clientY-r.top-R)/(R*0.72);const m=Math.hypot(dx,dy);if(m>1){dx/=m;dy/=m;}
+    stick.x=dx;stick.y=dy;kn.style.transform=`translate(${dx*R*0.62}px,${dy*R*0.62}px)`;};
+  el.addEventListener('pointerdown',e=>{e.preventDefault();pid=e.pointerId;try{el.setPointerCapture(pid);}catch(_){}stick.on=true;el.classList.add('on');
+    stick.dirSet=false;
+    setFrom(e);});
+  el.addEventListener('pointermove',e=>{if(e.pointerId===pid)setFrom(e);});
+  const end=()=>{pid=null;stick.on=false;stick.x=0;stick.y=0;el.classList.remove('on');kn.style.transform='';};
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);el.addEventListener('lostpointercapture',end);
+  el.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});el.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+  el.addEventListener('contextmenu',e=>e.preventDefault());}
+document.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>{if(!G||G.paused||G.over)return;const a=b.dataset.act;if(a==='up'){forkUp();SFX.sig('up');}else if(a==='down'){forkDown();SFX.sig('down');}else if(a==='forkmode')setForkMode(true);else if(a==='drive')setForkMode(false);else callCheck(false);}));
+document.querySelectorAll('[data-cmd]').forEach(b=>b.addEventListener('click',()=>sendSignal(b.dataset.cmd,false)));
+const KD={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',KeyZ:'tfwd',KeyX:'tback',KeyB:'back',KeyQ:'q',KeyE:'e',Comma:'rotl',Period:'rotr'};
+const KG={KeyZ:'slow',KeyW:'fwd',ArrowUp:'fwd',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyX:'straight',Space:'stop',KeyQ:'up',KeyE:'down',KeyC:'check'};
+addEventListener('keydown',e=>{
+  if(!G||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden)return;
+  if(e.code==='KeyP'){$('btnPause').click();return;}
+  if(e.code==='KeyF'){$('btnFS').click();return;}
+  if(e.code==='KeyV'){$('btnSub').click();return;}
+  if(e.code==='KeyM'){$('btnSnd').click();return;}
+  if(e.code==='Escape'&&document.body.classList.contains('fs')){setFS(false);return;}
+  if(driverLike()){
+    if(KD[e.code]){keys[KD[e.code]]=true;e.preventDefault();}
+    if(!e.repeat&&!G.paused&&!G.over){if(e.code==='KeyG')setForkMode(!G.forkMode);if(!G.forkMode){if(e.code==='KeyQ'){forkUp();SFX.sig('up');}if(e.code==='KeyE'){forkDown();SFX.sig('down');}}if(e.code==='KeyC')callCheck(false);}
+  }else if(KG[e.code]){e.preventDefault();if(!e.repeat)sendSignal(KG[e.code],false);}
+});
+addEventListener('keyup',e=>{if(KD[e.code])keys[KD[e.code]]=false;});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+
+renderStart();newGame();applyModeUI();resize();
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(G){if(!G.paused&&!G.over)update(dt);if(cTop.width>2)drawTop();if(cCab.width>2)drawCab();hud();}
+  requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

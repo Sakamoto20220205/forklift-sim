@@ -147,6 +147,9 @@ body.notop .stage{grid-template-columns:1fr}
 .toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:60;background:#2b2a1e;border:1px solid var(--yel);color:var(--ink);border-radius:8px;padding:8px 14px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;gap:10px;align-items:center;max-width:calc(100vw - 32px)}
 .toast b{color:var(--yel);font-family:var(--f-disp);font-weight:400;white-space:nowrap}
 
+.sheet.pause{max-width:360px;margin:auto}
+.pbtns{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.pbtns button{width:100%;min-height:52px;font-size:17px}
 .overlay{position:fixed;inset:0;background:rgba(10,12,13,.84);display:flex;z-index:50;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));overflow:auto}
 .sheet{min-width:0;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;max-width:820px;width:100%;padding:22px;display:grid;gap:16px;position:relative;overflow:hidden}
 .sheet::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:repeating-linear-gradient(-45deg,var(--yel) 0 12px,#111 12px 24px)}
@@ -399,7 +402,7 @@ body.fs{overflow:hidden;--fsbar:46px}
       <button class="btn-ghost" id="btnFS" type="button">全画面</button>
       <button class="btn-ghost" id="btnSnd" type="button" aria-pressed="true">音</button>
       <button class="btn-ghost" id="btnRec" type="button">記録</button>
-      <button class="btn-ghost" id="btnPause" type="button">一時停止</button>
+      <button class="btn-ghost" id="btnPause" type="button">メニュー</button>
     </div>
   </header>
 
@@ -525,6 +528,18 @@ body.fs{overflow:hidden;--fsbar:46px}
   </div>
 </div>
 
+<div class="overlay" id="pauseOv" hidden>
+  <div class="sheet pause">
+    <h2>一時停止中</h2>
+    <p id="pauseInfo" style="color:var(--mute)"></p>
+    <div class="pbtns">
+      <button class="go" id="pResume" type="button">再開する</button>
+      <button class="btn-ghost" id="pRetry" type="button">最初からやり直す</button>
+      <button class="btn-ghost" id="pTitle" type="button">タイトルに戻る</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="resultOv" hidden>
   <div class="sheet">
     <h2>訓練結果</h2>
@@ -535,7 +550,7 @@ body.fs{overflow:hidden;--fsbar:46px}
     <div class="row">
       <button class="go" id="btnNext" type="button" hidden>次のレベルへ</button>
       <button class="btn-ghost" id="btnAgain" type="button">同じ条件でもう一度</button>
-      <button class="btn-ghost" id="btnMenu" type="button">モード選択に戻る</button>
+      <button class="btn-ghost" id="btnMenu" type="button">タイトルに戻る</button>
     </div>
   </div>
 </div>
@@ -1857,7 +1872,7 @@ function applyModeUI(){
   document.body.classList.remove('forkmode');
   document.body.classList.toggle('noaids',!aidsOn());document.body.classList.toggle('notop',!topOn());if(!topOn())primary='cab',layoutViews();
   $('cabCap').textContent=g?'運転者から見える景色':'運転席ビュー';
-  $('btnPause').textContent='一時停止';
+  $('pauseOv').hidden=true;
   if(!voiceOn)voiceMsg(VOICE_HINT[settings.mode]);
 }
 let primary='cab';
@@ -1955,7 +1970,7 @@ async function keepAwake(){try{if(navigator.wakeLock&&!wakeLock){wakeLock=await 
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){for(const k in keys)keys[k]=false;stick.on=false;stick.x=0;stick.y=0;document.querySelectorAll('.k.on').forEach(b=>b.classList.remove('on'));
     if(voiceOn)stopVoice();
-    if(G&&!G.over&&!G.paused&&$('startOv').hidden){G.paused=true;$('btnPause').textContent='再開';}}
+    if(G&&!G.over&&!G.paused&&$('startOv').hidden)openPause();}
   else if(G&&!G.paused)keepAwake();
 });
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
@@ -1984,12 +1999,23 @@ $('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G
     case 18:fl.x-=Math.cos(fl.th)*1.6;fl.y-=Math.sin(fl.th)*1.6;fl.v=0;break;
   }
   T.okT=0.01;};
-$('tutQuit').onclick=()=>{if(!G)return;G.over=true;G.tut=null;document.body.classList.remove('forkmode');document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));renderStart();$('startOv').hidden=false;};
+$('tutQuit').onclick=()=>{if(!G)return;goTitle();};
 $('btnAgain').onclick=()=>{$('resultOv').hidden=true;startGame();};
 $('btnNext').onclick=()=>{$('optLevel').value=String(Math.min(LV_MAX,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
 $('optLevel').addEventListener('change',showLvDesc);
-$('btnMenu').onclick=()=>{$('resultOv').hidden=true;renderStart();$('startOv').hidden=false;};
-$('btnPause').onclick=()=>{if(!G||G.over||!$('startOv').hidden)return;G.paused=!G.paused;$('btnPause').textContent=G.paused?'再開':'一時停止';if(!G.paused){last=performance.now();keepAwake();}};
+$('btnMenu').onclick=goTitle;
+function openPause(){if(!G||G.over||!$('startOv').hidden||!$('recOv').hidden)return;G.paused=true;for(const k in keys)keys[k]=false;stick.on=false;
+  $('pauseInfo').textContent=G.tut?`チュートリアル ${Math.min(G.tut.i+1,TUT.length)}/${TUT.length}`:`${MODE_NAME[settings.mode]}・${ST().name}・Lv${settings.level}　搬送 ${G.blocks.filter(b=>b.state==='done').length}/${G.blocks.length}・経過 ${fmtT(G.t)}`;
+  $('pRetry').textContent=G.tut?'チュートリアルを最初から':'最初からやり直す';$('pauseOv').hidden=false;}
+function closePause(){$('pauseOv').hidden=true;if(G&&!G.over){G.paused=false;last=performance.now();keepAwake();}}
+function goTitle(){$('pauseOv').hidden=true;$('resultOv').hidden=true;$('tutOv').hidden=true;
+  if(G){G.over=true;G.paused=true;G.tut=null;}if(voiceOn)stopVoice();
+  document.body.classList.remove('forkmode');document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));$('tutBtns').hidden=true;
+  if(document.body.classList.contains('fs'))setFS(false);renderStart();$('startOv').hidden=false;$('startOv').scrollTop=0;}
+$('btnPause').onclick=()=>{if(!$('pauseOv').hidden)closePause();else openPause();};
+$('pResume').onclick=closePause;
+$('pRetry').onclick=()=>{const tut=G&&G.tut;$('pauseOv').hidden=true;if(tut)startTutorial();else startGame();};
+$('pTitle').onclick=goTitle;
 
 document.querySelectorAll('[data-hold]').forEach(b=>{
   const k=b.dataset.hold;const on=e=>{e.preventDefault();keys[k]=true;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}};
@@ -2021,6 +2047,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyV'){$('btnSub').click();return;}
   if(e.code==='KeyM'){$('btnSnd').click();return;}
   if(e.code==='Escape'&&document.body.classList.contains('fs')){setFS(false);return;}
+  if(e.code==='Escape'&&G&&!G.over&&$('startOv').hidden){$('btnPause').click();return;}
   if(driverLike()){
     if(KD[e.code]){keys[KD[e.code]]=true;e.preventDefault();}
     if(!e.repeat&&!G.paused&&!G.over){if(e.code==='KeyG')setForkMode(!G.forkMode);if(!G.forkMode){if(e.code==='KeyQ'){forkUp();SFX.sig('up');}if(e.code==='KeyE'){forkDown();SFX.sig('down');}}if(e.code==='KeyC')callCheck(false);}

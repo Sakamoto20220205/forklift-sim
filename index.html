@@ -1681,7 +1681,15 @@ function drawCab(){
   if(!rear){
     const fz=forkZ()-EYE_H,b=fl.load;
     const tp=Math.tan(fl.mast*Math.PI/180);
-    if(!b){for(const l of [-0.3+fl.ss,0.3+fl.ss])poly(g,[C(l-0.06,1.05,fz),C(l+0.06,1.05,fz),C(l+0.06,2.15,fz+1.1*tp),C(l-0.06,2.15,fz+1.1*tp)],fl.fork>0.3?'#c9ccc6':'#5f6466','#222',1);}
+    if(!b){
+      // 荷物（パレット）の中に入った部分の爪は見えないように、手前の面で切る
+      const polys=[];for(const o of G.blocks){if(o.state==='carried')continue;if(forkZ()>o.h+0.15)continue;polys.push(rectPts(blockRect(o)).slice(0,4).map(([x,y])=>{const q=toCam(x,y,0);return [q.f,q.r];}));}
+      const cut=l=>{let fe=2.15;for(const pg of polys){const n=pg.length;let inside=false;
+          for(let i=0,j=n-1;i<n;j=i++){const [fi,ri]=pg[i],[fj,rj]=pg[j];
+            if((ri>l)!==(rj>l)){const fx=fi+(l-ri)*(fj-fi)/(rj-ri);if(fx>1.05&&fx<fe)fe=fx;if(fx>1.05)inside=!inside;}}
+          if(inside)fe=Math.min(fe,1.05);}return fe;};
+      for(const l of [-0.3+fl.ss,0.3+fl.ss]){const fe=cut(l);if(fe<=1.06)continue;const k=(fe-1.05)/1.1;
+        poly(g,[C(l-0.06,1.05,fz),C(l+0.06,1.05,fz),C(l+0.06,fe,fz+1.1*tp*k),C(l-0.06,fe,fz+1.1*tp*k)],fl.fork>0.3?'#c9ccc6':'#5f6466','#222',1);}}
     else{
       const dn=FRONT+0.05-EYE_OFF,hs=b.w/2,top=fz+b.h;
       const [x1,y1]=P(C(-hs,dn,top)),[x2,y2]=P(C(hs,dn,fz));

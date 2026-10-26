@@ -105,7 +105,9 @@ button:focus-visible,input:focus-visible+span,select:focus-visible{outline:2px s
 .k.ss,.k.rot{background:#25303a;border-color:#3e5068;color:#d5e3f5}
 .dbtns .wide{grid-column:1/-1}
 .sugg{outline:3px solid var(--yel)!important;outline-offset:2px;animation:hlp 0.9s ease-in-out infinite}
-.pedal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:56px 56px 46px;gap:6px;max-width:520px;width:100%;margin:0 auto}
+.pedal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:56px 56px 46px 44px;gap:6px;max-width:520px;width:100%;margin:0 auto}
+.pedal .pu{grid-column:1;grid-row:4}.pedal .pd{grid-column:2;grid-row:4}.pedal .ptf{grid-column:3;grid-row:4}.pedal .ptb{grid-column:4;grid-row:4}
+.pedal .pu,.pedal .pd,.pedal .ptf,.pedal .ptb{font-size:14px}
 .pedal .pl{grid-column:1;grid-row:1/3}.pedal .pr{grid-column:2;grid-row:1/3}.pedal .pf{grid-column:3/5;grid-row:1}.pedal .pb{grid-column:3/5;grid-row:2}.pedal .pm{grid-column:1/3;grid-row:3}.pedal .pc{grid-column:3/5;grid-row:3}
 .forkpanel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:46px 46px 42px 36px;gap:6px;max-width:520px;width:100%;margin:0 auto}
 .forkpanel .f3{grid-column:3/5;grid-row:1}.forkpanel .f6{grid-column:3/5;grid-row:2}.forkpanel .f11{grid-column:1/-1;grid-row:4;font-size:13px}
@@ -326,7 +328,7 @@ body.notop .stage{grid-template-columns:1fr}
   .k.ped{font-size:12.5px;white-space:nowrap;letter-spacing:-.02em}
   .k.ped small{font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .realpanel .r-tg,.realpanel .r-c{font-size:12px}
-  .pedal{grid-template-rows:46px 46px 38px}
+  .pedal{grid-template-rows:46px 46px 38px 36px}
   .forkpanel{grid-template-rows:40px 40px 38px 32px}
 }
 /* 小窓なし */
@@ -382,8 +384,9 @@ body.fs{overflow:hidden;--fsbar:46px}
   .fs .drive{display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
   .fs .stick{pointer-events:auto;width:150px;height:150px;background:radial-gradient(circle at 50% 50%,rgba(48,55,59,.75) 0 54%,rgba(38,44,48,.75) 55% 100%)}
   .fs .dbtns{pointer-events:none;width:200px;grid-auto-rows:40px}
-  .fs .pedal{max-width:none;grid-template-columns:76px 76px 1fr 150px;grid-template-rows:54px 54px 40px;pointer-events:none}
-  .fs .pedal .pf{grid-column:4;grid-row:1}.fs .pedal .pb{grid-column:4;grid-row:2}.fs .pedal .pm{grid-column:1/3;grid-row:3}.fs .pedal .pc{grid-column:4;grid-row:3}
+  .fs .pedal{max-width:none;grid-template-columns:76px 76px 1fr 74px 74px;grid-template-rows:54px 54px 40px 40px;pointer-events:none}
+  .fs .pedal .pf{grid-column:4/6;grid-row:1}.fs .pedal .pb{grid-column:4/6;grid-row:2}.fs .pedal .pm{grid-column:1/3;grid-row:3}.fs .pedal .pc{grid-column:4/6;grid-row:3}
+  .fs .pedal .pu{grid-column:1;grid-row:4}.fs .pedal .pd{grid-column:2;grid-row:4}.fs .pedal .ptf{grid-column:4;grid-row:4}.fs .pedal .ptb{grid-column:5;grid-row:4}
   .fs .realpanel{max-width:none;grid-template-columns:66px 66px 1fr 78px 78px 92px 1fr 58px 60px 60px 66px;grid-template-rows:auto 46px;pointer-events:none}
   .fs .realpanel .r-l{grid-area:1/1}.fs .realpanel .r-r{grid-area:1/2}.fs .realpanel .r-c{grid-area:2/1/3/3}.fs .realpanel .r-lift{grid-area:1/9/3/10}.fs .realpanel .r-tilt{grid-area:1/10/3/11}.fs .realpanel .r-ss{grid-area:1/11/3/12}.fs .realpanel .r-d{grid-area:1/8/3/9}.fs .realpanel .r-acc{grid-area:2/6}
   .fs .realpanel .r-inch{grid-area:2/4}.fs .realpanel .r-brk{grid-area:2/5}.fs .realpanel .r-acc{grid-area:2/6}
@@ -597,12 +600,18 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
         <button type="button" class="k back pb" id="pBack" data-hold="back">バック<small>押している間</small></button>
         <button type="button" class="k fmode pm" id="btnForkMode" data-act="forkmode">フォーク操作<small>荷を取る・置く G</small></button>
         <button type="button" class="k chk pc" id="pChk" data-act="check">指差確認<small>通路の手前で C</small></button>
+        <button type="button" class="k fork pu" id="pLiftU" data-hold="fup">上げ<small>Q</small></button>
+        <button type="button" class="k fork pd" id="pLiftD" data-hold="fdn">下げ<small>E</small></button>
+        <button type="button" class="k tilt ptf" id="pTiltF" data-hold="tfwd">前傾<small>Z</small></button>
+        <button type="button" class="k tilt ptb" id="pTiltB" data-hold="tback">後傾<small>X</small></button>
       </div>
       <div class="drive">
         <div class="stick" id="stick" aria-label="走行スティック"><span class="ar t">▲</span><span class="ar b">▼</span><span class="ar l">◀</span><span class="ar r">▶</span><div class="knob" id="knob"></div></div>
         <div class="dbtns">
-          <button type="button" class="k fork" data-act="up">上げ<small>フォーク Q</small></button>
-          <button type="button" class="k fork" data-act="down">下げ<small>フォーク E</small></button>
+          <button type="button" class="k fork" data-hold="fup">上げ<small>押している間 Q</small></button>
+          <button type="button" class="k fork" data-hold="fdn">下げ<small>押している間 E</small></button>
+          <button type="button" class="k tilt" data-hold="tfwd">前傾<small>Z</small></button>
+          <button type="button" class="k tilt" data-hold="tback">後傾<small>X</small></button>
           <button type="button" class="k back easyOnly" data-hold="back">バック<small>まっすぐ後ろへ B</small></button>
           <button type="button" class="k chk" data-act="check">指差確認<small>通路の手前で C</small></button>
           <button type="button" class="k fmode wide" id="btnForkMode2" data-act="forkmode">フォーク操作<small>荷を取る・置く G</small></button>
@@ -1622,6 +1631,9 @@ function update(dt){
     const ss=LV().stopSee;if(dirS!==0&&ss!=='none')for(const i of G.intr){if(ss==='person'&&i.type!=='person')continue;if(!i.seen&&driverSees(i,dirS)){i.seen=true;G.cmd.move=0;G.autoStops++;log(`運転者：${INTR[i.type].name}が見えたので停止しました`,'info');}}
     thr=G.cmd.move*LV().drv*(G.cmd.slow?0.5:1);st=G.cmd.steer;
     const dm=fl.mastT-fl.mast;fl.mast+=Math.sign(dm)*Math.min(Math.abs(dm),8*dt);}
+  // 走りながらの上げ下げ（ボタン操作・スティック。押している間だけ動く）
+  if(driverLike()&&!realOn()&&!G.forkMode){const df=((keys.fup||keys.q)?1:0)-((keys.fdn||keys.e)?1:0);G.liftHold=df?(G.liftHold||0)+dt:0;
+    if(df){fl.fork=clamp(fl.fork+df*Math.min(1.4,0.45+G.liftHold*0.6)*dt,0,FORK_MAX);fl.forkT=fl.fork;}}
   if(driverLike()){
     // チルト（前傾・後傾）
     if(G.mastDet>0)G.mastDet-=dt;
@@ -2548,7 +2560,7 @@ function drawCab0(){
       g.font=`700 ${s0*0.13}px "Zen Kaku Gothic New",sans-serif`;g.fillStyle='#ebe7dc';g.textAlign='center';g.fillText('揺れ',gx2+gw/2,by+s0*1.08);}
     const wx=bx+s0*1.18+Math.max(8,s0*0.18)+s0*0.32,wy=by+s0*0.42,wr=s0*0.3;g.fillStyle='rgba(20,24,26,.6)';g.beginPath();g.arc(wx,wy,wr*1.25,0,7);g.fill();g.strokeStyle='#d9dcd6';g.lineWidth=Math.max(2,s0*0.06);g.beginPath();g.arc(wx,wy,wr,0,7);g.stroke();
     g.save();g.translate(wx,wy);g.rotate(fl.steer*Math.PI*0.75);g.beginPath();g.moveTo(-wr,0);g.lineTo(wr,0);g.moveTo(0,0);g.lineTo(0,wr);g.stroke();g.fillStyle='#f2c418';g.beginPath();g.arc(0,-wr,s0*0.05,0,7);g.fill();g.restore();
-    {const tt='タイヤ '+tireTxt(fl.steer);const tf=Math.max(12*(dpr||1),s0*0.17);g.font=`700 ${tf}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';const tw=g.measureText(tt).width+10;g.fillStyle='rgba(20,24,26,.85)';g.fillRect(wx-tw/2,wy+wr*1.3,tw,tf*1.45);g.fillStyle=Math.abs(fl.steer)<0.03?'#8fd8a5':'#f2c418';g.textBaseline='middle';g.fillText(tt,wx,wy+wr*1.3+tf*0.75);g.textBaseline='alphabetic';}}
+    {const tt='タイヤ '+tireTxt(fl.steer);const tf=Math.max(12*(dpr||1),s0*0.17);g.font=`700 ${tf}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='left';const tw=g.measureText(tt).width+10,tx0=wx-wr*1.25;g.fillStyle='rgba(20,24,26,.85)';g.fillRect(tx0,wy+wr*1.3,tw,tf*1.45);g.fillStyle=Math.abs(fl.steer)<0.03?'#8fd8a5':'#f2c418';g.textBaseline='middle';g.fillText(tt,tx0+5,wy+wr*1.3+tf*0.75);g.textBaseline='alphabetic';}}
   const cs0=crossingState();
   if(cs0&&!G.cp[cs0.idx].done&&Math.abs(fl.v)<0.08){let msg='指差呼称チャンス：「右よし、左よし」';g.font=`700 ${fs}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';let mw=g.measureText(msg).width;if(mw>w*0.8){msg='指差呼称チャンス';mw=g.measureText(msg).width;}
     const by=h*0.6;g.fillStyle='rgba(35,56,43,.92)';g.fillRect(CX-mw/2-fs,by,mw+fs*2,fs*1.8);g.fillStyle='#cdeed6';g.fillText(msg,CX,by+fs*0.9);}

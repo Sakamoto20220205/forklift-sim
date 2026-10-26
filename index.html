@@ -2374,7 +2374,7 @@ function drawForkliftTop(g,fl){
   for(const l of [-0.55,0.55]){g.save();g.translate(-0.95,l);g.rotate(-fl.steer*0.6);g.fillRect(-0.22,-0.07,0.44,0.14);g.restore();}
   g.fillStyle='#f2c418';g.fillRect(-1.3,-0.56,2.15,1.12);
   g.fillStyle='#3a3f42';g.fillRect(-1.3,-0.56,0.5,1.12);
-  if(Math.abs(fl.steer)>0.03){g.fillStyle='#111';g.strokeStyle='#f2c418';g.lineWidth=0.04;for(const l of [-0.42,0.42]){g.save();g.translate(-0.95,l);g.rotate(-fl.steer*1.36);g.fillRect(-0.2,-0.06,0.4,0.12);g.strokeRect(-0.2,-0.06,0.4,0.12);g.restore();}}
+  if(Math.abs(fl.steer)>0.03||steerHoldOn()){g.fillStyle='#111';g.strokeStyle='#f2c418';g.lineWidth=0.06;for(const l of [-0.42,0.42]){g.save();g.translate(-0.95,l);g.rotate(-fl.steer*1.36);g.fillRect(-0.28,-0.09,0.56,0.18);g.strokeRect(-0.28,-0.09,0.56,0.18);g.restore();}}
   g.strokeStyle='#1d2124';g.lineWidth=0.07;g.strokeRect(-0.75,-0.5,1.35,1.0);g.beginPath();g.moveTo(-0.75,-0.5);g.lineTo(0.6,0.5);g.moveTo(-0.75,0.5);g.lineTo(0.6,-0.5);g.stroke();
   g.fillStyle='#2a2f32';g.fillRect(0.82,-0.55,0.13,1.1);
   if(fl.load&&G.tilt>0.3){g.strokeStyle=`rgba(229,73,60,${G.tilt})`;g.lineWidth=0.1;const lr=FRONT+0.05;g.strokeRect(lr,-fl.load.w/2,fl.load.d,fl.load.w);}
@@ -2548,7 +2548,7 @@ function drawCab0(){
       g.font=`700 ${s0*0.13}px "Zen Kaku Gothic New",sans-serif`;g.fillStyle='#ebe7dc';g.textAlign='center';g.fillText('揺れ',gx2+gw/2,by+s0*1.08);}
     const wx=bx+s0*1.18+Math.max(8,s0*0.18)+s0*0.32,wy=by+s0*0.42,wr=s0*0.3;g.fillStyle='rgba(20,24,26,.6)';g.beginPath();g.arc(wx,wy,wr*1.25,0,7);g.fill();g.strokeStyle='#d9dcd6';g.lineWidth=Math.max(2,s0*0.06);g.beginPath();g.arc(wx,wy,wr,0,7);g.stroke();
     g.save();g.translate(wx,wy);g.rotate(fl.steer*Math.PI*0.75);g.beginPath();g.moveTo(-wr,0);g.lineTo(wr,0);g.moveTo(0,0);g.lineTo(0,wr);g.stroke();g.fillStyle='#f2c418';g.beginPath();g.arc(0,-wr,s0*0.05,0,7);g.fill();g.restore();
-    {const tt=tireTxt(fl.steer);g.font=`700 ${Math.max(10,s0*0.13)}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';const tw=g.measureText(tt).width+8;g.fillStyle='rgba(20,24,26,.78)';g.fillRect(wx-tw/2,wy+wr*1.3,tw,s0*0.2);g.fillStyle=Math.abs(fl.steer)<0.03?'#8fd8a5':'#f2c418';g.fillText(tt,wx,wy+wr*1.3+s0*0.15);}}
+    {const tt='タイヤ '+tireTxt(fl.steer);const tf=Math.max(12*(dpr||1),s0*0.17);g.font=`700 ${tf}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';const tw=g.measureText(tt).width+10;g.fillStyle='rgba(20,24,26,.85)';g.fillRect(wx-tw/2,wy+wr*1.3,tw,tf*1.45);g.fillStyle=Math.abs(fl.steer)<0.03?'#8fd8a5':'#f2c418';g.textBaseline='middle';g.fillText(tt,wx,wy+wr*1.3+tf*0.75);g.textBaseline='alphabetic';}}
   const cs0=crossingState();
   if(cs0&&!G.cp[cs0.idx].done&&Math.abs(fl.v)<0.08){let msg='指差呼称チャンス：「右よし、左よし」';g.font=`700 ${fs}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';let mw=g.measureText(msg).width;if(mw>w*0.8){msg='指差呼称チャンス';mw=g.measureText(msg).width;}
     const by=h*0.6;g.fillStyle='rgba(35,56,43,.92)';g.fillRect(CX-mw/2-fs,by,mw+fs*2,fs*1.8);g.fillStyle='#cdeed6';g.fillText(msg,CX,by+fs*0.9);}
@@ -2637,11 +2637,12 @@ function hud(){
   $('sMast').textContent=Math.abs(fl.mast)<0.5?'水平':(fl.mast>0?'後':'前')+Math.round(Math.abs(fl.mast))+'°';
   const tl=$('sTilt');tl.textContent=fl.load?`${Math.round(clamp(G.tilt,0,1)*100)}%`:'—';tl.classList.toggle('warn',fl.load&&G.tilt>0.7);tl.classList.toggle('caution',fl.load&&G.tilt>0.4&&G.tilt<=0.7);
   sig.classList.toggle('tut',!!G.tut||!!G.exam);$('tutBtns').hidden=!G.tut;$('examBtns').hidden=!G.exam;
-  if(G.exam){const E=G.exam;const [a,b2]=examStage();const rest=Math.max(0,EXAM.limit-G.t);$('sigWho').textContent=`検定コース（一般的な例）　残り ${fmtT(rest)}　${Math.max(0,G.score)}点`;$('sigV').textContent=a;$('sigSub').textContent=b2;sig.dataset.tone=E.dq?'stop':'warn';
+  if(G.exam){const E=G.exam;const [a,b2]=examStage();const rest=Math.max(0,EXAM.limit-G.t);$('sigWho').textContent=`検定コース（一般的な例）　残り ${fmtT(rest)}　${Math.max(0,G.score)}点　タイヤ：${tireTxt(fl.steer)}`;$('sigV').textContent=a;$('sigSub').textContent=b2;sig.dataset.tone=E.dq?'stop':'warn';
     $('exBelt').setAttribute('aria-pressed',E.belt?'true':'false');$('exBrake').setAttribute('aria-pressed',E.pbrake?'true':'false');$('exBelt').textContent=E.belt?'シートベルト：締めた':'シートベルト';$('exBrake').textContent=E.pbrake?'駐車ブレーキ：かけている':'駐車ブレーキ：戻した';
   }else if(G.tut){const st=TUT[Math.min(G.tut.i,TUT.length-1)];$('sigWho').textContent=`チュートリアル${(G.tut.job||'basic')!=='basic'?'（'+(G.tut.job==='safety'?'安全のしくみ':G.tut.job==='steer'?'ハンドル操作':JOBS[settings.job].name)+'）':''}　手順 ${Math.min(G.tut.i+1,TUT.length)} / ${TUT.length}`;
     if(G.tut.okT>0){$('sigV').textContent='OK！';sig.dataset.tone='go';}else{$('sigV').textContent=(realOn()&&st.rt)||st.t;sig.dataset.tone='warn';}
     $('sigSub').textContent=tutText(st);
+    if(G.tut.job==='steer'||G.tut.job==='port')$('sigWho').textContent+=`　タイヤ：${tireTxt(fl.steer)}`;
   }else if(realOn()&&G.lookOn&&(aidsOn()||settings.assist)&&realHint()){const [a,b2]=realHint();$('sigWho').textContent='荷役中';$('sigV').textContent=a;$('sigSub').textContent=b2;sig.dataset.tone='warn';
   }else if(G.forkMode&&!aidsOn()&&!settings.assist){$('sigWho').textContent='フォーク操作中';$('sigV').textContent='目で合わせる';$('sigSub').textContent='運転席から見える爪先とパレットの差し込み口を見て合わせよう';sig.dataset.tone='';
   }else if(G.forkMode){const [a,b2]=forkHint();$('sigWho').textContent='フォーク操作中';$('sigV').textContent=a;$('sigSub').textContent=b2;sig.dataset.tone='warn';
@@ -3377,7 +3378,7 @@ function tsWhat(){const v=n=>(document.querySelector(`input[name=${n}]:checked`)
   $('tsWhat').textContent=`${v('tsScheme')==='real'?'実機配置':'ボタン操作'}・${ch}・${CARGO[v('tsCargo')||'S'].name}`;}
 $('tutSelOv').addEventListener('change',e=>{if(e.target.name==='tsJob'){tutOpts.cargo=(document.querySelector('input[name=tsCargo]:checked')||{}).value||tutOpts.cargo;renderTutSel();}tsWhat();});
 $('tsGo').onclick=()=>{const v=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value;
-  const sc=v('tsScheme')==='real'?'real':($('optStick').value==='real'?'pedal':$('optStick').value);
+  const sc=v('tsScheme')==='real'?'real':'pedal';
   tutOpts={job:v('tsJob')||'basic',chap:+(v('tsChap')||1),cargo:v('tsCargo')||'S',portStart:v('tsPortStart')||'pick'};startTutorial(sc);};
 $('tutAgain').onclick=startTutorial;
 $('exBelt').onclick=()=>{const E=G&&G.exam;if(!E||E.done)return;if(E.belt&&Math.abs(G.fl.v)>0.05){log('走行中はシートベルトを外せません','warn');return;}E.belt=!E.belt;SFX.check();log(E.belt?'シートベルトを締めました':'シートベルトを外しました','info');};
@@ -3418,6 +3419,7 @@ function openPause(){if(!G||G.over||!$('startOv').hidden||!$('recOv').hidden||!$
   $('pRetry').textContent=G.tut?'チュートリアルを最初から':settings.job==='free'?'この配置で最初から':'最初からやり直す';$('pEdit').hidden=settings.job!=='free'||!!G.tut;
   $('pStickBox').hidden=settings.mode==='guide';document.querySelectorAll('input[name=pStick]').forEach(r=>r.checked=r.value===settings.stick);$('pStickMsg').textContent='';
   $('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal'].includes(settings.stick)||(G.tut&&G.tut.job==='steer');
+  $('pkEasy').closest('label').hidden=!!(G.tut&&G.tut.job==='steer');
   $('pauseOv').hidden=false;}
 // ゲーム・チュートリアルの途中で操作方法を切り替える
 function switchScheme(st){if(!G||settings.stick===st)return;settings.stick=st;if(settings.ov)settings.ov.stick=st;

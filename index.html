@@ -199,6 +199,7 @@ body.notop .stage{grid-template-columns:1fr}
 .task b{display:block;color:var(--ink);font-size:14px}
 .go{justify-self:start;background:var(--yel);color:#1a1a1a;border:0;border-radius:5px;padding:12px 26px;font-family:var(--f-disp);font-size:18px}
 .rules{font-size:12.5px;color:var(--mute);margin:0;padding-left:1.2em;display:grid;gap:2px}
+#ptsOv .rules{font-size:14.5px;line-height:1.6;color:var(--ink);gap:8px}
 .grade{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .grade .g{font-family:var(--f-disp);font-size:72px;line-height:1;color:var(--yel)}
 .grade .s{font-family:var(--f-num);font-size:34px}
@@ -429,7 +430,7 @@ body.fs{overflow:hidden;--fsbar:46px}
 .tstripe{display:block;width:min(70%,360px);height:8px;margin:10px auto 0;background:repeating-linear-gradient(-45deg,#f2c418 0 10px,#120a07 10px 20px);border-radius:2px;box-shadow:0 2px 6px rgba(0,0,0,.5)}
 .tpress{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22vh);transform:translateX(-50%);background:rgba(18,10,7,.55);border:1px solid rgba(242,196,24,.7);color:#ffe9a6;border-radius:999px;padding:12px 26px;font-size:17px;font-weight:700;letter-spacing:.08em;white-space:nowrap;animation:tblink 1.6s ease-in-out infinite}
 @keyframes tblink{0%,100%{opacity:1}50%{opacity:.35}}
-.tmenu{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:min(92%,420px);display:grid;gap:8px;cursor:default;animation:tup .35s ease-out}
+.tmenu{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 46px);width:min(92%,420px);display:grid;gap:8px;cursor:default;animation:tup .35s ease-out}
 @keyframes tup{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
 .tm{display:grid;gap:2px;text-align:left;background:rgba(18,10,7,.82);border:1px solid rgba(242,196,24,.45);border-left:6px solid #f2c418;color:#fff3d6;border-radius:8px;padding:10px 14px;font-size:18px;font-weight:700;backdrop-filter:blur(3px)}
 .tm small{font-size:12px;font-weight:500;color:#e7caa0}
@@ -437,9 +438,7 @@ body.fs{overflow:hidden;--fsbar:46px}
 .tm:disabled{opacity:.45}
 .tm:not(:disabled):active{transform:translateY(2px)}
 .tmrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tm.s{font-size:15px;text-align:center;border-left-width:1px}
-.tmenu.first #tmTut{order:-1;background:#f2c418;color:#1a0d07;border-color:#f2c418}.tmenu.first #tmTut small{color:#3d2a10}
-.tmenu.first #tmPlay{background:rgba(18,10,7,.82);color:#fff3d6;border-color:rgba(242,196,24,.45)}.tmenu.first #tmPlay small{color:#e7caa0}
-.tfoot{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);text-align:center;font-size:11px;color:rgba(255,241,194,.65);pointer-events:none}
+.tfoot{position:absolute;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);text-align:center;font-size:10.5px;line-height:1.45;color:rgba(255,241,194,.65);pointer-events:none}
 @media (orientation:landscape) and (max-height:560px){
   .tlogo{left:4vw;right:auto;top:calc(env(safe-area-inset-top,0px) + 14px);text-align:left}
   .tlogo h1{font-size:clamp(20px,4.2vh + 1vw,34px)}.tstripe{margin-left:0}
@@ -452,6 +451,25 @@ body.fs{overflow:hidden;--fsbar:46px}
 .opts.col{display:grid;gap:12px}.opts.col label{display:flex;gap:10px;align-items:center}
 .hint{font-size:13px}
 .setsum{font-size:13px;color:var(--mute)}
+#playOv,#learnOv,#ptsOv{background:#121516}
+.hubintro{margin:0;color:var(--mute);font-size:14px}
+.easyrow{display:flex;gap:10px;align-items:center;font-size:14px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer}
+.hub{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.hc{display:grid;gap:4px;align-content:start;text-align:left;background:var(--panel2);border:1px solid var(--line);border-left:6px solid var(--yel);border-radius:8px;padding:14px 16px;color:var(--ink);font:inherit;cursor:pointer}
+.hc b{font-size:18px}.hc em{font-style:normal;font-size:12.5px;color:var(--mute)}.hc i{font-style:normal;font-size:12.5px;font-weight:700;color:var(--yel)}
+.hc.pri{background:var(--yel);color:#1a0d07;border-color:var(--yel)}.hc.pri em{color:#3d2a10}.hc.pri i{color:#1a0d07}
+.hc:disabled{opacity:.45;cursor:default}.hc:not(:disabled):active{transform:translateY(2px)}
+#learnOv .hc{border-left-color:var(--blu)}#learnOv .hc i{color:var(--blu)}
+.lvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.lvt{display:grid;gap:2px;align-content:start;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:var(--ink);font:inherit;cursor:pointer}
+.lvt b{font-size:15px}.lvt em{font-style:normal;font-size:12px;color:var(--mute)}
+.lvt.clr{border-color:var(--grn)}.lvt.clr b::after{content:' ✓';color:var(--grn)}
+.lvt.next{border-color:var(--yel);box-shadow:inset 0 0 0 1px var(--yel)}.lvt.next em::before{content:'つぎはここ！ ';font-weight:700;color:var(--yel)}
+.hub.mini{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.hub.mini .hc{padding:12px 14px}.hub.mini .hc b{font-size:16px}
+#playOv h3,#learnOv h3{margin:4px 0 -6px}
+.lvt:disabled{opacity:.4;cursor:default}
+.notice{font-size:12.5px;line-height:1.6;color:var(--mute);border:1px dashed var(--line);border-radius:6px;padding:10px 12px;margin:0}
+.tm.learn{background:#5fa8d8;color:#06131d;border-color:#5fa8d8}.tm.learn small{color:#0e2a3d}
 .modes.jobs{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.modes.jobs label.soon,#tutSelOv label.soon{opacity:.45}#tutSelOv label.soon em::after{content:'（準備中）'}.modes.jobs label.soon em::after{content:'（準備中）'}
 .modes.cargo{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .coll canvas{width:100%;display:block;border-radius:8px;border:1px solid var(--line)}
@@ -608,8 +626,8 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
 
 <div class="overlay" id="startOv" hidden>
   <div class="sheet">
-    <div class="sheethead"><button class="btn-ghost back" id="startBack" type="button">◀ タイトル</button><h2>ゲームスタート</h2></div>
-    <p>倉庫内の荷物を、同じ番号の置き場へ運びます。荷物が大きいほど運転席から前が見えなくなります。歩行者通路には作業員や動物、ちょっと変わった仲間たちが入ってきます。</p>
+    <div class="sheethead"><button class="btn-ghost back" id="startBack" type="button">◀ まなぶ</button><h2>作業別トレーニング</h2></div>
+    <p>作業・モード・ステージ・レベルを選んで、採点つきで練習します。構内運搬では、倉庫内の荷物を同じ番号の置き場へ運びます。荷物が大きいほど運転席から前が見えなくなります。歩行者通路には作業員や動物、ちょっと変わった仲間たちが入ってきます。</p>
     <h3>作業</h3>
     <div class="modes small jobs" id="jobCards"></div>
     <p class="hint" id="jobNote" hidden>誘導員モードは、いまは「構内運搬」だけで遊べます。</p>
@@ -632,17 +650,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
     <p class="setsum" id="setSum"></p>
     <p class="lvdesc" id="lvDesc"></p>
     <div class="task" id="taskList"></div>
-    <ul class="rules">
-      <li>走行：スティックを倒した方向へ進みます。車体の後ろ側へ倒すと後進します。黄色の点線が進路の予測です。</li>
-      <li>荷取り：爪を「水平」にして、フォークを下げたまま荷物の正面にまっすぐ差し込み、「上げ」。長尺物は長い辺から差し込みます。</li>
-      <li>チルト：持ち上げたら「後傾」で爪を手前に起こして走ると荷崩れしにくくなります。下ろす前に「前傾」で水平に戻します。</li>
-      <li>荷下ろし：置き場の枠内で停止し「下げ」。向きもそろえます。下ろしたら爪を少し下げて荷から離し、まっすぐ抜きます。</li>
-      <li>爪は床から少し（2〜5cm）浮かせて走ります。床や荷台に着けたまま動くと「爪で床を削った」として減点されます（前傾にすると爪の先が下がります）。</li>
-      <li>水槽・鮮魚は傾けると水がこぼれます。後傾にせず水の面が水平になるようにチルトを合わせ、坂では坂の分だけ逆に傾けます。</li>
-      <li>背の高い荷を積んで速く曲がると荷が揺れ、「荷揺れ」ゲージが振り切れると荷崩れします。</li>
-      <li>歩行者通路の手前で止まって「指差確認」（声なら「右よし、左よし」）をすると加点。</li>
-      <li>減点：接触事故 −30、荷崩れ −15、割れ物破損 −20、衝突 −5、ヒヤリハット −5、速度超過（6 km/h超）2秒ごとに −1。</li>
-    </ul>
+    <button class="btn-ghost" id="startPts" type="button">操作と安全のポイントを見る</button>
     <div class="row startbar">
       <button class="go" id="btnStart" type="button">訓練を開始<small id="startWhat"></small></button>
       <button class="btn-ghost" id="btnRec2" type="button">図鑑・実績を見る</button>
@@ -655,18 +663,70 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
   <div class="tlogo"><span class="tsub">FORKLIFT GUIDE TRAINING</span><h1>フォークリフト<b>誘導訓練</b></h1><span class="tstripe"></span></div>
   <button class="tpress" id="titlePress" type="button">画面をタップしてスタート</button>
   <nav class="tmenu" id="titleMenu" hidden>
-    <button class="tm main" id="tmPlay" type="button">ゲームスタート<small>モード・ステージ・レベルを選んで遊ぶ</small></button>
+    <button class="tm main" id="tmPlay" type="button">あそぶ<small>荷物を運んでごほうび集め。エンドレス・2人あそびも</small></button>
+    <button class="tm learn" id="tmLearn" type="button">まなぶ<small>技能講習の予習・復習に。作業別トレーニング・講師向けの練習モード</small></button>
     <button class="tm" id="tmCont" type="button">つづきから<small id="tmContSub"></small></button>
-    <button class="tm" id="tmTut" type="button">はじめて（チュートリアル）<small>基本の操作を手順どおりに練習</small></button>
-    <button class="tm" id="tmFree" type="button">練習モード（自由配置）<small>好きな荷物・置き場で練習。講義にも</small></button>
-    <div class="tmrow"><button class="tm s" id="tmSet" type="button">⚙ 設定</button><button class="tm s" id="tmRec" type="button">図鑑・実績</button></div>
+    <div class="tmrow"><button class="tm s" id="tmRec" type="button">図鑑・コレクション</button><button class="tm s" id="tmSet" type="button">⚙ 設定</button></div>
   </nav>
-  <div class="tfoot">© 合同会社アップテック</div>
+  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック</div>
+</div>
+
+
+<div class="overlay" id="playOv" hidden>
+  <div class="sheet">
+    <div class="sheethead"><button class="btn-ghost back" id="playBack" type="button">◀ タイトル</button><h2>あそぶ</h2></div>
+    <p class="hubintro">荷物を、同じ番号の置き場へ運ぼう。ぶつけず・こぼさず運ぶと、ぬいぐるみや魚などのごほうびがもらえます。</p>
+    <label class="easyrow"><input type="checkbox" id="playEasy" checked> かんたん（棚や柱なし・ぶつかっても減点なし）</label>
+    <button class="hc" id="pcHow" type="button"><b>あそびかた</b><em>走る・曲がる・荷を取る・下ろすを、光るボタンに沿って練習（約4分）</em></button>
+    <h3>ステージ</h3>
+    <div class="lvgrid" id="playLv"></div>
+    <h3>ほかのあそび</h3>
+    <div class="hub mini">
+      <button class="hc" id="pcEnd" type="button"><b>エンドレス</b><em>燃料が切れるまで運び続けよう。ドラム缶を運ぶと燃料が回復</em><i id="pcEndBest"></i></button>
+      <button class="hc" id="pcDuo" type="button"><b>2人であそぶ</b><em>1人が運転、もう1人が声で「前へ」「止まれ」と誘導</em></button>
+      <button class="hc" id="pcGuide" type="button"><b>誘導員になる</b><em>合図ボタンや声で、運転手さんを置き場まで案内しよう</em></button>
+    </div>
+    <div class="row"><button class="btn-ghost" id="playColl" type="button">コレクションを見る</button><button class="btn-ghost" id="playSet" type="button">⚙ 操作の設定</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="learnOv" hidden>
+  <div class="sheet">
+    <div class="sheethead"><button class="btn-ghost back" id="learnBack" type="button">◀ タイトル</button><h2>まなぶ</h2></div>
+    <p class="hubintro">フォークリフト運転技能講習の予習・復習や、講義での説明に。実機と同じレバー・ペダルの配置でも練習できます（⚙ 設定の「操作」で「実機配置」）。</p>
+    <div class="hub">
+      <button class="hc" id="lcTut" type="button"><b>1. チュートリアル</b><em>基本操作と、軽トラ積載・荷降ろし・港の積載・棚入れを手順どおりに</em></button>
+      <button class="hc" id="lcJob" type="button"><b>2. 作業別トレーニング</b><em>作業・モード・ステージ・レベルを選んで、採点つきで練習</em><i id="lcJobSub"></i></button>
+      <button class="hc" id="lcExam" type="button" disabled><b>3. 検定コース（準備中）</b><em>講習機関のコースと採点表に合わせて作成予定</em></button>
+      <button class="hc" id="lcFree" type="button"><b>4. 練習モード（講師向け）</b><em>荷物・置き場・トラック・棚を自由に配置。保存・URL/QRで共有・解説表示</em></button>
+      <button class="hc" id="lcPts" type="button"><b>5. 操作と安全のポイント</b><em>荷の取り方・チルト・爪の高さ・減点のしくみをまとめて確認</em></button>
+    </div>
+    <p class="notice">このアプリは学習を助けるためのものです。フォークリフトを運転するには、最大荷重1トン以上は「運転技能講習」、1トン未満は「特別教育」の修了が必要です（公道を走るには運転免許も必要です）。実際の操作は、講習や職場の指導に従ってください。</p>
+  </div>
+</div>
+
+<div class="overlay" id="ptsOv" hidden>
+  <div class="sheet">
+    <div class="sheethead"><button class="btn-ghost back" id="ptsBack" type="button">◀ もどる</button><h2>操作と安全のポイント</h2></div>
+    <ul class="rules">
+      <li>走行：「前進」「バック」とハンドルで走ります（実機配置では前後進レバーとアクセル、スティック操作では倒した方向へ）。黄色の点線が進路の予測です。</li>
+      <li>荷取り：爪を「水平」にして、フォークを下げたまま荷物の正面にまっすぐ差し込み、「上げ」。長尺物は長い辺から差し込みます。</li>
+      <li>チルト：持ち上げたら「後傾」で爪を手前に起こして走ると荷崩れしにくくなります。下ろす前に「前傾」で水平に戻します。</li>
+      <li>荷下ろし：置き場の枠内で停止し「下げ」。向きもそろえます。下ろしたら爪を少し下げて荷から離し、まっすぐ抜きます。</li>
+      <li>爪は床から少し（2〜5cm）浮かせて走ります。床や荷台に着けたまま動くと「爪で床を削った」として減点されます（前傾にすると爪の先が下がります）。</li>
+      <li>水槽・鮮魚は傾けると水がこぼれます。後傾にせず水の面が水平になるようにチルトを合わせ、坂では坂の分だけ逆に傾けます。</li>
+      <li>背の高い荷を積んで速く曲がると荷が揺れ、「荷揺れ」ゲージが振り切れると荷崩れします。</li>
+      <li>歩行者通路の手前で止まって「指差確認」（声なら「右よし、左よし」）をすると、それまでの減点を3点取り戻せます（満点は100点）。確認せずに横断すると −3。</li>
+      <li>減点：接触事故 −30、荷崩れ −15、割れ物破損 −20、衝突 −5、ヒヤリハット −5、指差呼称なしの横断 −3、速度超過（6 km/h超）2秒ごとに −1。点数は100点満点で、100点を超えることはありません。</li>
+    </ul>
+    <p class="notice">このアプリは学習を助けるためのものです。フォークリフトを運転するには、最大荷重1トン以上は「運転技能講習」、1トン未満は「特別教育」の修了が必要です（公道を走るには運転免許も必要です）。実際の操作は、講習や職場の指導に従ってください。</p>
+    <div class="row startbar"><button class="go" id="ptsDone" type="button">OK</button></div>
+  </div>
 </div>
 
 <div class="overlay" id="edOv" hidden>
   <div class="edwrap">
-    <div class="edbar"><button class="btn-ghost back" id="edBack" type="button">◀ タイトル</button><b>練習モード（自由配置）</b><button class="go" id="edPlay" type="button">この配置で運転</button></div>
+    <div class="edbar"><button class="btn-ghost back" id="edBack" type="button">◀ まなぶ</button><b>練習モード（自由配置）</b><button class="go" id="edPlay" type="button">この配置で運転</button></div>
     <div class="edtools" id="edTools">
       <button type="button" data-tool="item" class="on">＋ 荷物</button><button type="button" data-tool="zone">置き場</button><button type="button" data-tool="move">選ぶ・動かす</button><button type="button" data-tool="truck">トラック・棚</button><button type="button" data-tool="start">スタート位置</button>
     </div>
@@ -690,7 +750,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
 
 <div class="overlay" id="tutSelOv" hidden>
   <div class="sheet">
-    <div class="sheethead"><button class="btn-ghost back" id="tsBack" type="button">◀ タイトル</button><h2>はじめて（チュートリアル）</h2></div>
+    <div class="sheethead"><button class="btn-ghost back" id="tsBack" type="button">◀ まなぶ</button><h2>チュートリアル</h2></div>
     <p>走る・曲がる・荷を取る・運ぶ・下ろすを、画面の指示と光るボタンに沿って1つずつ練習します（最初からで約4分）。歩行者は出てきません。</p>
     <h3>練習する作業（どれにする？）</h3>
     <div class="modes small">
@@ -762,7 +822,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <button class="go" id="btnNext" type="button" hidden>次のレベルへ</button>
       <button class="go" id="btnEdit" type="button" hidden>配置に戻る</button>
       <button class="btn-ghost" id="btnAgain" type="button">同じ条件でもう一度</button>
-      <button class="btn-ghost" id="btnMenu" type="button">タイトルに戻る</button>
+      <button class="btn-ghost" id="btnMenu" type="button">メニューに戻る</button>
     </div>
   </div>
 </div>
@@ -1315,8 +1375,8 @@ function callCheck(quiet){
   const cs=crossingState(),fl=G.fl;
   if(cs&&Math.abs(fl.v)<0.08){
     const cp=G.cp[cs.idx];if(cp.done){if(!quiet)log('この通路はもう確認済みです','info');return;}
-    cp.done=true;G.calls++;REC.calls=(REC.calls||0)+1;saveRec();G.score+=3;SFX.check();
-    log('指差呼称「右よし、左よし」 +3','ok');if(REC.calls>=10)unlock('call10');
+    cp.done=true;G.calls++;REC.calls=(REC.calls||0)+1;saveRec();const add=Math.max(0,Math.min(3,100-G.score));G.score+=add;SFX.check();
+    log(`指差呼称「右よし、左よし」${add>0?' +'+add+'（減点を取り戻しました）':'（満点のまま。よくできました）'}`,'ok');if(REC.calls>=10)unlock('call10');
   }else if(cs){if(!quiet)log('いったん止まってから確認しましょう','warn');}
   else if(!quiet)log('確認ポイント（歩行者通路の手前）で止まって使います','info');
 }
@@ -1553,11 +1613,11 @@ function update(dt){
     while(G.overAcc>=2){G.overAcc-=2;G.score-=1;}}
   // 歩行者通路の横断チェック
   LANES.forEach((L,idx)=>{const d=Math.abs(fl.x-L),cp=G.cp[idx];
-    if(d<0.8+1.0&&Math.abs(fl.v)>0.3&&!cp.done&&!cp.warned){cp.warned=true;G.callMiss++;log('指差呼称をせずに歩行者通路を横断しました','warn');}
+    if(d<0.8+1.0&&Math.abs(fl.v)>0.3&&!cp.done&&!cp.warned){cp.warned=true;G.callMiss++;if(settings.open)log('指差呼称をせずに歩行者通路を横断しました','warn');else{G.score-=3;log('指差呼称をせずに歩行者通路を横断しました（−3）','bad');}}
     if(d>0.8+5.5){cp.done=false;cp.warned=false;}});
   // 2人プレイ：停止の合図に従ったか
   if(G.duoStop!=null){
-    if(Math.abs(fl.v)<0.05){G.duoObey++;G.score+=2;log('停止の合図に従いました +2','ok');G.duoStop=null;}
+    if(Math.abs(fl.v)<0.05){G.duoObey++;const add=Math.max(0,Math.min(2,100-G.score));G.score+=add;log(`停止の合図に従いました${add>0?' +'+add:''}`,'ok');G.duoStop=null;}
     else if(G.t-G.duoStop>2.5){G.duoIgnore++;G.score-=5;log('停止の合図に従いませんでした（−5）','bad');G.duoStop=null;}
   }
   // おじゃま虫
@@ -1591,7 +1651,7 @@ function update(dt){
   }
   G.intr=G.intr.filter(i=>{const out=i.y<-1.5||i.y>H+1.5;if(out&&!i.hit)registerDex(i.type);return !out;});
   zoneCheck(dt);
-  G.score=Math.max(0,G.score);
+  G.score=Math.max(0,Math.min(100,G.score));
   if(G.tut)tutUpdate(dt);
 }
 
@@ -2327,7 +2387,7 @@ function showResult(){clearSnap();
   if(better&&settings.job!=='free'&&!G.endless)REC.best[key]={score:s,time:Math.round(G.t),grade,date:new Date().toISOString().slice(0,10)};
   saveRec();
   $('rGrade').textContent=grade;$('rScore').innerHTML=`${s} 点${better&&prev?'<span class="newbest">自己ベスト更新</span>':''}`;
-  $('rMode').textContent=`${MODE_NAME[settings.mode]}・${JOBS[settings.job].name}・${ST().name}・Lv${settings.level} ${LV().name}・所要時間 ${fmtT(G.t)}`;
+  $('rMode').textContent=settings.job==='free'?`練習モード（自由配置）・${ST().name}・所要時間 ${fmtT(G.t)}`:`${MODE_NAME[settings.mode]}・${JOBS[settings.job].name}・${ST().name}・Lv${settings.level} ${LV().name}・所要時間 ${fmtT(G.t)}`;
   $('rBest').textContent=prev&&!better?`自己ベスト：${prev.score} 点（${fmtT(prev.time)}）`:'';
   const gains=$('rGains');gains.innerHTML='';
   for(const a of G.newAch){const sp=document.createElement('span');sp.textContent='実績：'+a;gains.appendChild(sp);}
@@ -2620,7 +2680,7 @@ function loadSnap(){try{const j=JSON.parse(localStorage.getItem(SNAP_KEY)||'null
 function clearSnap(){try{localStorage.removeItem(SNAP_KEY);}catch(_){}}
 function resumeSnap(){const sv=loadSnap();if(!sv)return false;
   actx();Object.assign(settings,sv.settings);if(sv.FL)FL=fixFL(sv.FL);tutScheme=sv.tutScheme||tutScheme;if(sv.tutOpts)tutOpts=sv.tutOpts;
-  G=sv.G;TUT=TUT_SETS[(G.tut&&G.tut.job)||'basic']||TUT_BASIC;const fl=G.fl;if(fl.load)fl.load=G.blocks.find(b=>b.id===fl.load.id)||null;
+  hub=sv.settings&&sv.settings.ov?'play':'learn';G=sv.G;TUT=TUT_SETS[(G.tut&&G.tut.job)||'basic']||TUT_BASIC;const fl=G.fl;if(fl.load)fl.load=G.blocks.find(b=>b.id===fl.load.id)||null;
   iid=G.intr.reduce((m,i)=>Math.max(m,i.id),0);G.over=false;
   showOnly(null);$('resultOv').hidden=true;$('tutOv').hidden=true;$('log').innerHTML='';
   const dirL=G.dirL,fm=G.forkMode,lk=G.lookOn;applyModeUI();G.dirL=dirL;syncDir();
@@ -2633,7 +2693,7 @@ setInterval(()=>{if(G&&!G.over&&!G.paused)saveSnap();},8000);
 addEventListener('pagehide',saveSnap);
 function curJob(){const r=document.querySelector('input[name=job]:checked');return r?r.value:settings.job;}
 function renderJobs(){const box=$('jobCards');const cur=curJob();box.innerHTML='';const guide=(document.querySelector('input[name=mode]:checked')||{}).value==='guide';
-  for(const k of JOB_ORDER){const J=JOBS[k];const lab=document.createElement('label');lab.className='mode'+(J.soon?' soon':'');
+  for(const k of JOB_ORDER.filter(k=>k!=='endless')){const J=JOBS[k];const lab=document.createElement('label');lab.className='mode'+(J.soon?' soon':'');
     const dis=J.soon||(guide&&k!=='yard');
     lab.innerHTML=`<input type="radio" name="job" value="${k}"${(k===cur&&!dis)||(dis&&false)?' checked':''}${dis?' disabled':''}><span><b></b><em></em></span>`;
     lab.querySelector('b').textContent=J.name+((REC.jobClear||{})[k]?` ✓Lv${REC.jobClear[k]}`:'');lab.querySelector('em').textContent=J.soon?'':J.desc;box.appendChild(lab);}
@@ -2691,8 +2751,8 @@ $('edClear').onclick=()=>{FL.items=[];ED.sel=null;edMsg('すべての荷物を�
 $('edSample').onclick=()=>{FL=sampleLayout();openEditor('見本の配置を読み込みました（トラックから降ろす・軽トラへ積む・水槽を運ぶ）');};
 for(const [id,key,fn] of [['edRack','racks',e=>e.checked],['edSlope','slope',e=>+e.value],['edIntr','intr',e=>e.value],['edStage','stage',e=>e.value],['edLect','lecture',e=>e.checked]])
   $(id).addEventListener('change',()=>{FL[key]=fn($(id));for(const it of FL.items){it.z=bedAt(it.x,it.y,it.z);if(it.tx!=null)it.tz=bedAt(it.tx,it.ty,it.tz);}edDraw();});
-$('edBack').onclick=()=>{$('edOv').hidden=true;showTitle(true);};
-$('tmFree').onclick=()=>{if(!FL.items.length&&REC.lastLayout)FL=fixFL(REC.lastLayout);openEditor();};
+$('edBack').onclick=()=>{$('edOv').hidden=true;showHub('learn');};
+$('lcFree').onclick=()=>{hub='learn';if(!FL.items.length&&REC.lastLayout)FL=fixFL(REC.lastLayout);openEditor();};
 $('edPlay').onclick=()=>{
   if(!FL.items.length){edMsg('荷物を1つ以上置いてください（「見本の配置」もあります）');return;}
   const nz=FL.items.findIndex(it=>it.tx==null);if(nz>=0){ED.sel={t:'item',i:nz};setTool('zone');edMsg(`荷物${nz+1}の置き場が決まっていません。置き場をタップしよう`);edDraw();return;}
@@ -2801,11 +2861,12 @@ function showLvDesc(){startWhat();
   const lv=+$('optLevel').value;const l=LEVELS[lv];const job=curJob();$('lvDesc').textContent=job==='yard'?`Lv${lv} ${l.name}：${l.desc}`:`${JOBS[job].name}・Lv${lv} ${l.name}：${JOBS[job].desc}おじゃま虫の出方や運転者の速さはレベルに応じて変わります。`;
   const tl=$('taskList');tl.innerHTML='';tasksFor(job,lv).forEach((t,idx)=>{const c=CARGO[t.k];const d=document.createElement('div');d.innerHTML='<b></b>';d.querySelector('b').textContent=`荷物 ${idx+1}（${c.name}）`;d.appendChild(document.createTextNode(c.desc));tl.appendChild(d);});
 }
-function startGame(){
+function startGame(ov){ov=ov&&!ov.type&&!ov.target?ov:null;
   actx();settings.lecture=false;settings.job=curJob();if(document.querySelector('input[name=mode]:checked').value==='guide')settings.job='yard';
   settings.mode=document.querySelector('input[name=mode]:checked').value;settings.level=+$('optLevel').value;settings.assist=$('optAssist').checked;settings.stick=$('optStick').value;settings.open=$('optOpen').checked;settings.aids=$('optAids').checked;settings.top=$('optTop').checked;REC.prefTop=settings.top;saveRec();
-  $('stickTitle').textContent=STICK_TITLE[settings.stick];
   const sr=document.querySelector('input[name=stage]:checked');settings.stage=sr?sr.value:'warehouse';
+  if(ov)Object.assign(settings,ov);settings.ov=ov;hub=ov?'play':'learn';
+  $('stickTitle').textContent=STICK_TITLE[settings.stick];
   savePrefs();clearSnap();
   newGame();G.paused=false;keepAwake();showOnly(null);$('resultOv').hidden=true;$('tutOv').hidden=true;applyModeUI();tutHighlight();
   const m={driver:'運転者モード開始：荷物1から順に置き場へ運びましょう',guide:'誘導員モード開始：合図で運転者を荷物1へ誘導しましょう',duo:'2人プレイ開始：運転する人はボタン、誘導する人は声で合図'};
@@ -2925,15 +2986,15 @@ async function keepAwake(){try{if(navigator.wakeLock&&!wakeLock){wakeLock=await 
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){for(const k in keys)keys[k]=false;stick.on=false;stick.x=0;stick.y=0;document.querySelectorAll('.k.on').forEach(b=>b.classList.remove('on'));
     if(voiceOn)stopVoice();
-    if(G&&!G.over&&!G.paused&&$('startOv').hidden&&$('titleOv').hidden&&$('edOv').hidden)openPause();saveSnap();}
+    if(G&&!G.over&&!G.paused&&$('startOv').hidden&&$('titleOv').hidden&&$('edOv').hidden&&$('playOv').hidden&&$('learnOv').hidden&&$('ptsOv').hidden)openPause();saveSnap();}
   else if(G&&!G.paused)keepAwake();
 });
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 $('btnStart').onclick=startGame;
 /* ---------- タイトル・メニュー ---------- */
-const OVS=['titleOv','startOv','tutSelOv','setOv','resultOv','recOv','pauseOv','tutOv','edOv','edDlg'];
+const OVS=['titleOv','playOv','learnOv','ptsOv','startOv','tutSelOv','setOv','resultOv','recOv','pauseOv','tutOv','edOv','edDlg'];
 const anyOv=()=>OVS.some(id=>!$(id).hidden);
-function showOnly(id){for(const o of ['titleOv','startOv','tutSelOv','setOv','edOv'])$(o).hidden=o!==id;if(id==='titleOv')startTitleAnim();}
+function showOnly(id){for(const o of ['titleOv','playOv','learnOv','ptsOv','startOv','tutSelOv','setOv','edOv'])$(o).hidden=o!==id;if(id==='titleOv')startTitleAnim();}
 function showTitle(menu){showOnly('titleOv');$('titlePress').hidden=!!menu;$('titleMenu').hidden=!menu;if(menu)refreshTitleMenu();}
 function refreshTitleMenu(){
   $('titleMenu').classList.toggle('first',!REC.tutSeen);
@@ -2943,17 +3004,44 @@ function refreshTitleMenu(){
   else{b.disabled=true;sub.textContent='まだ記録がありません';}
 }
 $('titleOv').addEventListener('click',e=>{if(!$('titleMenu').hidden)return;actx();showTitle(true);});
-$('tmPlay').onclick=()=>{renderStart();showOnly('startOv');$('startOv').scrollTop=0;};
-$('tmTut').onclick=()=>{renderTutSel();showOnly('tutSelOv');$('tutSelOv').scrollTop=0;};
+/* ---------- あそぶ／まなぶ ---------- */
+let hub='play',ptsFrom='learnOv';
+const nextLv=()=>Math.min(LV_MAX,(REC.lvClear||0)+1);
+function showHub(h){hub=h;if(h==='play')renderPlay();else renderLearn();const id=h==='play'?'playOv':'learnOv';showOnly(id);$(id).scrollTop=0;}
+function renderPlay(){$('playEasy').checked=REC.playEasy!==false;$('pcHow').classList.toggle('pri',!REC.tutSeen);
+  const eb=REC.endBest;$('pcEndBest').textContent=eb?`自己ベスト ${eb.n} 個`:'';
+  const box=$('playLv');box.innerHTML='';const clr=REC.lvClear||0;
+  for(let n=1;n<=LV_MAX;n++){const L=LEVELS[n],b=document.createElement('button');b.type='button';b.className='lvt'+(n<=clr?' clr':'')+(n===clr+1?' next':'');
+    b.innerHTML='<b></b><em></em>';b.querySelector('b').textContent=`Lv${n} ${L.name}`;b.querySelector('em').textContent=n>clr+1?'前のステージをクリアすると遊べます':L.sub;
+    b.disabled=n>clr+1;b.onclick=()=>playStart({level:n});box.appendChild(b);}}
+function renderLearn(){const jc=REC.jobClear||{};const d=Object.keys(jc).filter(k=>JOBS[k]&&k!=='endless').map(k=>`${JOBS[k].name} Lv${jc[k]}`);
+  if(REC.lvClear&&!jc.yard)d.unshift(`構内運搬 Lv${REC.lvClear}`);$('lcJobSub').textContent=d.length?'クリア：'+d.join('・'):'';}
+function playStart(o){const st=$('optStick').value;REC.playEasy=$('playEasy').checked;saveRec();
+  startGame(Object.assign({mode:'driver',job:'yard',level:nextLv(),open:REC.playEasy,stick:st==='real'?'pedal':st,stage:settings.stage||'warehouse'},o));}
+$('tmPlay').onclick=()=>showHub('play');
+$('tmLearn').onclick=()=>showHub('learn');
+$('playBack').onclick=$('learnBack').onclick=()=>showTitle(true);
+$('playEasy').addEventListener('change',()=>{REC.playEasy=$('playEasy').checked;saveRec();});
+$('pcHow').onclick=()=>{hub='play';tutOpts={job:'basic',chap:1,cargo:'S'};const st=$('optStick').value;startTutorial(st==='real'?'pedal':st);};
+$('pcEnd').onclick=()=>playStart({job:'endless',level:Math.min(3,nextLv())});
+$('pcDuo').onclick=()=>playStart({mode:'duo'});
+$('pcGuide').onclick=()=>playStart({mode:'guide'});
+$('playColl').onclick=()=>openRec('coll');
+$('playSet').onclick=()=>{setFrom='playOv';renderSet();showOnly('setOv');};
+$('lcTut').onclick=()=>{hub='learn';renderTutSel();showOnly('tutSelOv');$('tutSelOv').scrollTop=0;};
+$('lcJob').onclick=()=>{hub='learn';renderStart();showOnly('startOv');$('startOv').scrollTop=0;};
+$('lcPts').onclick=()=>{ptsFrom='learnOv';showOnly('ptsOv');$('ptsOv').scrollTop=0;};
+$('startPts').onclick=()=>{ptsFrom='startOv';showOnly('ptsOv');$('ptsOv').scrollTop=0;};
+$('ptsBack').onclick=$('ptsDone').onclick=()=>{if(ptsFrom==='learnOv')showHub('learn');else{showOnly(ptsFrom);}};
 $('tmSet').onclick=()=>{setFrom='titleOv';renderSet();showOnly('setOv');};
 $('tmRec').onclick=()=>openRec('dex');
 $('tmCont').onclick=()=>{if(!resumeSnap()){const n=Math.min(LV_MAX,(REC.lvClear||0)+1);const pf=REC.prefs||{};
   const mr=document.querySelector(`input[name=mode][value=${pf.mode||'driver'}]`);if(mr)mr.checked=true;settings.stage=pf.stage||settings.stage;renderStart();$('optLevel').value=String(n);startGame();}};
-$('startBack').onclick=()=>showTitle(true);
-$('tsBack').onclick=()=>showTitle(true);
+$('startBack').onclick=()=>showHub('learn');
+$('tsBack').onclick=()=>showHub('learn');
 let setFrom='titleOv';
 $('startSet').onclick=()=>{setFrom='startOv';renderSet();showOnly('setOv');};
-$('setBack').onclick=$('setDone').onclick=()=>{savePrefs();if(setFrom==='startOv'){renderStart();showOnly('startOv');}else showTitle(true);};
+$('setBack').onclick=$('setDone').onclick=()=>{savePrefs();if(setFrom==='startOv'){renderStart();showOnly('startOv');}else if(setFrom==='playOv')showHub('play');else showTitle(true);};
 function renderSet(){$('optSnd').checked=SND.on;stickHintUpd();}
 function stickHintUpd(){$('stickHint').textContent=STICK_TITLE[$('optStick').value]||'';}
 $('optStick').addEventListener('change',stickHintUpd);
@@ -2984,7 +3072,7 @@ $('tsGo').onclick=()=>{const v=n=>(document.querySelector(`input[name=${n}]:chec
   const sc=v('tsScheme')==='real'?'real':($('optStick').value==='real'?'pedal':$('optStick').value);
   tutOpts={job:v('tsJob')||'basic',chap:+(v('tsChap')||1),cargo:v('tsCargo')||'S'};startTutorial(sc);};
 $('tutAgain').onclick=startTutorial;
-$('tutToMenu').onclick=()=>{$('tutOv').hidden=true;renderStart();$('optLevel').value='1';showLvDesc();showOnly('startOv');};
+$('tutToMenu').onclick=()=>{$('tutOv').hidden=true;if(hub==='play'){playStart({level:1});return;}renderStart();$('optLevel').value='1';showLvDesc();showOnly('startOv');};
 $('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G.blocks[0];
   if((T.job||'basic')!=='basic'){const st=TUT[T.i];if(st&&st.fix)st.fix();if(T.okT<=0)T.okT=0.05;return;}
   const front=()=>{fl.th=-Math.PI/2;fl.x=b.x;fl.ss=0;};
@@ -3008,12 +3096,12 @@ $('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G
   }
   T.okT=0.01;};
 $('tutQuit').onclick=()=>{if(!G)return;goTitle();};
-$('btnAgain').onclick=()=>{$('resultOv').hidden=true;if(settings.job==='free')startFree();else startGame();};
+$('btnAgain').onclick=()=>{$('resultOv').hidden=true;if(settings.job==='free')startFree();else startGame(settings.ov);};
 $('btnEdit').onclick=()=>{$('resultOv').hidden=true;openEditor();};
-$('btnNext').onclick=()=>{$('optLevel').value=String(Math.min(LV_MAX,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
+$('btnNext').onclick=()=>{if(settings.ov){$('resultOv').hidden=true;startGame({...settings.ov,level:Math.min(LV_MAX,settings.level+1)});return;}$('optLevel').value=String(Math.min(LV_MAX,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
 $('optLevel').addEventListener('change',showLvDesc);
-$('btnMenu').onclick=goTitle;
-function openPause(){if(!G||G.over||!$('startOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('edOv').hidden)return;G.paused=true;for(const k in keys)keys[k]=false;stick.on=false;
+$('btnMenu').onclick=()=>{const h=settings.job==='free'?'learn':hub;goTitle();showHub(h);};
+function openPause(){if(!G||G.over||!$('startOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden)return;G.paused=true;for(const k in keys)keys[k]=false;stick.on=false;
   $('pauseInfo').textContent=G.tut?`チュートリアル ${Math.min(G.tut.i+1,TUT.length)}/${TUT.length}`:`${MODE_NAME[settings.mode]}・${ST().name}・Lv${settings.level}　搬送 ${G.blocks.filter(b=>b.state==='done').length}/${G.blocks.length}・経過 ${fmtT(G.t)}`;
   $('pRetry').textContent=G.tut?'チュートリアルを最初から':settings.job==='free'?'この配置で最初から':'最初からやり直す';$('pEdit').hidden=settings.job!=='free'||!!G.tut;$('pauseOv').hidden=false;}
 function closePause(){$('pauseOv').hidden=true;if(G&&!G.over){G.paused=false;last=performance.now();keepAwake();}}
@@ -3023,7 +3111,7 @@ function goTitle(){$('pauseOv').hidden=true;$('resultOv').hidden=true;$('tutOv')
   if(document.body.classList.contains('fs'))setFS(false);showTitle(true);}
 $('btnPause').onclick=()=>{if(!$('pauseOv').hidden)closePause();else openPause();};
 $('pResume').onclick=closePause;
-$('pRetry').onclick=()=>{const tut=G&&G.tut;$('pauseOv').hidden=true;if(tut)startTutorial();else if(settings.job==='free')startFree();else startGame();};
+$('pRetry').onclick=()=>{const tut=G&&G.tut;$('pauseOv').hidden=true;if(tut)startTutorial();else if(settings.job==='free')startFree();else startGame(settings.ov);};
 $('pEdit').onclick=()=>{$('pauseOv').hidden=true;captureLayout();G.over=true;openEditor();};
 $('pTitle').onclick=goTitle;
 
@@ -3058,7 +3146,7 @@ document.querySelectorAll('[data-cmd]').forEach(b=>b.addEventListener('click',()
 const KD={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',KeyZ:'tfwd',KeyX:'tback',KeyB:'back',KeyQ:'q',KeyE:'e',Comma:'rotl',Period:'rotr',ShiftLeft:'inch',ShiftRight:'inch'};
 const KG={KeyZ:'slow',KeyW:'fwd',ArrowUp:'fwd',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyX:'straight',Space:'stop',KeyQ:'up',KeyE:'down',KeyC:'check'};
 addEventListener('keydown',e=>{
-  if(!G||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('edOv').hidden||!$('edDlg').hidden)return;
+  if(!G||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden||!$('edDlg').hidden)return;
   if(e.code==='KeyP'){$('btnPause').click();return;}
   if(e.code==='KeyF'){$('btnFS').click();return;}
   if(e.code==='KeyV'){$('btnSub').click();return;}

@@ -580,6 +580,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <span class="sigK" id="sigWho">誘導員の合図</span>
       <span class="sigV" id="sigV">—</span>
       <span class="sigSub" id="sigSub"></span>
+      <div class="tutbtns" id="examBtns" hidden><button type="button" class="btn-ghost" id="exBelt" aria-pressed="false">シートベルト</button><button type="button" class="btn-ghost" id="exBrake" aria-pressed="true">駐車ブレーキ</button><button type="button" class="btn-ghost" id="exEnd">終了（降車）</button></div>
       <div class="tutbtns" id="tutBtns" hidden><button type="button" class="btn-ghost" id="tutSkip">この手順を飛ばす</button><button type="button" class="btn-ghost" id="tutQuit">チュートリアルを終える</button></div>
       <div class="voice">
         <button type="button" class="vbtn" id="btnVoice" aria-pressed="false"><span class="dot"></span><span id="voiceLbl">音声</span></button>
@@ -717,6 +718,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <label><input type="radio" name="playStick" id="psEasy" value="easy"><span>スティック</span></label>
       <label><input type="radio" name="playStick" id="psReal" value="real"><span>実機配置</span></label>
     </div>
+    <label class="easyrow"><input type="checkbox" id="playSteerHold" checked> ハンドルを切ったまま保つ（実車と同じ。手を離してもタイヤは戻らない。まなぶと共通）</label>
     <button class="hc" id="pcHow" type="button"><b>あそびかた</b><em>走る・曲がる・荷を取る・下ろすを、光るボタンに沿って練習（約4分）</em></button>
     <h3>ステージ</h3>
     <div class="lvgrid" id="playLv"></div>
@@ -737,7 +739,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
     <div class="hub">
       <button class="hc" id="lcTut" type="button"><b>1. チュートリアル</b><em>基本操作と、軽トラ積載・荷降ろし・港の積載・棚入れ、安全のしくみ（重すぎる荷・横転）を手順どおりに</em></button>
       <button class="hc" id="lcJob" type="button"><b>2. 作業別トレーニング</b><em>作業・モード・ステージ・レベルを選んで、採点つきで練習</em><i id="lcJobSub"></i></button>
-      <button class="hc" id="lcExam" type="button" disabled><b>3. 検定コース（準備中）</b><em>講習機関のコースと採点表に合わせて作成予定</em></button>
+      <button class="hc" id="lcExam" type="button"><b>3. 検定コース（一般的な例）</b><em>ゲート・積み付け・後進・クランク・取りおろし・後進でゴール。100点から減点、70点以上で合格</em></button>
       <button class="hc" id="lcFree" type="button"><b>4. 練習モード（講師向け）</b><em>荷物・置き場・トラック・棚を自由に配置。保存・URL/QRで共有・解説表示</em></button>
       <button class="hc" id="lcPts" type="button"><b>5. 操作と安全のポイント</b><em>荷の取り方・チルト・爪の高さ・減点のしくみをまとめて確認</em></button>
     </div>
@@ -801,6 +803,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <label class="mode"><input type="radio" name="tsJob" value="unload"><span><b>荷降ろし</b><em>トラックの荷台（約1m）から取って、床へ降ろす</em></span></label>
       <label class="mode"><input type="radio" name="tsJob" value="port"><span><b>港の積載</b><em>荷を持った状態から、平台の固定金具4か所に合わせて載せる。荷物で「コンテナ（大・20ft）」を選ぶと、金具が荷台の四隅ぎりぎりのシャーシで練習できます</em></span></label>
       <label class="mode"><input type="radio" name="tsJob" value="rack"><span><b>棚入れ</b><em>荷を持った状態から、棚の中段（約1.2m）へ入れる</em></span></label>
+      <label class="mode"><input type="radio" name="tsJob" value="steer"><span><b>ハンドル操作</b><em>据え切り・ハンドルを切ったままの前進とバック・切り返し（ハンドルは切ったまま保つ）</em></span></label>
       <label class="mode"><input type="radio" name="tsJob" value="safety"><span><b>安全のしくみ</b><em>重すぎる荷で後輪が浮く／荷を高く上げたまま曲がると横転しかける（体験）</em></span></label>
     </div>
     <h3>操作方法</h3>
@@ -808,6 +811,11 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <label class="mode"><input type="radio" name="tsScheme" value="pedal" checked><span><b>ボタン操作</b><em>「前進」「バック」ボタンで走り、荷を扱うときは「フォーク操作」に切り替えます。</em></span></label>
       <label class="mode"><input type="radio" name="tsScheme" value="real"><span><b>実機配置</b><em>前後進レバー・ペダル・荷役レバーで、実車と同じく切り替えなしで操作します。</em></span></label>
     </div>
+    <div id="tsPortBox" hidden><h3>始める場所</h3>
+    <div class="modes small">
+      <label class="mode"><input type="radio" name="tsPortStart" value="pick" checked><span><b>1. 荷物を取りに行くところから</b><em>床の荷物まで走って差し込み・持ち上げ → バックで下がる → バックしながら向きを変える → 平台へ（全22手順）</em></span></label>
+      <label class="mode"><input type="radio" name="tsPortStart" value="carry"><span><b>2. 平台の前から</b><em>荷を持った状態から。高さ・水平・金具合わせ・下ろす・抜く（全9手順）</em></span></label>
+    </div></div>
     <div id="tsChapBox"><h3>始める場所</h3>
     <div class="modes small">
       <label class="mode"><input type="radio" name="tsChap" value="1" checked><span><b>1. 最初から</b><em>走る・曲がる・バックから（全19手順）</em></span></label>
@@ -828,6 +836,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
         <select id="optStick"><option value="pedal">ボタン（ハンドル＋前進・バック）</option><option value="easy">スティック：かんたん</option><option value="map">スティック：地図基準</option><option value="car">スティック：車体基準</option><option value="real" selected>実機配置（モード切替なし・レバーとペダル）</option></select>
       </label></div>
     <p class="hint" id="stickHint"></p>
+    <label class="easyrow"><input type="checkbox" id="optSteerHold" checked> ハンドルを切ったまま保つ（実車と同じ。手を離してもタイヤは戻りません。ボタン操作・実機配置。あそぶと共通）</label>
     <p class="hint">あそぶの操作は、あそぶの画面で選べます。</p>
     <h3>コースと表示</h3>
     <div class="opts col">
@@ -851,7 +860,9 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
         <label><input type="radio" name="pStick" id="pkPedal" value="pedal"><span>ボタン</span></label>
         <label><input type="radio" name="pStick" id="pkEasy" value="easy"><span>スティック</span></label>
         <label><input type="radio" name="pStick" id="pkReal" value="real"><span>実機配置</span></label>
-      </div><p class="hint" id="pStickMsg"></p></div>
+      </div>
+      <label class="easyrow" id="pSteerRow"><input type="checkbox" id="pSteerHold"> ハンドルを切ったまま保つ（実車と同じ）</label>
+      <p class="hint" id="pStickMsg"></p></div>
     <div class="pbtns">
       <button class="go" id="pResume" type="button">再開する</button>
       <button class="btn-ghost" id="pRetry" type="button">最初からやり直す</button>
@@ -915,7 +926,7 @@ function slopeDeg(){if(!G||G.tut)return 0;if(settings.job==='free')return FL.slo
 function slopeAt(x){const d=slopeDeg();if(!d)return null;if(x<6.6)return {deg:d,ux:-1,x0:0,x1:6.6};if(x>20.6)return {deg:d,ux:1,x0:20.6,x1:W};return null;}
 function pitchDeg(){const fl=G.fl,sl=slopeAt(fl.x);return sl?sl.deg*Math.cos(fl.th)*sl.ux:0;} // 車体の前が上がっていればプラス
 function effTilt(){return G.fl.mast+(G.pitch||0);} // 地面（重力）に対する荷の傾き：プラス＝手前（後ろ）に倒れている // 前輪車軸の位置（車体中心から前へ）と、ハンドルいっぱいでの曲がりやすさ
-const LANES=[7.5,18.5];
+let LANES=[7.5,18.5];
 const LAMPS=[[4.5,3],[4.5,13],[13,2.2],[13,13.8],[21.5,3],[21.5,13]];
 
 /* ---------- データ ---------- */
@@ -932,11 +943,22 @@ const CARGO={
   CONT:{w:2.4,d:1.2,h:1.25,kg:2000,name:'コンテナ風の箱',col:'#b8432f',mark:'CONTAINER',long:true,heavy:true,desc:'幅2.4m・高さ1.25mで重い。長い辺から差し込み、四隅を固定金具4か所に合わせて載せる'},
   DRUM:{w:0.9,d:0.9,h:0.9,kg:250,name:'ドラム缶',col:'#3f6fb0',mark:'ドラム缶',heavy:true,desc:'重くて止まりにくい。前に傾けると転がり落ちる'},
   CONTL:{w:6.06,d:2.44,h:2.59,kg:2200,name:'コンテナ（大・20ft）',col:'#2f6f9f',mark:'20ft',long:true,heavy:true,desc:'長さ6.06m・幅2.44m・高さ2.59mの20ftコンテナ（空）。シャーシの固定金具4か所が荷台の四隅ぎりぎりにあるので、数cmの精度で合わせる。最大荷重10tの大型フォークリフトで扱う'},
+  PAL:{w:1.1,d:1.1,h:0.55,kg:300,name:'試験用パレット',col:'#b98a52',mark:'検定',desc:'検定コースで積み取り・取りおろしをするパレット（荷）'},
   HVY:{w:1.0,d:1.0,h:0.5,kg:2800,name:'鋼材（重すぎる荷）',col:'#6d7378',mark:'2.8t',heavy:true,over:true,desc:'約2.8t。この車の許容荷重（約2.4t）を超えるので、持ち上げると後輪が浮く。安全のしくみ体験用'}
 };
 // 安定のしくみ：この車は最大荷重2.5t（荷の中心50cm）。荷の中心が遠いほど許容荷重は下がる
 const KG_FL=3500,RATED=2500,L0=0.45;
 const flRated=()=>settings.portBig?10000:RATED,flKg=()=>settings.portBig?14000:KG_FL;
+// ハンドル：切ったまま保つ（実車と同じ）か、離すとまっすぐに戻る（ゲーム向け）か
+function steerHoldOn(){if(!G||!['real','pedal'].includes(settings.stick))return false;if(G.tut&&G.tut.job==='steer')return true;
+  return REC.steerHold!==false;}
+function steerInput(dt){const inp=(keys.right?1:0)-(keys.left?1:0);if(!steerHoldOn()){G.steerT=0;return inp;}
+  const t0=G.steerT||0;let t=t0;if(inp)t=clamp(t0+inp*1.15*dt,-1,1);else if(Math.abs(t)<0.05)t=0;
+  if(inp&&t0!==0&&Math.sign(t)!==Math.sign(t0)){t=0;G.steerDet=0.25;SFX.check();}
+  if(G.steerDet>0){G.steerDet-=dt;if(inp)t=0;}
+  if(!inp)G.steerDet=0;
+  G.steerT=t;return t;}
+const tireTxt=s=>Math.abs(s)<0.03?'まっすぐ':`${s>0?'右':'左'} ${Math.round(Math.abs(s)*78)}°`;
 function capInfo(b){const c=0.05+b.d/2;const allow=Math.round(flRated()*(L0+0.5)/(L0+Math.max(0.5,c))/10)*10;return {kg:b.kg||0,allow,ratio:(b.kg||0)/allow,c};}
 // 横の安定：遠心力×重心の高さ ÷（重力×安定三角形の幅）。1を超えると片輪が浮く方向
 function latIndex(v,steer){const b=G.fl.load,m=b?(b.kg||0):0,lz=b?forkZ()+0.14+b.h/2:0;const K=flKg(),h=(K*0.7+m*lz)/(K+m);return v*v*Math.abs(steer)*STEER_K*h/(9.8*0.33);}
@@ -949,7 +971,8 @@ const JOBS={
   port:{name:'港の積載',desc:'港の平台（シャーシ・荷台 約1.25m）に積みます。荷の四隅を固定金具4か所にぴったり合わせないと固定できません。合わせる精度はレベルが上がるほど厳しくなります。'},
   rack:{name:'棚入れ・棚出し',desc:'屋内の3段の棚（下段・中段 約1.2m・上段 約2.4m）へ荷を入れる・取り出す。段の高さより上まで上げ、水平にしてゆっくり入れ、少し下げて抜きます。'},
   endless:{name:'エンドレス',desc:'荷物が次々に出てきます。燃料が0になるか、事故・衝突・破損が3回でおしまい。ドラム缶を運ぶと燃料が40%回復します。何個運べるかに挑戦！'},
-  free:{name:'練習モード',hidden:true,desc:'自由配置'}
+  free:{name:'練習モード',hidden:true,desc:'自由配置'},
+  exam:{name:'検定コース',hidden:true,desc:'検定コース（一般的な例）'}
 };
 const JOB_ORDER=['yard','kei','unload','port','rack','endless'];
 const KEI_BED={x0:21.9,x1:23.3,y0:6.9,y1:9.1,z:0.65},BIG_BED={x0:1.6,x1:3.9,y0:2.0,y1:8.4,z:1.0};
@@ -1178,7 +1201,7 @@ function nextToast(){const t=$('toast');const it=toastQ.shift();if(!it){t.hidden
 
 /* ---------- game ---------- */
 function newGame(){
-  iid=0;const st=ST();
+  iid=0;const st=ST();LANES=settings.job==='exam'?[]:[7.5,18.5];
   G={t:0,paused:true,over:false,score:100,coll:0,acc:0,near:0,overT:0,overAcc:0,blindFwd:0,carriedBlind:false,autoStops:0,softTouch:0,
     spills:0,broken:0,swingHits:0,rearUp:0,roll:0,rollWarned:false,capWarned:false,tipFreeze:0,overturns:0,rollEv:0,swingLbl:null,pitch:0,downFwd:0,downWarned:false,tilt:0,tiltSide:1,tiltWarned:false,creakT:0,calls:0,callMiss:0,beepT:0,vPrev:0,
     btnSig:0,voiceSig:0,duo:null,duoStop:null,duoObey:0,duoIgnore:0,lastAssist:'',newAch:[],newDex:[],
@@ -1186,7 +1209,7 @@ function newGame(){
     fl:{x:10.6,y:8,th:Math.PI,v:0,steer:0,fork:0.08,forkT:0.08,load:null,mast:0,mastT:0,ss:0},mastDet:0,inThr:0,forkMode:false,dirL:0,look:0,lookOn:false,brake:false,holdT:0,fineHold:0,prevFork:0.08,relId:null,insId:null,dragWarned:false,
     blocks:(settings.job==='free'?FL.items:tasksFor(settings.job,settings.level)).map(makeBlock),rewards:[],
     endless:settings.job==='endless'?{done:0,refuel:0,seq:2,next:0,why:''}:null,fuel:100,
-    statics:((settings.job==='free'?!FL.racks:(settings.open||settings.portBig))?[]:[
+    statics:settings.job==='exam'?examStatics():((settings.job==='free'?!FL.racks:(settings.open||settings.portBig))?[]:[
       {kind:'rack',label:settings.stage==='yard'?'コンテナ':'棚',x:13,y:4.75,hw:3,hh:0.45,z:2.6,col:st.rack[0],top:st.rack[1]},
       {kind:'rack',label:settings.stage==='yard'?'コンテナ':'棚',x:13,y:11.25,hw:3,hh:0.45,z:2.6,col:(st.rack2||st.rack)[0],top:(st.rack2||st.rack)[1]},
       {kind:'pillar',label:settings.stage==='yard'?'照明柱':'柱',x:13,y:8,hw:0.3,hh:0.3,z:settings.stage==='yard'?5:3.4,col:st.pillar[0],top:st.pillar[1]}
@@ -1330,7 +1353,7 @@ function forkCaption(){
 }
 function setForkMode(on){
   if(!G||!driverLike()||(on&&realOn()))return;G.forkMode=on;document.body.classList.toggle('forkmode',on);
-  const fl=G.fl;fl.v=0;fl.steer=0;stick.on=false;stick.x=0;stick.y=0;for(const k of ['up','down','left','right','back'])keys[k]=false;
+  const fl=G.fl;fl.v=0;fl.steer=0;G.steerT=0;stick.on=false;stick.x=0;stick.y=0;for(const k of ['up','down','left','right','back'])keys[k]=false;
   if(on){G.prevPrimary=primary;primary='cab';log('フォーク操作モード：爪の左右・高さ・向きを合わせて、ゆっくり差し込もう','info');}
   else{primary=G.prevPrimary||primary;}
   G.forkDiag=on&&aidsOn();layoutViews();forkCaption();tutHighlight();
@@ -1358,7 +1381,7 @@ function cornerPts(x,y,ang,b){const c=Math.cos(ang),s=Math.sin(ang),hx=b.d/2,hy=
 function pinErr(b,x,y,ang){const P=pinPts(b),C=cornerPts(x,y,ang,b);const d=P.map(p=>Math.min(...C.map(c=>Math.hypot(c[0]-p[0],c[1]-p[1]))));const q=b.long?Math.PI:Math.PI/2;let da=((ang%q)+q)%q;if(da>q/2)da-=q;
   return {d,max:Math.max(...d),ang:Math.abs(da)*180/Math.PI,ok:Math.max(...d)<=b.ptol&&Math.abs(da)*180/Math.PI<=b.patol};}
 function inZone(b){if(b.pins&&Math.abs((b.z||0)-(b.tz||0))<0.06&&Math.abs(b.x-b.tx)<0.45&&Math.abs(b.y-b.ty)<0.45&&!pinErr(b,b.x,b.y,b.ang).ok)return false;return Math.abs(b.x-b.tx)<0.45&&Math.abs(b.y-b.ty)<0.45&&Math.abs((b.z||0)-(b.tz||0))<0.06&&angOK(b,0,0.35);}
-function checkAllDone(){if(!G.over&&!G.tut&&!G.endless&&G.blocks.every(x=>x.state==='done')){G.over=true;setTimeout(showResult,900);}}
+function checkAllDone(){if(!G.over&&!G.tut&&!G.endless&&!G.exam&&G.blocks.every(x=>x.state==='done')){G.over=true;setTimeout(showResult,900);}}
 // 置き直し・押し込みで枠に収まった荷も完了にする。ずれたままの荷はときどき知らせる
 function zoneCheck(dt){
   for(const b of G.blocks){if(b.freshT==null||b.state==='done'||b.freshT<=0)continue;const was=b.freshT;b.freshT-=dt;
@@ -1440,6 +1463,7 @@ function crossingState(){
 }
 function callCheck(quiet){
   if(!G||G.paused||G.over)return;
+  if(G.exam){G.exam.checkT=G.t;SFX.check();log('安全確認：前後左右よし（指差呼称）','ok');return;}
   const cs=crossingState(),fl=G.fl;
   if(cs&&Math.abs(fl.v)<0.08){
     const cp=G.cp[cs.idx];if(cp.done){if(!quiet)log('この通路はもう確認済みです','info');return;}
@@ -1532,6 +1556,7 @@ function registerDex(type){
 function update(dt){
   const fl=G.fl,ph0=ST().phys,ph=(fl.load&&fl.load.heavy)?{...ph0,acc:ph0.acc*0.6,dec:ph0.dec*0.65}:ph0;G.t+=dt;G.collCool-=dt;G.flash=Math.max(0,G.flash-dt*1.5);
   if(G.endless)endlessTick(dt);
+  if(G.exam)examTick(dt);
   let thr=0,st=0;
   let spin=0;
   const insB=driverLike()?insertedBlock():null;
@@ -1554,7 +1579,7 @@ function update(dt){
     let pw=Math.min(dir>0?0.62:0.5,0.12+G.holdT*0.3);if(inch)pw=Math.min(pw,0.1);
     thr=(acc&&dir&&!brk)?pw*dir:0;G.brake=!!brk||(inch&&!acc);
     if(acc&&!dir)tip('neutral','前後進レバーが N（中立）です。F（前進）か R（後進）に入れてからアクセルを踏もう');
-    st=(keys.right?1:0)-(keys.left?1:0);
+    st=steerInput(dt);
     const sx=((keys.ssr||keys.rotr)?1:0)-((keys.ssl||keys.rotl)?1:0);
     if(sx){const nss=clamp(fl.ss+sx*0.15*dt,-0.15,0.15);if(!insB||Math.abs(forkFit(insB).l-nss)<=TOL().lat)fl.ss=nss;}
     const df=((keys.fup||keys.q)?1:0)-((keys.fdn||keys.e)?1:0);G.liftHold=df?(G.liftHold||0)+dt:0;if(df){fl.fork=clamp(fl.fork+df*Math.min(1.4,0.45+G.liftHold*0.6)*dt,0,FORK_MAX);fl.forkT=fl.fork;}
@@ -1567,7 +1592,7 @@ function update(dt){
     const fw=keys.up&&!keys.back,bk=keys.back||keys.down;
     if(fw||bk)G.holdT+=dt;else G.holdT=0;
     if(fw)thr=Math.min(0.62,0.12+G.holdT*0.3);else if(bk)thr=-Math.min(0.5,0.12+G.holdT*0.3);
-    st=(keys.right?1:0)-(keys.left?1:0);
+    st=steerInput(dt);
   }else if(driverLike()&&settings.stick==='easy'){
     // かんたん操作：倒した方向へその場で向きを変えて進む（矢印キーも地図の向き）
     let vx=stick.on?stick.x:0,vy=stick.on?stick.y:0;
@@ -1604,12 +1629,14 @@ function update(dt){
       if(dm){const nm=clamp(fl.mast+dm*7*dt,-6,12);if(fl.mast!==0&&Math.sign(nm)!==Math.sign(fl.mast)){fl.mast=0;G.mastDet=0.45;}else fl.mast=nm;}}
   }
   if(G.tipFreeze>0)thr=0;
+  if(G.exam&&G.exam.pbrake&&thr){thr=0;if(Math.abs(fl.v)<0.05)examDed('pbrake',2,'駐車ブレーキを戻し忘れて発進しようとした');}
   G.inThr=thr;
   const brk=realOn()&&G.brake;
   const target=brk?0:thr>0?thr*2.5:thr<0?thr*1.6:0;
   const diff=target-fl.v;const rate=brk?ph.dec*1.8:(Math.abs(fl.v)<0.02||Math.sign(diff)===Math.sign(fl.v))?ph.acc:(target===0?ph.dec*(realOn()?0.55:1.3):ph.dec);
   fl.v+=Math.sign(diff)*Math.min(Math.abs(diff),rate*dt);
-  fl.steer+=(st-fl.steer)*Math.min(1,dt*ph.steer);
+  if(G.forkMode&&steerHoldOn())st=G.steerT||0;
+  fl.steer+=(st-fl.steer)*Math.min(1,dt*(steerHoldOn()?Math.max(ph.steer,8):ph.steer));
   if(insB)spin=0;
   // 後輪操舵：前輪の車軸が進行方向へ進み、車体の後ろが外へ振り出す
   const om=fl.v*(insB?0:fl.steer)*STEER_K*(1-Math.min(1,G.rearUp||0));const th2=fl.th+om*dt+spin,thm=fl.th+om*dt*0.5;
@@ -1745,10 +1772,99 @@ function update(dt){
   if(G.tut)tutUpdate(dt);
 }
 
+/* ---------- 検定コース（一般的な例） ---------- */
+// コースは公開情報から作った一般的な形（講習機関ごとにコース図・配点は違う）
+const EXAM={poly:[[1,12],[9,12],[9,2],[12,2],[12,12],[15,12],[15,6],[25,6],[25,9],[18,9],[18,15],[1,15]],
+  start:{x:2.4,y:13.5,th:0},startX:3.2,gate:[[6,12.4],[6,14.6]],pick:{x:10.5,y:3.3},drop:{x:23.3,y:7.5},goalX:19.3,
+  crank:{x0:14,x1:18.5,y0:6,y1:15},limit:420,pass:70};
+function examStatics(){return EXAM.gate.map(([x,y])=>({kind:'pillar',label:'ゲートのポール',x,y,hw:0.09,hh:0.09,z:1.6,col:'#e5493c',top:'#f4f6f7'}));}
+function inPoly(x,y,P){let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const [xi,yi]=P[i],[xj,yj]=P[j];if(((yi>y)!==(yj>y))&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c;}return c;}
+function wheelPts(fl){const c=Math.cos(fl.th),n=Math.sin(fl.th);return [[0.55,-0.62],[0.55,0.62],[-0.95,-0.55],[-0.95,0.55]].map(([f,l])=>[fl.x+c*f-n*l,fl.y+n*f+c*l]);}
+const forkTip=fl=>fl.x+Math.cos(fl.th)*(FRONT+1.1);
+function examDed(key,pts,msg){const E=G.exam;if(!E||E.done)return;if(key&&E.once[key])return;if(key)E.once[key]=1;E.ded.push([msg,pts]);G.score-=pts;SFX.bump();log(`${msg}（−${pts}）`,'bad');}
+function examDQ(msg){const E=G.exam;if(!E||E.done)return;E.dq=msg;E.done=true;G.over=true;SFX.accident();log(`失格：${msg}`,'bad');setTimeout(showResult,1400);}
+function startExam(){actx();clearSnap();hub='learn';
+  Object.assign(settings,{job:'exam',mode:'driver',stage:'warehouse',level:1,assist:false,open:false,lecture:false,portBig:false,ov:null});
+  settings.stick=$('optStick').value;settings.aids=$('optAids').checked;settings.top=$('optTop').checked;
+  newGame();G.spawnT=1e9;G.intr=[];
+  const p=EXAM.pick,d=EXAM.drop;G.blocks=[{id:1,kind:'PAL',...CARGO.PAL,x:p.x,y:p.y,z:0,ang:0,tx:d.x,ty:d.y,tz:0,state:'floor',broken:false}];
+  Object.assign(G.fl,{x:EXAM.start.x,y:EXAM.start.y,th:EXAM.start.th,v:0,steer:0,fork:0.4,forkT:0.4,mast:0,mastT:0});G.prevFork=0.4;G.steerT=0;G.dirL=0;
+  G.exam={belt:false,pbrake:true,checkT:-99,started:false,ded:[],once:{},lastDir:0,sw:0,revN:0,pick:false,unloaded:false,out:false,outN:0,pv:0,stopCool:0,hBad:0,mastBad:0,hiDist:0,done:false,dq:null,timeN:0};
+  G.paused=false;keepAwake();showOnly(null);$('resultOv').hidden=true;$('tutOv').hidden=true;applyModeUI();
+  $('stickTitle').textContent=STICK_TITLE[settings.stick]||'';
+  log('検定コース（一般的な例）開始：シートベルト → 前後の安全確認（指差確認）→ 駐車ブレーキを戻す → 発進','info');
+  log('コース：ゲート → 左の通路を上って積み付け場でパレットを積み取り → 後進で出る → クランク → 取りおろし場 → 後進でゴール線へ。制限7分・70点以上で合格','info');}
+function examTick(dt){const E=G.exam,fl=G.fl;if(E.done||G.over)return;
+  const v=fl.v,mv=Math.abs(v)*dt;
+  if(Math.abs(v)>0.05&&!E.belt){examDQ('シートベルトをしないで走行した');return;}
+  if(!E.started&&Math.abs(v)>0.1){E.started=true;if(G.t-E.checkT>8)examDed('startChk',2,'発進時の安全確認（指差呼称）をしなかった');}
+  const dir=v>0.12?1:v<-0.12?-1:0;
+  if(dir&&dir!==E.lastDir){if(E.lastDir!==0){E.sw++;if(E.sw>3)examDed('redo'+E.sw,3,'前後進のやり直し');}
+    if(dir<0){E.revN++;if(G.t-E.checkT>8)examDed('revChk'+E.revN,3,'後退する前の安全確認（指差呼称）をしなかった');}
+    E.lastDir=dir;}
+  // 脱輪：車輪がコースの線から出た
+  const out=wheelPts(fl).some(([x,y])=>!inPoly(x,y,EXAM.poly));
+  if(out&&!E.out){E.outN++;examDed('out'+E.outN,5,'脱輪した（車輪がコースの線から出た）');}E.out=out;
+  // クランクでは徐行
+  const C=EXAM.crank;if(fl.x>C.x0&&fl.x<C.x1&&fl.y>C.y0&&fl.y<C.y1&&Math.abs(v)>1.0)examDed('crank',3,'屈折コース（クランク）で徐行しなかった');
+  // 前進時の急停止
+  E.stopCool-=dt;const acc=(v-E.pv)/Math.max(dt,1e-3);if(E.pv>0.8&&acc<-2.6&&E.stopCool<=0){E.stopCool=2;examDed(null,3,'前進中に急停止した');}E.pv=v;
+  // 走行時のフォークの高さ（床から10〜20cm）・荷を持ったら後傾
+  const far=Math.hypot(fl.x-EXAM.pick.x,fl.y-EXAM.pick.y)>3.2&&Math.hypot(fl.x-EXAM.drop.x,fl.y-EXAM.drop.y)>3.2;
+  if(Math.abs(v)>0.4&&far){const z=forkZ();if(z<0.08||z>0.32)E.hBad+=mv;if(E.hBad>2)examDed('forkH',3,'走行時のフォークの高さが不適切（床から10〜20cm）');
+    if(fl.load&&z>0.5){E.hiDist+=mv;if(E.hiDist>1){examDQ('荷を高く上げたまま走行した');return;}}
+    if(fl.load&&v>0&&fl.mast<1){E.mastBad+=mv;if(E.mastBad>2)examDed('mast',2,'荷を持って走行するとき、マストを後傾しなかった');}}
+  // 積み取り・取りおろし
+  const b=G.blocks[0];if(fl.load===b)E.pick=true;
+  if(E.pick&&!E.unloaded&&!fl.load){E.unloaded=true;const off=Math.hypot(b.x-b.tx,b.y-b.ty);
+    if(off>0.4)examDed('drop',5,`取りおろし位置が著しく不良（枠の中心から${Math.round(off*100)}cm）`);else if(off>0.15)examDed('drop',3,`取りおろし位置の不良（枠の中心から${Math.round(off*100)}cm）`);
+    else log(`取りおろし位置よし（ずれ${Math.round(off*100)}cm）`,'ok');}
+  // 制限時間
+  if(G.t>EXAM.limit){const n=Math.floor((G.t-EXAM.limit)/30)+1;while(E.timeN<n){E.timeN++;examDed(null,3,`制限時間（7分）を超えた（${E.timeN*30}秒）`);}}
+}
+function examStage(){const E=G.exam,fl=G.fl;
+  if(!E.belt)return ['乗車','シートベルトを締めよう（下の「シートベルト」）'];
+  if(!E.started&&G.t-E.checkT>8)return ['発進前の確認','前後左右を確認して「指差確認」。それから駐車ブレーキを戻して発進'];
+  if(!E.started&&E.pbrake)return ['駐車ブレーキ','「駐車ブレーキ」を押して戻してから発進しよう'];
+  if(!E.pick)return ['積み付け場へ','ゲートを通り、左の通路を上って、奥のパレットを積み取ろう'];
+  if(fl.y<11.6&&fl.x<12.5&&!E.unloaded)return ['後進で出る','「指差確認」で後方を確かめてから、後進で方向変換コースを出よう'];
+  if(!E.unloaded)return ['取りおろし場へ','フォークは床から10〜20cm・後傾で、クランクを徐行して通り、右奥の枠に降ろそう'];
+  if(Math.abs(fl.v)>0.05||Math.abs(forkTip(fl)-EXAM.goalX)>0.3)return ['後進でゴールへ','「指差確認」で後方を確かめてから後進し、フォークの先をゴール線に合わせて止まろう'];
+  return ['停止・降車','フォークを床に下ろす・マストを垂直に・レバーを中立・駐車ブレーキ。そして「終了（降車）」'];}
+function examFinish(){const E=G.exam,fl=G.fl;if(!E||E.done)return;
+  if(!E.unloaded){log('まだパレットを取りおろしていません。コースを最後まで走ろう','warn');return;}
+  if(Math.abs(fl.v)>0.05){log('止まってから降車しよう','warn');return;}
+  const gap=Math.abs(forkTip(fl)-EXAM.goalX),inC3=fl.y>6&&fl.y<9&&Math.cos(fl.th)>0.9;
+  if(!inC3||gap>1.5)examDed('goal',3,'ゴールの停止位置まで来ていない');else if(gap>0.3)examDed('goal',2,`停止位置の不良（ゴール線から${Math.round(gap*100)}cm）`);
+  if(forkZ()>0.04)examDed('forkDown',2,'フォークを床に下ろさなかった');
+  if(Math.abs(fl.mast)>1)examDed('mastV',3,'マストを垂直に戻さなかった');
+  if(realOn()&&G.dirL!==0)examDed('neutral',3,'前後進レバーを中立に戻さなかった');
+  if(!E.pbrake)examDed('pbrakeEnd',2,'駐車ブレーキをかけなかった');
+  E.done=true;G.over=true;log('降車しました。検定終了','info');setTimeout(showResult,700);}
+function showExamResult(){const E=G.exam,s=Math.max(0,G.score),ok=!E.dq&&s>=EXAM.pass;
+  $('rGrade').textContent=ok?'合格':'不合格';$('rGrade').style.fontSize='56px';$('rScore').textContent=`${s} 点`;
+  $('rMode').textContent=`検定コース（一般的な例）・${{pedal:'ボタン',easy:'スティック',map:'スティック',car:'スティック',real:'実機配置'}[settings.stick]||''}・${fmtT(G.t)}${E.dq?'・失格':''}`;
+  REC.examBest=Math.max(REC.examBest||0,E.dq?0:s);if(ok)REC.examPass=(REC.examPass||0)+1;saveRec();
+  $('rBest').textContent=`合格ライン ${EXAM.pass}点・自己ベスト ${REC.examBest}点`;$('rGains').innerHTML='';$('btnNext').hidden=true;$('btnEdit').hidden=true;
+  const rows=$('rRows');rows.innerHTML='';const add=(a,b)=>{const tr=document.createElement('tr');const t1=document.createElement('td'),t2=document.createElement('td');t1.textContent=a;t2.textContent=b;tr.append(t1,t2);rows.appendChild(tr);};
+  if(E.dq)add('失格',E.dq);if(!E.ded.length)add('減点','なし');for(const [m,p] of E.ded)add(m,`−${p}`);add('点数',`${s} 点`);
+  const n=$('rNotes');n.innerHTML='';for(const t of [E.dq?'失格になる操作は、点数にかかわらず不合格です。':ok?'合格ラインを超えました。実際の試験でも、確認の指差呼称と停止位置を落ち着いて。':'減点の多い項目から練習しよう。確認（指差呼称）・停止位置・徐行は落としやすいポイントです。','このコースと配点は、公開されている情報をもとにした一般的な例です。受講する講習機関のコース図・採点表とは違うことがあります。']){const li=document.createElement('li');li.textContent=t;n.appendChild(li);}
+  $('resultOv').hidden=false;}
+function drawExamTop(g){const P=EXAM.poly;g.fillStyle='rgba(255,255,255,.22)';g.beginPath();P.forEach(([x,y],k)=>k?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill();
+  g.strokeStyle='#ffffff';g.lineWidth=0.12;g.stroke();
+  g.strokeStyle='#46b26a';g.lineWidth=0.14;g.beginPath();g.moveTo(EXAM.startX,12);g.lineTo(EXAM.startX,15);g.stroke();
+  g.strokeStyle='#f2c418';g.beginPath();g.moveTo(EXAM.goalX,6);g.lineTo(EXAM.goalX,9);g.stroke();
+  g.strokeStyle='rgba(229,73,60,.8)';g.setLineDash([0.3,0.2]);g.lineWidth=0.06;const C=EXAM.crank;g.strokeRect(C.x0,C.y0,C.x1-C.x0,C.y1-C.y0);g.setLineDash([]);}
+function drawExamLabels(g,s,fs){g.font=`700 ${fs*0.8}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';g.fillStyle='rgba(20,60,30,.95)';
+  for(const [t,x,y] of [['スタート',EXAM.startX,11.6],['ゲート',6,11.6],['積み付け場',10.5,1.6],['クランク（徐行）',16.5,5.6],['取りおろし場',23.3,5.6],['ゴール線',EXAM.goalX,9.6]])g.fillText(t,x*s,y*s);}
+function drawExamCab(g,w){g.strokeStyle='#f4f6f7';g.lineWidth=Math.max(2,w/320);g.beginPath();const P=EXAM.poly;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];seg(g,toCam(a[0],a[1],0.01),toCam(b[0],b[1],0.01));}g.stroke();
+  g.strokeStyle='#46b26a';g.beginPath();seg(g,toCam(EXAM.startX,12,0.01),toCam(EXAM.startX,15,0.01));g.stroke();
+  g.strokeStyle='#f2c418';g.beginPath();seg(g,toCam(EXAM.goalX,6,0.01),toCam(EXAM.goalX,9,0.01));g.stroke();}
+
 /* ---------- 基本のチュートリアル ---------- */
 const TUT_BASIC=[
   {t:'前に進む',rv:'wheel',real:'前後進レバーを「F」に入れて、右足の「アクセル」を踏んでいる間だけ進みます。離すと止まります（強く止めるときは「ブレーキ」）。1mほど進もう',pedal:'右手の「前進」を押している間だけ進みます。指を離すと止まります。1mほど進もう',easy:'スティックを倒すと、その方向へ進みます。右（→）へ倒して、1mほど進もう',map:'スティックを右（→）へ倒すと、車体が右へ向かって進みます。1mほど進もう',car:'スティックを上に倒すと前進します。1mほど進もう',hl:{real:'#dirF,#pdAcc',pedal:'#pFwd',def:'#stick'},ok:T=>T.fwd>=1.0},
-  {t:'曲がる',rv:'wheel',real:'アクセルを踏みながら ◀ ▶ でハンドルを切ろう。後輪で曲がるので、車体の後ろが外側へ振り出します（上方ビューの赤い帯＝尻振り）',pedal:'「前進」を押しながら ◀ ▶ でハンドルを切ろう。フォークリフトは後輪で曲がるので、車体の後ろが外側へ振り出します（上方ビューの赤い帯＝尻振り）',easy:'スティックを上（↑）や下（↓）に倒すと、その場で向きを変えてから進みます',map:'スティックを右下（↘）へ倒すと、その方向へ曲がります。黄色の点線が進む道の予測です',car:'上に倒したまま左右に傾けると曲がります。黄色の点線が進む道の予測です',hl:{real:'#rStL,#rStR,#pdAcc',pedal:'#pR',def:'#stick'},ok:T=>T.turn>=0.7},
+  {t:'曲がる',holdNote:'。曲がったら、反対へ切ってハンドルをまっすぐに戻そう（実車は手を離してもタイヤは戻りません。中央でカチッと止まります）',rv:'wheel',real:'アクセルを踏みながら ◀ ▶ でハンドルを切ろう。後輪で曲がるので、車体の後ろが外側へ振り出します（上方ビューの赤い帯＝尻振り）',pedal:'「前進」を押しながら ◀ ▶ でハンドルを切ろう。フォークリフトは後輪で曲がるので、車体の後ろが外側へ振り出します（上方ビューの赤い帯＝尻振り）',easy:'スティックを上（↑）や下（↓）に倒すと、その場で向きを変えてから進みます',map:'スティックを右下（↘）へ倒すと、その方向へ曲がります。黄色の点線が進む道の予測です',car:'上に倒したまま左右に傾けると曲がります。黄色の点線が進む道の予測です',hl:{real:'#rStL,#rStR,#pdAcc',pedal:'#pR',def:'#stick'},ok:T=>T.turn>=0.7&&(!steerHoldOn()||Math.abs(G.steerT||0)<0.03)},
   {t:'バックする',rv:'wheel',real:'いったん止まってから前後進レバーを「R」に入れ、アクセルで下がろう。警報音が鳴り、運転席ビューが後方に切り替わります',pedal:'「バック」を押している間、後ろに下がります。警報音が鳴り、運転席ビューが後方に切り替わります',easy:'「バック」ボタンを押している間、まっすぐ後ろに下がります',map:'車体の後ろ側（←）へ倒すと後進します',car:'スティックを下に倒すと後進します',hl:{real:'#dirR,#pdAcc,#pdBrake',pedal:'#pBack',easy:'[data-hold=back]',def:'#stick'},ok:T=>T.rev>=1.0},
   {t:'荷物の前へ',rv:'wheel',real:'前後進レバーを「F」に戻し、上（北）にある荷物1（青い箱）に正面から向かって、1〜2m手前でブレーキを踏んで止まろう。近づくと視線が下がり、運転席から爪先をのぞき込む見え方になります',all:'上（北）にある荷物1（青い箱）に正面から向かい、1〜2m手前で止まろう。爪は荷物の真ん中に向けます',hl:{real:'#dirF,#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:()=>{const ft=forkFit(G.blocks[0]);const gap=ft.face-FRONT-1.1;return gap>-0.05&&gap<2.2&&Math.abs(ft.l)<0.5&&ft.a<0.35&&Math.abs(G.fl.v)<0.05;}},
   {t:'フォーク操作へ',skipReal:true,all:'「フォーク操作」を押そう。ボタンが、荷を扱うための操作に切り替わります',hl:{def:'#btnForkMode,#btnForkMode2'},ok:()=>G.forkMode},
@@ -1852,14 +1968,36 @@ const TUT_SAFETY=[
   {t:'走行に戻る',skipReal:true,all:'「走行モードに戻る」を押そう',hl:{def:'#fkExit'},ok:()=>!G.forkMode},
   {t:'低いまま曲がる',rv:'wheel',real:'同じように速度を上げて、ハンドルをいっぱいに切ってみよう。荷が低いと重心も低く、片輪は浮きません',all:'同じように速度を上げて、ハンドルをいっぱいに切ってみよう。荷が低いと重心も低く、片輪は浮きません',hl:{real:'#dirF,#pdAcc,#rStL,#rStR',pedal:'#pFwd,#pL,#pR',def:'#stick'},ok:T=>{safetyReload();return T.turn>=3&&forkZ()<=0.3;}}
 ];
-const TUT_SETS={basic:TUT_BASIC,kei:TUT_KEI,unload:TUT_UNLOAD,rack:TUT_RACK,port:TUT_PORT,safety:TUT_SAFETY};
+/* ---------- ハンドル操作（据え切り・切ったままのバック・切り返し） ---------- */
+const TUT_STEER=[
+  {t:'据え切り（右）',rv:'wheel',all:'止まったまま ▶ を押し続けて、ハンドルを右いっぱいまで切ろう（据え切り）。手を離してもタイヤは戻りません。運転席ビューの「タイヤ」の表示と、上方ビューの後輪の向きを見よう',hl:{real:'#rStR',def:'#pR'},ok:()=>(G.steerT||0)>=0.95&&Math.abs(G.fl.v)<0.05},
+  {t:'切ったまま前進',rv:'wheel',real:'ハンドルから手を離したまま、前後進レバーを F に入れてアクセルで少し進もう。後輪が切れたままなので小さく回り、車体の後ろが外側へ大きく振り出します',all:'ハンドルから手を離したまま「前進」で少し進もう。後輪が切れたままなので小さく回り、車体の後ろが外側へ大きく振り出します',hl:{real:'#dirF,#pdAcc',def:'#pFwd'},ok:T=>T.fwd>=1.2&&(G.steerT||0)>0.8},
+  {t:'切ったままバック（右）',rv:'wheel',real:'止まってから前後進レバーを R に入れ、ハンドルは右に切ったまま、アクセルでバックしよう。前進のときと逆の向きに回ります。後ろと尻振りに注意',all:'ハンドルは右に切ったまま「バック」で下がろう。前進のときと逆の向きに回ります。後ろと尻振りに注意',hl:{real:'#pdBrake,#dirR,#pdAcc',def:'#pBack'},ok:T=>T.rev>=1.2&&(G.steerT||0)>0.8},
+  {t:'左いっぱいへ据え切り',rv:'wheel',real:'ブレーキで止まってから、◀ を押し続けて左いっぱいまで切ろう。まっすぐの所で一度カチッと止まり、押し続けると左へ切れていきます',all:'止まってから ◀ を押し続けて左いっぱいまで切ろう。まっすぐの所で一度カチッと止まり、押し続けると左へ切れていきます',hl:{real:'#pdBrake,#rStL',def:'#pL'},ok:()=>(G.steerT||0)<=-0.95&&Math.abs(G.fl.v)<0.05},
+  {t:'切ったままバック（左）',rv:'wheel',real:'左に切ったまま、R でバックしよう',all:'左に切ったまま「バック」で下がろう',hl:{real:'#dirR,#pdAcc',def:'#pBack'},ok:T=>T.rev>=1.2&&(G.steerT||0)<-0.8},
+  {t:'まっすぐに戻す',rv:'wheel',all:'止まって ▶ を押し、ハンドルをまっすぐ（中央）に戻そう。中央でカチッと止まり、「タイヤ まっすぐ」と表示されます',hl:{real:'#rStR',def:'#pR'},ok:()=>Math.abs(G.steerT||0)<0.03&&Math.abs(G.fl.steer)<0.05&&Math.abs(G.fl.v)<0.05},
+  {t:'切り返しで向きを変える',rv:'wheel',real:'最後に、切り返しで車体を反対（左向き）に向けよう。前進で右に切って曲がる → 止まって左に切り直す → バック、をくり返します。上方ビューで向きを確かめ、左を向いたら止まろう',all:'最後に、切り返しで車体を反対（左向き）に向けよう。前進で右に切って曲がる → 止まって左に切り直す → バック、をくり返します。上方ビューで向きを確かめ、左を向いたら止まろう',ok:()=>Math.cos(G.fl.th)<-0.94&&Math.abs(G.fl.v)<0.05}
+];
+/* 港の積載：荷物を取りに行くところから（取る → バックで下がる → バックしながら向きを変える → 平台へ） */
+const portBedB=()=>truckBed(JOB_TRUCKS.port[0]);
+const TUT_PORT_PICK=[
+  {t:'荷物の前へ',rv:'wheel',real:'前後進レバーを F に入れ、左（西）にある荷物に正面から向かって、1〜2m手前でブレーキを踏んで止まろう。近づくと視線が下がり、爪先をのぞき込む見え方になります',all:'左（西）にある荷物に正面から向かい、1〜2m手前で止まろう。爪は荷物の真ん中に向けます',hl:{real:'#dirF,#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:TUT_BASIC[3].ok},
+  ...TUT_BASIC.slice(4,13),
+  {t:'バックで下がる',rv:'wheel',real:'後ろを確認して前後進レバーを R に入れ、まっすぐ4mほどバックしよう。バックのときは体を後ろに向けて確かめます（運転席ビューは後方に切り替わります）',all:'後ろを確認して「バック」で、まっすぐ4mほど下がろう。バックのときは後ろを向いて確かめます',hl:{real:'#pdBrake,#dirR,#pdAcc',pedal:'#pBack',def:'#stick'},ok:T=>T.rev>=4&&!!G.fl.load},
+  {t:'バックしながら向きを変える',rv:'wheel',real:'R のまま、ハンドルを切ってバックし、車体を右（東・平台の方）へ向けよう。荷が大きいので、振り回す範囲に注意。右を向いたら止まって、ハンドルをまっすぐに戻そう',all:'ハンドルを切って「バック」し、車体を右（東・平台の方）へ向けよう。荷が大きいので、振り回す範囲に注意。右を向いたら止まって、ハンドルをまっすぐに戻そう',hl:{real:'#rStL,#rStR,#dirR,#pdAcc,#pdBrake',pedal:'#pL,#pR,#pBack',def:'#stick'},ok:()=>!!G.fl.load&&Math.cos(G.fl.th)>0.97&&Math.abs(G.fl.v)<0.05&&Math.abs(G.fl.steer)<0.1},
+  {t:'平台の前へ',rv:'wheel',real:'F に入れて前進し、荷の先が平台の50cmほど手前で止まろう。荷で前が見えないので、上方ビューで荷と平台の点線の枠をそろえます',all:'「前進」で、荷の先が平台の50cmほど手前まで進んで止まろう。荷で前が見えないので、上方ビューで荷と平台の点線の枠をそろえます',hl:{real:'#dirF,#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},
+    ok:()=>{const fl=G.fl,b=fl.load;if(!b)return false;const lr=loadRect(fl,b),B=portBedB(),fr=lr.x+b.d/2;return fr<B.x0-0.05&&fr>B.x0-1.6&&Math.abs(lr.y-b.ty)<0.35&&Math.cos(fl.th)>0.985&&Math.abs(fl.v)<0.05;},
+    fix:()=>{const fl=G.fl,b=fl.load;if(!b)return;const B=portBedB();Object.assign(fl,{th:0,v:0,steer:0,ss:0,x:B.x0-0.5-(FRONT+0.05+b.d),y:b.ty});G.steerT=0;}},
+  ...TUT_PORT
+];
+const TUT_SETS={portpick:TUT_PORT_PICK,steer:TUT_STEER,basic:TUT_BASIC,kei:TUT_KEI,unload:TUT_UNLOAD,rack:TUT_RACK,port:TUT_PORT,safety:TUT_SAFETY};
 function lvlCargo(){const b=G&&G.blocks&&G.blocks[0];return !!(b&&b.level);}
 function tutText(st){if(st.tb&&lvlCargo())return `${G.blocks[0].name}は傾けると水がこぼれるので、後傾にしません。チルトは「水平」のまま運ぼう（坂では、水の面が水平になるようにチルトを合わせる）`;
-  let t=(st.f&&st.f(OPW()))||(realOn()&&st.real)||st.all||st[settings.stick]||st.map;const bk=G&&G.blocks&&G.blocks[0];if(bk&&CARGO_COLOR[bk.kind])t=t.replace(/青い/g,CARGO_COLOR[bk.kind]);return topOn()?t:t.replace(/（上方ビューの赤い帯＝尻振り）/g,'');}
+  let t=(st.f&&st.f(OPW()))||(realOn()&&st.real)||st.all||st[settings.stick]||st.map;if(st.holdNote&&steerHoldOn())t+=st.holdNote;const bk=G&&G.blocks&&G.blocks[0];if(bk&&CARGO_COLOR[bk.kind])t=t.replace(/青い/g,CARGO_COLOR[bk.kind]);return topOn()?t:t.replace(/（上方ビューの赤い帯＝尻振り）/g,'');}
 function tutHighlight(){document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));if(!G||!G.tut||G.over)return;const st=TUT[G.tut.i];if(st&&realOn()&&st.rv)setRV(st.rv==='lever');if(!st||!st.hl)return;const sel=(realOn()&&st.hl.real)||st.hl[settings.stick]||st.hl.def;if(sel)document.querySelectorAll(sel).forEach(e=>e.classList.add('hl'));}
 let tutScheme='pedal';
 function startTutorial(sc){if(typeof sc==='string')tutScheme=sc;
-  const job=TUT_SETS[tutOpts.job]?tutOpts.job:'basic';TUT=TUT_SETS[job];settings.lecture=false;
+  const job=TUT_SETS[tutOpts.job]?tutOpts.job:'basic';const pick=job==='port'&&tutOpts.portStart!=='carry';TUT=pick?TUT_PORT_PICK:TUT_SETS[job];settings.lecture=false;
   settings.portBig=job==='port'&&tutOpts.cargo==='CONTL';
   actx();settings.stick=tutScheme;settings.open=true;settings.aids=true;settings.top=$('optTop').checked;REC.prefTop=settings.top;saveRec();settings.mode='driver';settings.stage='warehouse';settings.level=1;settings.assist=false;settings.job=job==='basic'?'yard':job;
   newGame();
@@ -1873,12 +2011,14 @@ function startTutorial(sc){if(typeof sc==='string')tutScheme=sc;
     if(tutScheme==='real')G.dirL=0;}
   if(job==='kei'){Object.assign(b,{ang:0,z:0,tx:KEI_BED.x0+b.d/2+0.02,ty:8.0,tz:KEI_BED.z,state:'carried'});fl.load=b;Object.assign(fl,{x:21.9-0.5-(FRONT+0.05+b.d),y:8.0,th:0,mast:4,fork:0.5,forkT:0.5});G.prevFork=0.5;if(tutScheme==='real')G.dirL=0;}
   if(job==='unload'){Object.assign(b,{ang:0,z:BIG_BED.z,x:BIG_BED.x1-b.d/2-0.02,y:5.9,tx:11.5,ty:5.9,tz:0});Object.assign(fl,{x:b.x+b.d/2+FRONT+1.1+0.6,y:5.9,th:Math.PI,mast:6,fork:0.6,forkT:0.6});G.prevFork=0.6;}
-  if(job==='port'){const B=truckBed(JOB_TRUCKS.port[0]);Object.assign(b,{ang:0,z:0,tx:B.x0+b.d/2,ty:8.0,tz:B.z,state:'carried',pins:true,ptol:ck==='CONTL'?0.05:0.08,patol:ck==='CONTL'?2:3});fl.load=b;Object.assign(fl,{x:B.x0-0.5-(FRONT+0.05+b.d),y:8.0,th:0,mast:4,fork:0.5,forkT:0.5});G.prevFork=0.5;if(tutScheme==='real')G.dirL=0;}
+  if(job==='port'&&pick){const B=truckBed(JOB_TRUCKS.port[0]);Object.assign(b,{ang:0,z:0,x:ck==='CONTL'?3.6:3.2+(b.d>1?0.2:0),y:8.0,tx:B.x0+b.d/2,ty:8.0,tz:B.z,state:'floor',pins:true,ptol:ck==='CONTL'?0.05:0.08,patol:ck==='CONTL'?2:3});Object.assign(fl,{x:13,y:8.0,th:Math.PI,mast:0,mastT:0,fork:0.1,forkT:0.1,steer:0});G.prevFork=0.1;G.steerT=0;if(tutScheme==='real')G.dirL=0;}
+  else if(job==='port'){const B=truckBed(JOB_TRUCKS.port[0]);Object.assign(b,{ang:0,z:0,tx:B.x0+b.d/2,ty:8.0,tz:B.z,state:'carried',pins:true,ptol:ck==='CONTL'?0.05:0.08,patol:ck==='CONTL'?2:3});fl.load=b;Object.assign(fl,{x:B.x0-0.5-(FRONT+0.05+b.d),y:8.0,th:0,mast:4,fork:0.5,forkT:0.5});G.prevFork=0.5;if(tutScheme==='real')G.dirL=0;}
   if(job==='rack'){const R=JOB_TRUCKS.rack[0],sl=rackSlot(R,1,1,b.d);Object.assign(b,{ang:0,z:0,tx:sl.x,ty:sl.y,tz:sl.z,state:'carried'});fl.load=b;Object.assign(fl,{x:sl.x+(FRONT+0.05+b.d/2)+0.6,y:sl.y,th:Math.PI,mast:4,fork:0.5,forkT:0.5});G.prevFork=0.5;if(tutScheme==='real')G.dirL=0;}
+  if(job==='steer'){Object.assign(b,{x:3.6,y:2.4,tx:3.6,ty:13.5,ang:0});Object.assign(fl,{x:13,y:8,th:0,mast:4,mastT:4,fork:0.4,forkT:0.4});G.prevFork=0.4;G.steerT=0;settings.job='yard';if(tutScheme==='real')G.dirL=0;}
   if(job==='safety'){Object.assign(b,{x:3.6,y:4,tx:20,ty:2,ang:0});Object.assign(fl,{x:3.6,y:4+b.w/2+FRONT+1.1+1.3,th:-Math.PI/2,mast:0,mastT:0,fork:0.1,forkT:0.1});G.prevFork=0.1;settings.job='yard';}
   if(CARGO[ck].fresh)b.freshT=180;
   if(CARGO[ck].level&&(fl.load||b.state==='carried'))fl.mast=0;
-  G.tut.job=job;G.tut.noReward=true;
+  G.tut.job=job;G.tut.set=pick?'portpick':job;G.tut.noReward=true;
   Object.assign(G.tut,{px:fl.x,py:fl.y,pth:fl.th});
   REC.tutSeen=true;saveRec();
   clearSnap();G.paused=false;keepAwake();showOnly(null);$('resultOv').hidden=true;$('tutOv').hidden=true;applyModeUI();
@@ -1903,10 +2043,11 @@ function tutUpdate(dt){
 const TUT_DONE0={};
 function showTutDone(){clearSnap();document.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));unlock('tutorial');
   if(!TUT_DONE0.p)Object.assign(TUT_DONE0,{h:$('tutDoneH').textContent,p:$('tutDoneP').textContent,l:$('tutDoneL').innerHTML});
-  const sf=G.tut&&G.tut.job==='safety';
-  $('tutDoneH').textContent=sf?'安全のしくみ体験 完了':TUT_DONE0.h;
+  const sf=G.tut&&G.tut.job==='safety',sr=G.tut&&G.tut.job==='steer';
+  $('tutDoneH').textContent=sf?'安全のしくみ体験 完了':sr?'ハンドル操作 完了':TUT_DONE0.h;
   $('tutDoneP').textContent=sf?'重すぎる荷では後輪が浮いてハンドルが効かなくなり、荷を高く上げたまま曲がると片輪が浮いて横転しかけることを体験しました。実際の車では、一度倒れると取り返しがつきません。':TUT_DONE0.p;
-  if(sf){$('tutDoneL').innerHTML='';for(const t of ['持ち上げる前に、荷重表（能力表）で許容荷重を確かめる。荷の中心が遠いほど許容荷重は小さくなる','荷は奥まで差し込み、床から15〜20cmの低い位置で運ぶ','曲がる前に十分に減速する。荷を高く上げたまま走らない・曲がらない','坂では横向きに走らない・坂の途中で向きを変えない','万一倒れかけたら、飛び降りない。シートベルトをして、ハンドルを握り、足を踏ん張り、倒れる方向と反対側へ体を傾ける']){const li=document.createElement('li');li.textContent=t;$('tutDoneL').appendChild(li);}}
+  if(sr){$('tutDoneP').textContent='据え切り、ハンドルを切ったままの前進とバック、切り返しができました。実車のハンドルは手を離してもタイヤが戻らないので、いまタイヤがどちらを向いているかを常に意識しましょう。';$('tutDoneL').innerHTML='';for(const t of ['動き出す前に、タイヤの向き（ハンドルの切れ角）を確かめる','後輪で曲がるので、切ったまま進むと車体の後ろが外側へ大きく振り出す。周りの人や物に注意','切ったままバックすると、前進と逆の向きに回る','据え切りはタイヤや路面が傷みやすいので、必要なときだけ使う。少し動きながら切るのが基本']){const li=document.createElement('li');li.textContent=t;$('tutDoneL').appendChild(li);}}
+  else if(sf){$('tutDoneL').innerHTML='';for(const t of ['持ち上げる前に、荷重表（能力表）で許容荷重を確かめる。荷の中心が遠いほど許容荷重は小さくなる','荷は奥まで差し込み、床から15〜20cmの低い位置で運ぶ','曲がる前に十分に減速する。荷を高く上げたまま走らない・曲がらない','坂では横向きに走らない・坂の途中で向きを変えない','万一倒れかけたら、飛び降りない。シートベルトをして、ハンドルを握り、足を踏ん張り、倒れる方向と反対側へ体を傾ける']){const li=document.createElement('li');li.textContent=t;$('tutDoneL').appendChild(li);}}
   else $('tutDoneL').innerHTML=TUT_DONE0.l;
   $('tutOv').hidden=false;}
 
@@ -1986,6 +2127,7 @@ function assistSignal(){
   if(fl.load&&Math.abs(fl.v)>0.3&&Math.abs(G.pitch)<0.5&&fl.mast<3)return ['後傾に','荷を持ったら爪を後傾にして走行しましょう','warn'];
   if(fl.load&&blindInfo().D0>6&&fl.v>0.2)return ['後進で',settings.stick==='easy'?'荷物で前が見えていません。「バック」で後ろ向きに運びましょう':'荷物で前が見えていません。後進で走行してください','warn'];
   if(Math.abs(fl.v)>SPEED_LIMIT)return ['減速','制限速度6 km/hを超えています','warn'];
+  if(steerHoldOn()&&Math.abs(fl.steer)>0.5&&Math.abs(fl.v)<0.05&&!G.forkMode)return ['タイヤ確認',`タイヤが${tireTxt(fl.steer)}を向いています。動き出す方向を確かめよう`,'warn'];
   const cs=crossingState();
   if(cs&&!G.cp[cs.idx].done){if(Math.abs(fl.v)<0.08)return ['確認','「指差確認」で右よし、左よし','warn'];return ['一旦停止','歩行者通路の手前です。止まって左右確認','warn'];}
   if(caution)return ['徐行',`近くに${INTR[caution.type].name}がいます`,'warn'];
@@ -2118,6 +2260,7 @@ function drawTop(){
   if(slopeDeg()){for(const x0 of [0,20.6]){const sl=slopeAt(x0+0.1);const x1=x0===0?6.6:W;
     g.fillStyle='rgba(120,90,40,.16)';g.fillRect(x0,0,x1-x0,H);
     g.strokeStyle='rgba(120,90,40,.45)';g.lineWidth=0.08;for(let y=1.2;y<H;y+=2.2){for(let k=0;k<2;k++){const cx=x0+(x1-x0)*(0.3+k*0.4);g.beginPath();g.moveTo(cx-sl.ux*0.3,y-0.45);g.lineTo(cx+sl.ux*0.3,y);g.lineTo(cx-sl.ux*0.3,y+0.45);g.stroke();}}}}
+  if(G.exam)drawExamTop(g);
   // 歩行者通路と一時停止線
   for(const L of LANES){
     g.fillStyle='rgba(76,140,90,.22)';g.fillRect(L-0.8,0,1.6,H);
@@ -2202,6 +2345,7 @@ function drawTop(){
   if(G.swingLbl){g.font=`700 ${fs*0.8}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';g.fillStyle='rgba(180,30,20,.95)';g.fillText('尻振り',G.swingLbl[0]*s,G.swingLbl[1]*s);}
   if(ob){g.font=`700 ${fs*0.85}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='left';g.fillStyle='rgba(20,25,28,.82)';g.fillRect(6,6,g.measureText(ob.txt).width+14,fs*1.4);g.fillStyle='#f2c418';g.fillText(ob.txt,13,6+fs*0.7);}
   if((G.rearUp||0)>0.2||(G.roll||0)>0.08){g.font=`700 ${fs*0.85}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';g.fillStyle='rgba(200,30,20,.95)';g.fillText((G.rearUp||0)>0.2?'後輪が浮いた':'片輪が浮いた',fl.x*s,(fl.y-1.3)*s);}
+  if(G.exam)drawExamLabels(g,s,fs);
   drawLecture(g,s,c);
   if(G.flash>0){g.fillStyle=`rgba(229,73,60,${G.flash*0.35})`;g.fillRect(0,0,c.width,c.height);}
 }
@@ -2230,6 +2374,7 @@ function drawForkliftTop(g,fl){
   for(const l of [-0.55,0.55]){g.save();g.translate(-0.95,l);g.rotate(-fl.steer*0.6);g.fillRect(-0.22,-0.07,0.44,0.14);g.restore();}
   g.fillStyle='#f2c418';g.fillRect(-1.3,-0.56,2.15,1.12);
   g.fillStyle='#3a3f42';g.fillRect(-1.3,-0.56,0.5,1.12);
+  if(Math.abs(fl.steer)>0.03){g.fillStyle='#111';g.strokeStyle='#f2c418';g.lineWidth=0.04;for(const l of [-0.42,0.42]){g.save();g.translate(-0.95,l);g.rotate(-fl.steer*1.36);g.fillRect(-0.2,-0.06,0.4,0.12);g.strokeRect(-0.2,-0.06,0.4,0.12);g.restore();}}
   g.strokeStyle='#1d2124';g.lineWidth=0.07;g.strokeRect(-0.75,-0.5,1.35,1.0);g.beginPath();g.moveTo(-0.75,-0.5);g.lineTo(0.6,0.5);g.moveTo(-0.75,0.5);g.lineTo(0.6,-0.5);g.stroke();
   g.fillStyle='#2a2f32';g.fillRect(0.82,-0.55,0.13,1.1);
   if(fl.load&&G.tilt>0.3){g.strokeStyle=`rgba(229,73,60,${G.tilt})`;g.lineWidth=0.1;const lr=FRONT+0.05;g.strokeRect(lr,-fl.load.w/2,fl.load.d,fl.load.w);}
@@ -2288,6 +2433,7 @@ function drawCab0(){
   g.strokeStyle=stg.grid;g.lineWidth=Math.max(1,w/900);g.beginPath();
   for(let x=0;x<=W;x+=2)seg(g,toCam(x,0,0),toCam(x,H,0));for(let y=0;y<=H;y+=2)seg(g,toCam(0,y,0),toCam(W,y,0));g.stroke();
   if(slopeDeg())for(const [x0,x1] of [[0,6.6],[20.6,W]])poly(g,wq([[x0,0,0.005],[x1,0,0.005],[x1,H,0.005],[x0,H,0.005]]),'rgba(120,90,40,.18)');
+  if(G.exam)drawExamCab(g,w);
   for(const L of LANES){poly(g,wq([[L-0.8,0,0],[L+0.8,0,0],[L+0.8,H,0],[L-0.8,H,0]]),'rgba(76,140,90,.25)');
     g.strokeStyle='#e9c21a';g.lineWidth=Math.max(2,w/400);g.setLineDash([w/90,w/140]);g.beginPath();seg(g,toCam(L-0.8,0,0),toCam(L-0.8,H,0));seg(g,toCam(L+0.8,0,0),toCam(L+0.8,H,0));g.stroke();g.setLineDash([]);
     g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=Math.max(1.5,w/500);g.beginPath();seg(g,toCam(L-1.8,0.4,0),toCam(L-1.8,H-0.4,0));seg(g,toCam(L+1.8,0.4,0),toCam(L+1.8,H-0.4,0));g.stroke();}
@@ -2401,7 +2547,8 @@ function drawCab0(){
       const tv=fl.load?clamp(G.tilt,0,1):0;const ih=s0*0.92;g.fillStyle=tv>0.7?'#e5493c':tv>0.4?'#f2c418':'#46b26a';g.fillRect(gx2+2,by+3+ih*(1-tv),gw-4,ih*tv);
       g.font=`700 ${s0*0.13}px "Zen Kaku Gothic New",sans-serif`;g.fillStyle='#ebe7dc';g.textAlign='center';g.fillText('揺れ',gx2+gw/2,by+s0*1.08);}
     const wx=bx+s0*1.18+Math.max(8,s0*0.18)+s0*0.32,wy=by+s0*0.42,wr=s0*0.3;g.fillStyle='rgba(20,24,26,.6)';g.beginPath();g.arc(wx,wy,wr*1.25,0,7);g.fill();g.strokeStyle='#d9dcd6';g.lineWidth=Math.max(2,s0*0.06);g.beginPath();g.arc(wx,wy,wr,0,7);g.stroke();
-    g.save();g.translate(wx,wy);g.rotate(fl.steer*Math.PI*0.75);g.beginPath();g.moveTo(-wr,0);g.lineTo(wr,0);g.moveTo(0,0);g.lineTo(0,wr);g.stroke();g.fillStyle='#f2c418';g.beginPath();g.arc(0,-wr,s0*0.05,0,7);g.fill();g.restore();}
+    g.save();g.translate(wx,wy);g.rotate(fl.steer*Math.PI*0.75);g.beginPath();g.moveTo(-wr,0);g.lineTo(wr,0);g.moveTo(0,0);g.lineTo(0,wr);g.stroke();g.fillStyle='#f2c418';g.beginPath();g.arc(0,-wr,s0*0.05,0,7);g.fill();g.restore();
+    {const tt=tireTxt(fl.steer);g.font=`700 ${Math.max(10,s0*0.13)}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';const tw=g.measureText(tt).width+8;g.fillStyle='rgba(20,24,26,.78)';g.fillRect(wx-tw/2,wy+wr*1.3,tw,s0*0.2);g.fillStyle=Math.abs(fl.steer)<0.03?'#8fd8a5':'#f2c418';g.fillText(tt,wx,wy+wr*1.3+s0*0.15);}}
   const cs0=crossingState();
   if(cs0&&!G.cp[cs0.idx].done&&Math.abs(fl.v)<0.08){let msg='指差呼称チャンス：「右よし、左よし」';g.font=`700 ${fs}px "Zen Kaku Gothic New",sans-serif`;g.textAlign='center';let mw=g.measureText(msg).width;if(mw>w*0.8){msg='指差呼称チャンス';mw=g.measureText(msg).width;}
     const by=h*0.6;g.fillStyle='rgba(35,56,43,.92)';g.fillRect(CX-mw/2-fs,by,mw+fs*2,fs*1.8);g.fillStyle='#cdeed6';g.fillText(msg,CX,by+fs*0.9);}
@@ -2489,8 +2636,10 @@ function hud(){
   $('rToggle').classList.toggle('sugg',realOn()&&!G.tut&&!!G.lookOn&&!document.body.classList.contains('rv-lever'));
   $('sMast').textContent=Math.abs(fl.mast)<0.5?'水平':(fl.mast>0?'後':'前')+Math.round(Math.abs(fl.mast))+'°';
   const tl=$('sTilt');tl.textContent=fl.load?`${Math.round(clamp(G.tilt,0,1)*100)}%`:'—';tl.classList.toggle('warn',fl.load&&G.tilt>0.7);tl.classList.toggle('caution',fl.load&&G.tilt>0.4&&G.tilt<=0.7);
-  sig.classList.toggle('tut',!!G.tut);$('tutBtns').hidden=!G.tut;
-  if(G.tut){const st=TUT[Math.min(G.tut.i,TUT.length-1)];$('sigWho').textContent=`チュートリアル${(G.tut.job||'basic')!=='basic'?'（'+(G.tut.job==='safety'?'安全のしくみ':JOBS[settings.job].name)+'）':''}　手順 ${Math.min(G.tut.i+1,TUT.length)} / ${TUT.length}`;
+  sig.classList.toggle('tut',!!G.tut||!!G.exam);$('tutBtns').hidden=!G.tut;$('examBtns').hidden=!G.exam;
+  if(G.exam){const E=G.exam;const [a,b2]=examStage();const rest=Math.max(0,EXAM.limit-G.t);$('sigWho').textContent=`検定コース（一般的な例）　残り ${fmtT(rest)}　${Math.max(0,G.score)}点`;$('sigV').textContent=a;$('sigSub').textContent=b2;sig.dataset.tone=E.dq?'stop':'warn';
+    $('exBelt').setAttribute('aria-pressed',E.belt?'true':'false');$('exBrake').setAttribute('aria-pressed',E.pbrake?'true':'false');$('exBelt').textContent=E.belt?'シートベルト：締めた':'シートベルト';$('exBrake').textContent=E.pbrake?'駐車ブレーキ：かけている':'駐車ブレーキ：戻した';
+  }else if(G.tut){const st=TUT[Math.min(G.tut.i,TUT.length-1)];$('sigWho').textContent=`チュートリアル${(G.tut.job||'basic')!=='basic'?'（'+(G.tut.job==='safety'?'安全のしくみ':G.tut.job==='steer'?'ハンドル操作':JOBS[settings.job].name)+'）':''}　手順 ${Math.min(G.tut.i+1,TUT.length)} / ${TUT.length}`;
     if(G.tut.okT>0){$('sigV').textContent='OK！';sig.dataset.tone='go';}else{$('sigV').textContent=(realOn()&&st.rt)||st.t;sig.dataset.tone='warn';}
     $('sigSub').textContent=tutText(st);
   }else if(realOn()&&G.lookOn&&(aidsOn()||settings.assist)&&realHint()){const [a,b2]=realHint();$('sigWho').textContent='荷役中';$('sigV').textContent=a;$('sigSub').textContent=b2;sig.dataset.tone='warn';
@@ -2515,6 +2664,8 @@ function hud(){
 
 /* ---------- 結果 ---------- */
 function showResult(){clearSnap();
+  if(G&&G.exam){showExamResult();return;}
+  $('rGrade').style.fontSize='';
   const s=G.score;const ot=G.overturns||0;const grade=s>=95&&G.acc===0&&!ot?'S':s>=80&&G.acc===0&&!ot?'A':s>=60?'B':'C';
   const clean=G.acc===0&&G.coll===0&&G.near===0&&!ot&&!(G.rollEv||0);
   unlock('first');if(clean)unlock('safe');
@@ -2828,7 +2979,7 @@ function loadSnap(){try{const j=JSON.parse(localStorage.getItem(SNAP_KEY)||'null
 function clearSnap(){try{localStorage.removeItem(SNAP_KEY);}catch(_){}}
 function resumeSnap(){const sv=loadSnap();if(!sv)return false;
   actx();Object.assign(settings,sv.settings);if(sv.FL)FL=fixFL(sv.FL);tutScheme=sv.tutScheme||tutScheme;if(sv.tutOpts)tutOpts=sv.tutOpts;
-  hub=sv.settings&&sv.settings.ov?'play':'learn';G=sv.G;TUT=TUT_SETS[(G.tut&&G.tut.job)||'basic']||TUT_BASIC;const fl=G.fl;if(fl.load)fl.load=G.blocks.find(b=>b.id===fl.load.id)||null;
+  hub=sv.settings&&sv.settings.ov?'play':'learn';G=sv.G;LANES=settings.job==='exam'?[]:[7.5,18.5];TUT=TUT_SETS[(G.tut&&(G.tut.set||G.tut.job))||'basic']||TUT_BASIC;const fl=G.fl;if(fl.load)fl.load=G.blocks.find(b=>b.id===fl.load.id)||null;
   iid=G.intr.reduce((m,i)=>Math.max(m,i.id),0);G.over=false;
   showOnly(null);$('resultOv').hidden=true;$('tutOv').hidden=true;$('log').innerHTML='';
   const dirL=G.dirL,fm=G.forkMode,lk=G.lookOn;applyModeUI();G.dirL=dirL;syncDir();
@@ -3030,7 +3181,7 @@ function startGame(ov){ov=ov&&!ov.type&&!ov.target?ov:null;
 }
 function applyModeUI(){
   const g=settings.mode==='guide';$('ctlDriver').hidden=g;$('ctlGuide').hidden=!g;
-  $('sMode').textContent=settings.job==='free'?`練習モード（自由配置）・${ST().name}${settings.lecture?'・解説表示':''}`:`${MODE_NAME[settings.mode]}・${settings.job!=='yard'?JOBS[settings.job].name+'・':''}${ST().name}・Lv${settings.level}`;
+  $('sMode').textContent=settings.job==='exam'?'検定コース（一般的な例）':settings.job==='free'?`練習モード（自由配置）・${ST().name}${settings.lecture?'・解説表示':''}`:`${MODE_NAME[settings.mode]}・${settings.job!=='yard'?JOBS[settings.job].name+'・':''}${ST().name}・Lv${settings.level}`;
   primary=(g||settings.stick==='easy'||settings.lecture)?'top':'cab';layoutViews();
   document.body.classList.toggle('easy',settings.stick==='easy'&&!g);
   for(const k of ['pedal','easy','map','car','real'])document.body.classList.toggle('scheme-'+k,settings.stick===k&&!g);
@@ -3215,20 +3366,24 @@ function loadPrefs(){const p=REC.prefs;if(!p)return;if(p.stick)$('optStick').val
 const CARGO_COLOR={S:'青い',M:'オレンジの',L:'紫の',F:'赤い',LONG:'緑の',BOX:'茶色の',PLUSH:'ピンクの',TANK:'水色の',FISH:'白い',DRUM:'青い'};
 const CARGO_TIP={CONTL:'20ftコンテナは長さ6m。シャーシの固定金具が荷台の四隅ぎりぎりにあります。上方ビューで四隅の金具を見ながら、サイドシフトとインチングで数cmずつ合わせよう',CONT:'コンテナ風の箱は幅2.4mで重い荷。長い辺から差し込み、四隅を固定金具に合わせよう',HVY:'許容荷重を超える荷を持ち上げるとどうなるか、安全な画面の中で体験します',BOX:'段ボールは基本の荷。まずは流れを覚えよう',PLUSH:'ぬいぐるみは背が高く揺れやすい。ゆっくり曲がろう',TANK:'水槽は急ブレーキ・急カーブで水がこぼれます',FISH:'鮮魚は時間がたつと鮮度が落ちます',DRUM:'ドラム缶は重く止まりにくい。後傾で運ぼう',S:'小さな荷物は前がよく見えます。まずは流れを覚えよう',M:'中くらいの荷物は、足元や小さな動物が隠れます',L:'大きな荷物は前がほとんど見えません。運ぶときは後進で運ぶか、上方ビューや誘導員の合図に頼ろう',F:'ワレモノはぶつけたり荷崩れしたりすると割れます。ゆっくり丁寧に',LONG:'長尺物（幅2.4m）は長い辺から差し込みます。曲がるときは周りにぶつけないよう注意'};
 let tutOpts={job:'basic',chap:1,cargo:'S'};
-const TUT_CARGO={safety:['HVY'],port:['BOX','M','CONT','CONTL'],rack:['BOX','S','F','PLUSH','TANK','FISH','DRUM'],basic:['S','M','L','F','LONG','BOX','PLUSH','TANK','FISH','DRUM'],kei:['BOX','S','M','F','PLUSH','TANK','FISH','DRUM'],unload:['BOX','S','M','L','F','PLUSH','TANK','FISH','DRUM']};
+const TUT_CARGO={steer:['S'],safety:['HVY'],port:['BOX','M','CONT','CONTL'],rack:['BOX','S','F','PLUSH','TANK','FISH','DRUM'],basic:['S','M','L','F','LONG','BOX','PLUSH','TANK','FISH','DRUM'],kei:['BOX','S','M','F','PLUSH','TANK','FISH','DRUM'],unload:['BOX','S','M','L','F','PLUSH','TANK','FISH','DRUM']};
 function renderTutSel(){const box=$('tsCargo');box.innerHTML='';const job=(document.querySelector('input[name=tsJob]:checked')||{}).value||'basic';
-  $('tsChapBox').hidden=job!=='basic';const allow=TUT_CARGO[job];if(!allow.includes(tutOpts.cargo))tutOpts.cargo=allow[0];
+  $('tsChapBox').hidden=job!=='basic';$('tsPortBox').hidden=job!=='port';const allow=TUT_CARGO[job];if(!allow.includes(tutOpts.cargo))tutOpts.cargo=allow[0];
   for(const k of allow){const c=CARGO[k];const lab=document.createElement('label');lab.className='mode';
     lab.innerHTML=`<input type="radio" name="tsCargo" value="${k}"${k===tutOpts.cargo?' checked':''}><span><b><i class="sw"></i></b><em></em></span>`;
     lab.querySelector('.sw').style.background=c.col;lab.querySelector('b').appendChild(document.createTextNode(c.name));lab.querySelector('em').textContent=c.desc;box.appendChild(lab);}
   const sr=document.querySelector(`input[name=tsScheme][value=${$('optStick').value==='real'?'real':'pedal'}]`);if(sr)sr.checked=true;tsWhat();}
-function tsWhat(){const v=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value;const job=v('tsJob')||'basic';const ch=job==='basic'?{1:'最初から',2:'荷を取る',3:'運んで下ろす'}[v('tsChap')]:{kei:'軽トラ積載',unload:'荷降ろし',rack:'棚入れ',port:'港の積載',safety:'安全のしくみ'}[job];
+function tsWhat(){const v=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value;const job=v('tsJob')||'basic';const ch=job==='basic'?{1:'最初から',2:'荷を取る',3:'運んで下ろす'}[v('tsChap')]:{kei:'軽トラ積載',unload:'荷降ろし',rack:'棚入れ',port:v('tsPortStart')==='carry'?'港の積載（平台の前から）':'港の積載（荷物を取りに行く）',safety:'安全のしくみ',steer:'ハンドル操作'}[job];
   $('tsWhat').textContent=`${v('tsScheme')==='real'?'実機配置':'ボタン操作'}・${ch}・${CARGO[v('tsCargo')||'S'].name}`;}
 $('tutSelOv').addEventListener('change',e=>{if(e.target.name==='tsJob'){tutOpts.cargo=(document.querySelector('input[name=tsCargo]:checked')||{}).value||tutOpts.cargo;renderTutSel();}tsWhat();});
 $('tsGo').onclick=()=>{const v=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value;
   const sc=v('tsScheme')==='real'?'real':($('optStick').value==='real'?'pedal':$('optStick').value);
-  tutOpts={job:v('tsJob')||'basic',chap:+(v('tsChap')||1),cargo:v('tsCargo')||'S'};startTutorial(sc);};
+  tutOpts={job:v('tsJob')||'basic',chap:+(v('tsChap')||1),cargo:v('tsCargo')||'S',portStart:v('tsPortStart')||'pick'};startTutorial(sc);};
 $('tutAgain').onclick=startTutorial;
+$('exBelt').onclick=()=>{const E=G&&G.exam;if(!E||E.done)return;if(E.belt&&Math.abs(G.fl.v)>0.05){log('走行中はシートベルトを外せません','warn');return;}E.belt=!E.belt;SFX.check();log(E.belt?'シートベルトを締めました':'シートベルトを外しました','info');};
+$('exBrake').onclick=()=>{const E=G&&G.exam;if(!E||E.done)return;if(!E.pbrake&&Math.abs(G.fl.v)>0.05){log('止まってから駐車ブレーキをかけよう','warn');return;}E.pbrake=!E.pbrake;SFX.check();log(E.pbrake?'駐車ブレーキをかけました':'駐車ブレーキを戻しました','info');};
+$('exEnd').onclick=()=>{if(G&&G.exam)examFinish();};
+$('lcExam').onclick=()=>startExam();
 $('tutToMenu').onclick=()=>{$('tutOv').hidden=true;if(hub==='play'){playStart({level:1});return;}renderStart();$('optLevel').value='1';showLvDesc();showOnly('startOv');};
 $('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G.blocks[0];
   if((T.job||'basic')!=='basic'){const st=TUT[T.i];if(st&&st.fix)st.fix();if(T.okT<=0)T.okT=0.05;return;}
@@ -3253,7 +3408,7 @@ $('tutSkip').onclick=()=>{if(!G||!G.tut||G.over)return;const T=G.tut,fl=G.fl,b=G
   }
   T.okT=0.01;};
 $('tutQuit').onclick=()=>{if(!G)return;goTitle();};
-$('btnAgain').onclick=()=>{$('resultOv').hidden=true;if(settings.job==='free')startFree();else startGame(settings.ov);};
+$('btnAgain').onclick=()=>{$('resultOv').hidden=true;if(settings.job==='exam')startExam();else if(settings.job==='free')startFree();else startGame(settings.ov);};
 $('btnEdit').onclick=()=>{$('resultOv').hidden=true;openEditor();};
 $('btnNext').onclick=()=>{if(settings.ov){$('resultOv').hidden=true;startGame({...settings.ov,level:Math.min(LV_MAX,settings.level+1)});return;}$('optLevel').value=String(Math.min(LV_MAX,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
 $('optLevel').addEventListener('change',showLvDesc);
@@ -3262,6 +3417,7 @@ function openPause(){if(!G||G.over||!$('startOv').hidden||!$('recOv').hidden||!$
   $('pauseInfo').textContent=G.tut?`チュートリアル ${Math.min(G.tut.i+1,TUT.length)}/${TUT.length}`:`${MODE_NAME[settings.mode]}・${ST().name}・Lv${settings.level}　搬送 ${G.blocks.filter(b=>b.state==='done').length}/${G.blocks.length}・経過 ${fmtT(G.t)}`;
   $('pRetry').textContent=G.tut?'チュートリアルを最初から':settings.job==='free'?'この配置で最初から':'最初からやり直す';$('pEdit').hidden=settings.job!=='free'||!!G.tut;
   $('pStickBox').hidden=settings.mode==='guide';document.querySelectorAll('input[name=pStick]').forEach(r=>r.checked=r.value===settings.stick);$('pStickMsg').textContent='';
+  $('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal'].includes(settings.stick)||(G.tut&&G.tut.job==='steer');
   $('pauseOv').hidden=false;}
 // ゲーム・チュートリアルの途中で操作方法を切り替える
 function switchScheme(st){if(!G||settings.stick===st)return;settings.stick=st;if(settings.ov)settings.ov.stick=st;
@@ -3272,7 +3428,12 @@ function switchScheme(st){if(!G||settings.stick===st)return;settings.stick=st;if
   if(G.tut){$('sMode').textContent='チュートリアル';tutHighlight();}
   $('stickTitle').textContent=STICK_TITLE[st]||'';
   $('pStickMsg').textContent=`「${{pedal:'ボタン',easy:'スティック',real:'実機配置'}[st]}」に切り替えました。「再開する」で続きから運転できます`;}
-document.querySelectorAll('input[name=pStick]').forEach(r=>r.addEventListener('change',()=>{if(r.checked)switchScheme(r.value);}));
+document.querySelectorAll('input[name=pStick]').forEach(r=>r.addEventListener('change',()=>{if(r.checked)switchScheme(r.value);$('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal'].includes(settings.stick)||!!(G&&G.tut&&G.tut.job==='steer');}));
+function setSteerHold(on){REC.steerHold=on;$('playSteerHold').checked=on;$('optSteerHold').checked=on;saveRec();if(!on&&G)G.steerT=0;}
+$('pSteerHold').addEventListener('change',()=>{setSteerHold($('pSteerHold').checked);$('pStickMsg').textContent=$('pSteerHold').checked?'ハンドルは切ったままになります。まっすぐにするときは、反対へ切って戻します（中央でカチッと止まります）':'ハンドルは手を離すとまっすぐに戻ります';});
+$('playSteerHold').checked=$('optSteerHold').checked=REC.steerHold!==false;
+$('playSteerHold').addEventListener('change',()=>setSteerHold($('playSteerHold').checked));
+$('optSteerHold').addEventListener('change',()=>setSteerHold($('optSteerHold').checked));
 function closePause(){$('pauseOv').hidden=true;if(G&&!G.over){G.paused=false;last=performance.now();keepAwake();}}
 function goTitle(){$('pauseOv').hidden=true;$('resultOv').hidden=true;$('tutOv').hidden=true;
   saveSnap();if(G){G.over=true;G.paused=true;G.tut=null;}if(voiceOn)stopVoice();
@@ -3280,7 +3441,7 @@ function goTitle(){$('pauseOv').hidden=true;$('resultOv').hidden=true;$('tutOv')
   if(document.body.classList.contains('fs'))setFS(false);showTitle(true);}
 $('btnPause').onclick=()=>{if(!$('pauseOv').hidden)closePause();else openPause();};
 $('pResume').onclick=closePause;
-$('pRetry').onclick=()=>{const tut=G&&G.tut;$('pauseOv').hidden=true;if(tut)startTutorial();else if(settings.job==='free')startFree();else startGame(settings.ov);};
+$('pRetry').onclick=()=>{const tut=G&&G.tut;$('pauseOv').hidden=true;if(tut)startTutorial();else if(settings.job==='exam')startExam();else if(settings.job==='free')startFree();else startGame(settings.ov);};
 $('pEdit').onclick=()=>{$('pauseOv').hidden=true;captureLayout();G.over=true;openEditor();};
 $('pTitle').onclick=goTitle;
 
@@ -3317,6 +3478,8 @@ const KG={KeyZ:'slow',KeyW:'fwd',ArrowUp:'fwd',KeyS:'back',ArrowDown:'back',KeyA
 addEventListener('keydown',e=>{
   if(!G||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden||!$('edDlg').hidden)return;
   if(e.code==='KeyP'){$('btnPause').click();return;}
+  if(G&&G.exam&&e.code==='KeyJ'){$('exBelt').click();return;}
+  if(G&&G.exam&&e.code==='KeyK'){$('exBrake').click();return;}
   if(e.code==='KeyF'){$('btnFS').click();return;}
   if(e.code==='KeyV'){$('btnSub').click();return;}
   if(e.code==='KeyM'){$('btnSnd').click();return;}

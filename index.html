@@ -375,6 +375,9 @@ body.lsfit #examBtns .btn-ghost{flex:1 1 0;min-width:0;overflow:hidden;text-over
 body.lstight .k.steer{font-size:calc(26px * var(--ts,1))}
 body.lstight .k.ped{font-size:calc(12px * var(--ts,1));letter-spacing:-.05em}
 .easyrow input{flex-shrink:0}
+.k.pbk{background:#2a2d30;border-color:#4a5055;color:#c9d0d4;font-size:calc(12px * var(--ts,1));padding:2px;line-height:1.1;white-space:nowrap;min-width:0}
+.k.pbk small{font-size:calc(9px * var(--ts,1))}
+.k.pbk[aria-pressed=true]{background:#6a2a1e;border-color:#f2c418;color:#ffe9a8;box-shadow:inset 0 0 0 2px #f2c418}
 .creepcfg{display:grid;gap:2px;margin:-2px 0 6px;padding:6px 10px 8px 30px;border-left:3px solid var(--line)}
 .creepcfg.off{opacity:.45}
 .ccrow{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'l o' 'i i';align-items:center;column-gap:8px;font-size:.92em}
@@ -604,6 +607,11 @@ body.notop .vtools,body.forkmode .vtools,body.forkctx #vSub,body.forkctx #vPos{d
 }
 .fs .vtools{position:fixed;top:calc(var(--fsbar) + 6px + env(safe-area-inset-top,0px));left:50%;right:auto;transform:translateX(-50%);z-index:33}
 body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8px,env(safe-area-inset-left,0px));right:auto}
+/* 駐車ブレーキ（実機配置の下の段） */
+.realpanel .r-tg{grid-area:3/1/4/4}.realpanel .r-pk{grid-area:3/4/4/6}.realpanel .r-c{grid-area:3/6/4/8}
+body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
+.k.pbk{font-size:calc(11.5px * var(--ts,1));letter-spacing:-.03em}
+@media (orientation:landscape){.fs .realpanel .r-c{grid-area:2/1/3/3}.fs .realpanel .r-pk{grid-area:2/3;justify-self:start;width:76px}}
 </style>
 </head>
 <body>
@@ -688,6 +696,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
         <button type="button" class="k ped brk r-brk" id="pdBrake" data-hold="brake">ブレーキ<small>右足</small></button>
         <button type="button" class="k ped acc r-acc" id="pdAcc" data-hold="acc">アクセル<small>右足・踏んでいる間</small></button>
         <button type="button" class="k fmode r-tg" id="rToggle">荷役レバーを表示<small>ハンドル ⇄ レバー</small></button>
+        <button type="button" class="k pbk r-pk" id="pdPark" aria-pressed="false">駐車ブレーキ<small>かける／戻す B</small></button>
         <button type="button" class="k chk r-c" id="rChk" data-act="check">指差確認<small>C</small></button>
       </div>
       <div class="forkpanel">
@@ -773,7 +782,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
     <button class="tm" id="tmCont" type="button">つづきから<small id="tmContSub"></small></button>
     <div class="tmrow"><button class="tm s" id="tmRec" type="button">図鑑・コレクション</button><button class="tm s" id="tmSet" type="button">⚙ 設定</button></div>
   </nav>
-  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.36</div>
+  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.37</div>
 </div>
 
 
@@ -946,7 +955,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <label><input type="checkbox" id="optAssist" checked> AI誘導員の補助（運転者モード）</label>
       <label><input type="checkbox" id="optSnd" checked> 効果音・笛の音</label>
     </div>
-    <p class="hint">バージョン：Ver.36</p>
+    <p class="hint">バージョン：Ver.37</p>
     <p class="hint">設定はこの端末に保存され、次に開いたときも使われます。チュートリアルでは、補助表示・爪の高さ・フォークの倒れの表示・AI誘導員の補助は練習用の設定になります。</p>
     <div class="row startbar"><button class="go" id="setDone" type="button">OK</button></div>
   </div>
@@ -1428,6 +1437,7 @@ function log(msg,type='info'){
 const gaugeOn=()=>!!(G&&G.tut)||!!settings.lecture||$('optGauge').checked;
 const tiltGOn=()=>!!(G&&G.tut)||!!settings.lecture||$('optTiltG').checked;
 const creepOn=()=>REC.creep!==false;
+const pbOn=()=>!!G&&(G.exam?!!G.exam.pbrake:!!G.pbrake);
 const CC_ITEMS=[['d','動き出すまでの間',0,1.5,0.1,'秒',0.5],['r','速さが上がるまでの時間',0.5,5,0.1,'秒',2.5],['v','クリープの速さ（前進）',0.5,2.5,0.1,'km/h',1.2]];
 function creepCfg(){const c=REC.creepCfg||{},o={};for(const [k,,mn,mx,,,df] of CC_ITEMS){const v=+c[k];o[k]=Number.isFinite(v)?Math.min(mx,Math.max(mn,v)):df;}return o;}
 const tireOn=()=>!!(G&&G.tut&&G.tut.job==='steer')||!!settings.lecture||$('optTire').checked;
@@ -1692,12 +1702,12 @@ function update(dt){
     const dir=G.dirL,acc=keys.acc||keys.up,brk=keys.brake||keys.down,inch=keys.inch;
     if(acc&&dir&&!brk)G.holdT+=dt;else G.holdT=0;
     // クリープ現象：F・R に入れてブレーキを離すと、アクセルなしでもゆっくり進む（インチングを踏むと切れる）
-    const crp=creepOn()&&dir&&!brk&&!inch&&!(G.exam&&G.exam.pbrake);const CC=creepCfg();G.creepT=crp?Math.min(CC.d+CC.r,(G.creepT||0)+dt):0;
+    const crp=creepOn()&&dir&&!brk&&!inch&&!pbOn();const CC=creepCfg();G.creepT=crp?Math.min(CC.d+CC.r,(G.creepT||0)+dt):0;
     // ブレーキを離してから CC.d 秒おいて、CC.r 秒かけてじわっと立ち上がる（設定で変えられる。後進は前進の0.8倍）
     const cf=Math.max(0,Math.min(1,(G.creepT-CC.d)/Math.max(0.1,CC.r))),cv=crp?(dir>0?CC.v/3.6/2.5:CC.v*0.8/3.6/1.6)*(fl.load?0.8:1)*cf*cf*(3-2*cf):0;
     let pw=Math.min(dir>0?0.62:0.5,0.12+G.holdT*0.3);if(PAD.on&&PAD.r2>0.05&&keys.acc&&!keys.up)pw=(dir>0?0.62:0.5)*PAD.r2;if(crp)pw=Math.max(pw,cv);if(inch)pw=Math.min(pw,0.1);
     thr=(acc&&dir&&!brk)?pw*dir:cv*dir;
-    if(crp&&!acc&&Math.abs(fl.v)<0.15&&G.creepT>creepCfg().d+0.6)tip('creep','ブレーキを離したので、アクセルを踏まなくてもゆっくり動き出しました（クリープ現象）。止まっているときはブレーキを踏むか、レバーを N にしよう');G.brake=!!brk||(inch&&!acc);
+    if(crp&&!acc&&Math.abs(fl.v)<0.15&&G.creepT>creepCfg().d+0.6)tip('creep','ブレーキを離したので、アクセルを踏まなくてもゆっくり動き出しました（クリープ現象）。止まっているときはブレーキを踏むか、レバーを N にしよう。荷役レバーを使うあいだは「駐車」（駐車ブレーキ）をかけると動きません');G.brake=!!brk||(inch&&!acc)||pbOn();
     if(acc&&!dir)tip('neutral','前後進レバーが N（中立）です。F（前進）か R（後進）に入れてからアクセルを踏もう');
     st=steerInput(dt);
     const sx=((keys.ssr||keys.rotr)?1:0)-((keys.ssl||keys.rotl)?1:0);
@@ -1753,7 +1763,7 @@ function update(dt){
       if(dm){const nm=clamp(fl.mast+dm*7*dt,-6,12);if(fl.mast!==0&&Math.sign(nm)!==Math.sign(fl.mast)){fl.mast=0;G.mastDet=0.45;}else fl.mast=nm;}}
   }
   if(G.tipFreeze>0)thr=0;
-  if(G.exam&&G.exam.pbrake&&thr){thr=0;if(Math.abs(fl.v)<0.05)examDed('pbrake',2,'駐車ブレーキを戻し忘れて発進しようとした');}
+  if(pbOn()&&thr){thr=0;if(G.exam){if(Math.abs(fl.v)<0.05)examDed('pbrake',2,'駐車ブレーキを戻し忘れて発進しようとした');}else tip('pbrake','駐車ブレーキがかかっています。「駐車」を押して戻してから発進しよう');}
   G.inThr=thr;
   const brk=realOn()&&G.brake;
   const target=brk?0:thr>0?thr*2.5:thr<0?thr*1.6:0;
@@ -1995,18 +2005,18 @@ const TUT_BASIC=[
   {t:'前に進む',rv:'wheel',realC:'前後進レバーを「F」に入れてブレーキを離すと、アクセルを踏まなくてもゆっくり動き出します（クリープ現象）。右足の「アクセル」を踏むと速くなり、止めるときは「ブレーキ」を踏みます。1mほど進もう',real:'前後進レバーを「F」に入れて、右足の「アクセル」を踏んでいる間だけ進みます。離すと止まります（強く止めるときは「ブレーキ」）。1mほど進もう',pedal:'右手の「前進」を押している間だけ進みます。指を離すと止まります。1mほど進もう',easy:'スティックを倒すと、その方向へ進みます。右（→）へ倒して、1mほど進もう',map:'スティックを右（→）へ倒すと、車体が右へ向かって進みます。1mほど進もう',car:'スティックを上に倒すと前進します。1mほど進もう',hl:{real:'#dirF,#pdAcc',pedal:'#pFwd',def:'#stick'},ok:T=>T.fwd>=1.0},
   {t:'曲がる',holdNote:'。曲がったら、反対へ切ってハンドルをまっすぐに戻そう（実車は手を離してもタイヤは戻りません。中央でカチッと止まります）',rv:'wheel',real:'アクセルを踏みながら ◀ ▶ でハンドルを切ろう。後輪で曲がるので、車体の後ろが外側へ振り出します（上方ビューの赤い帯＝尻振り）',pedal:'「前進」を押しながら ◀ ▶ でハンドルを切ろう。フォークリフトは後輪で曲がるので、車体の後ろが外側へ振り出します（上方ビューの赤い帯＝尻振り）',easy:'スティックを上（↑）や下（↓）に倒すと、その場で向きを変えてから進みます',map:'スティックを右下（↘）へ倒すと、その方向へ曲がります。黄色の点線が進む道の予測です',car:'上に倒したまま左右に傾けると曲がります。黄色の点線が進む道の予測です',hl:{real:'#rStL,#rStR,#pdAcc',pedal:'#pR',def:'#stick'},ok:T=>T.turn>=0.7&&(!steerHoldOn()||Math.abs(G.steerT||0)<0.03)},
   {t:'バックする',rv:'wheel',real:'いったん止まってから前後進レバーを「R」に入れ、アクセルで下がろう。警報音が鳴り、運転席ビューが後方に切り替わります',pedal:'「バック」を押している間、後ろに下がります。警報音が鳴り、運転席ビューが後方に切り替わります',easy:'「バック」ボタンを押している間、まっすぐ後ろに下がります',map:'車体の後ろ側（←）へ倒すと後進します',car:'スティックを下に倒すと後進します',hl:{real:'#dirR,#pdAcc,#pdBrake',pedal:'#pBack',easy:'[data-hold=back]',def:'#stick'},ok:T=>T.rev>=1.0},
-  {t:'荷物の前へ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう）',rv:'wheel',real:'前後進レバーを「F」に戻し、上（北）にある荷物1（青い箱）に正面から向かって、1〜2m手前でブレーキを踏んで止まろう。近づくと視線が下がり、運転席から爪先をのぞき込む見え方になります',all:'上（北）にある荷物1（青い箱）に正面から向かい、1〜2m手前で止まろう。爪は荷物の真ん中に向けます',hl:{real:'#dirF,#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:()=>{const ft=forkFit(G.blocks[0]);const gap=ft.face-FRONT-1.1;return gap>-0.05&&gap<2.2&&Math.abs(ft.l)<0.5&&ft.a<0.35&&Math.abs(G.fl.v)<0.05;}},
+  {t:'荷物の前へ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう。荷役レバーを使うあいだは「駐車」で駐車ブレーキをかけると動きません）',rv:'wheel',real:'前後進レバーを「F」に戻し、上（北）にある荷物1（青い箱）に正面から向かって、1〜2m手前でブレーキを踏んで止まろう。近づくと視線が下がり、運転席から爪先をのぞき込む見え方になります',all:'上（北）にある荷物1（青い箱）に正面から向かい、1〜2m手前で止まろう。爪は荷物の真ん中に向けます',hl:{real:'#dirF,#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:()=>{const ft=forkFit(G.blocks[0]);const gap=ft.face-FRONT-1.1;return gap>-0.05&&gap<2.2&&Math.abs(ft.l)<0.5&&ft.a<0.35&&Math.abs(G.fl.v)<0.05;}},
   {t:'フォーク操作へ',skipReal:true,all:'「フォーク操作」を押そう。ボタンが、荷を扱うための操作に切り替わります',hl:{def:'#btnForkMode,#btnForkMode2'},ok:()=>G.forkMode},
   {t:'爪を水平にする',rv:'lever',real:'ボタンが荷役レバーに切り替わりました（下の「ハンドルを表示」でいつでも戻せます）。爪が後傾だと差し込めません。チルトレバーを「押す」で「水平」にしよう',all:'爪が後傾（手前に起きた状態）だと差し込めません。「前傾」を押して、チルトを「水平」にしよう',hl:{real:'#lvTiltF',def:'#fkTF'},ok:()=>(G.forkMode||realOn())&&Math.abs(G.fl.mast)<0.5},
   {t:'向きを合わせる',rv:'wheel',real:'実機はその場で回れません。少し下がってハンドルを切り、荷物に対してまっすぐ入り直そう。運転席からは分かりにくいので、見えにくいときは画面をタップすると図解で確かめられます',all:'右の数値「向き」が OK になるまで、「↺ 左に回す」「↻ 右に回す」で少しずつ回そう',hl:{real:'#rStL,#rStR,#dirR',def:'#fkRL,#fkRR'},ok:()=>forkFit(G.blocks[0]).a<=TOL().ang},
   {t:'左右を合わせる',rv:'lever',real:'サイドシフトレバー（◀ ▶）で爪だけを左右に動かして、パレットの差し込み口の真ん中に合わせよう。マストと荷受けの間から差し込み口を見比べます',all:'「◀ 爪を左へ」「▶ 爪を右へ」で爪だけを左右に動かして、「左右 OK」にしよう（サイドシフト）',hl:{real:'#lvSSL,#lvSSR',def:'#fkSL,#fkSR'},ok:()=>Math.abs(forkFit(G.blocks[0]).e)<=TOL().lat},
   {t:'高さを合わせる',rv:'lever',real:'リフトレバーを「押す」と爪が下がります。差し込み口（床から2〜12cm）の高さまで下げよう。下げすぎて床に着けると、進むときに床をこすります',all:'「下げ」を押して、爪を差し込み口（2〜12cm）の高さまで下げよう。右の図で爪が緑になればOK。下げすぎて床に着けないように',hl:{real:'#lvLiftP,#lvLiftU',def:'#fkDn,#fkUp'},ok:()=>G.fl.fork<=0.15&&G.fl.fork>=0.015},
-  {t:'差し込む',creepNote:'。奥まで入ったら、ブレーキを踏むかレバーを N にしよう',rv:'lever',real:'前後進レバーを「F」にして、左足の「インチング」を踏みながら「アクセル」で、ゆっくり奥まで差し込もう（75%以上でOK）',all:'「前進」で奥まで差し込もう（荷物の近くではゆっくり進みます）。下の表示が75%以上になればOK。ずれていると爪がパレットに当たります',hl:{real:'#dirF,#pdInch,#pdAcc',def:'#fkInF'},ok:()=>{const b=G.blocks[0];const ft=forkFit(b);return G.insId===b.id&&ft.ratio>=0.75;}},
+  {t:'差し込む',creepNote:'。駐車ブレーキがかかっていたら「駐車」で戻してから。奥まで入ったら、レバーを N にして駐車ブレーキをかけると、持ち上げる間に動きません',rv:'lever',real:'前後進レバーを「F」にして、左足の「インチング」を踏みながら「アクセル」で、ゆっくり奥まで差し込もう（75%以上でOK）',all:'「前進」で奥まで差し込もう（荷物の近くではゆっくり進みます）。下の表示が75%以上になればOK。ずれていると爪がパレットに当たります',hl:{real:'#dirF,#pdInch,#pdAcc',def:'#fkInF'},ok:()=>{const b=G.blocks[0];const ft=forkFit(b);return G.insId===b.id&&ft.ratio>=0.75;}},
   {t:'持ち上げる',rv:'lever',real:'リフトレバーを「引く」と爪が上がります。床から15cmくらいまで荷を持ち上げよう',all:'「上げ」を押し続けて、荷を床から持ち上げよう。走るときは床から15cmくらい上げます',hl:{real:'#lvLiftU',def:'#fkUp'},ok:()=>!!G.fl.load&&G.fl.fork>=0.4},
   {t:'後傾にする',tb:true,rv:'lever',real:'チルトレバーを「引く」と後傾します。爪を手前に4°以上起こそう。走行中に荷が落ちにくくなります',all:'「後傾」で爪を手前に起こそう（4°以上）。走行中に荷が落ちにくくなります',hl:{real:'#lvTiltB',def:'#fkTB'},ok:()=>G.fl.mast>=4},
   {t:'走行に戻る',skipReal:true,all:'「走行モードに戻る」を押して、運転の操作に戻ろう',hl:{def:'#fkExit'},ok:()=>!G.forkMode},
   {t:'指差呼称',rv:'wheel',real:'荷物の前にいるときは前後進レバーを「R」にして下がり、右側の歩行者通路（黄色く光る所）の手前で止まって「指差確認」を押そう。右よし、左よし！',all:'右側の歩行者通路（黄色く光る所）の手前で止まって、「指差確認」を押そう。右よし、左よし！',hl:{def:'#pChk,[data-act=check]'},ok:()=>G.calls>=1},
-  {t:'置き場へ運ぶ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう）',rv:'wheel',real:'前後進レバー・アクセル・ハンドルで通路を渡り、1番置き場（青い点線の枠）まで運ぼう。荷が枠に入ったらブレーキで止まります',all:'右へ曲がって通路を渡り、1番置き場（青い点線の枠）まで運ぼう。荷が枠の中に入ったら止まります',hl:{real:'#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:()=>{const fl=G.fl,b=fl.load;if(!b)return false;const lr=loadRect(fl,b);return Math.abs(lr.x-b.tx)<0.45&&Math.abs(lr.y-b.ty)<0.45&&angOK({ang:fl.th,long:false},0,0.35)&&Math.abs(fl.v)<0.1;}},
+  {t:'置き場へ運ぶ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう。荷役レバーを使うあいだは「駐車」で駐車ブレーキをかけると動きません）',rv:'wheel',real:'前後進レバー・アクセル・ハンドルで通路を渡り、1番置き場（青い点線の枠）まで運ぼう。荷が枠に入ったらブレーキで止まります',all:'右へ曲がって通路を渡り、1番置き場（青い点線の枠）まで運ぼう。荷が枠の中に入ったら止まります',hl:{real:'#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:()=>{const fl=G.fl,b=fl.load;if(!b)return false;const lr=loadRect(fl,b);return Math.abs(lr.x-b.tx)<0.45&&Math.abs(lr.y-b.ty)<0.45&&angOK({ang:fl.th,long:false},0,0.35)&&Math.abs(fl.v)<0.1;}},
   {t:'フォーク操作で水平に',rt:'水平に戻す',rv:'lever',real:'チルトレバーを「押す」で、爪を水平に戻そう',all:'「フォーク操作」に切り替えて、「前傾」で爪を水平に戻そう',hl:{real:'#lvTiltF',def:'#btnForkMode,#btnForkMode2,#fkTF'},ok:()=>(G.forkMode||realOn())&&!!G.fl.load&&Math.abs(G.fl.mast)<=1},
   {t:'下ろす',rv:'lever',real:'リフトレバーを「押す」で、荷を床に置こう',all:'「下げ」を押して、荷を床に置こう',hl:{real:'#lvLiftP',def:'#fkDn'},ok:()=>G.blocks[0].state==='done'},
   {t:'爪を少し下げる',rv:'lever',real:'爪がまだ荷に当たっています。リフトレバーを押して少し下げ、荷から爪を離そう。下げすぎて床に着けると、抜くときに床をこすります',all:'爪がまだ荷に当たっています。「下げ」で少し下げて、荷から爪を離そう。下げすぎて床に着けると、抜くときに床をこすります',hl:{real:'#lvLiftP',def:'#fkDn'},ok:()=>G.fl.fork<=0.12},
@@ -2035,7 +2045,7 @@ const TUT_UNLOAD=[
   {t:'差し込み口の高さへ',f:o=>`${o.up}で、爪を荷台の上のパレットの差し込み口（荷台から2〜12cm）の高さに合わせよう`,rv:'lever',hl:{def:'#fkUp,#fkDn',real:'#lvLiftU,#lvLiftP'},
     ok:()=>{const rf=G.fl.fork-zF(tb0().z||0);return rf>=0.015&&rf<=0.15;},fix:()=>{G.fl.fork=zF(tb0().z)+0.05;G.fl.forkT=G.fl.fork;G.prevFork=G.fl.fork;}},
   {t:'左右を合わせる',f:o=>`${o.ss}で爪だけを動かして、差し込み口の真ん中に合わせよう`,rv:'lever',hl:{def:'#fkSL,#fkSR',real:'#lvSSL,#lvSSR'},ok:()=>Math.abs(forkFit(tb0()).e)<=TOL().lat,fix:()=>{G.fl.ss=clamp(forkFit(tb0()).l,-0.15,0.15);}},
-  {t:'差し込む',creepNote:'。奥まで入ったら、ブレーキを踏むかレバーを N にしよう',f:o=>`${o.slowF}で、奥まで差し込もう（75%以上）`,rv:'lever',hl:{def:'#fkInF',real:'#dirF,#pdInch,#pdAcc'},ok:()=>{const b=tb0();return G.insId===b.id&&forkFit(b).ratio>=0.75;},
+  {t:'差し込む',creepNote:'。駐車ブレーキがかかっていたら「駐車」で戻してから。奥まで入ったら、レバーを N にして駐車ブレーキをかけると、持ち上げる間に動きません',f:o=>`${o.slowF}で、奥まで差し込もう（75%以上）`,rv:'lever',hl:{def:'#fkInF',real:'#dirF,#pdInch,#pdAcc'},ok:()=>{const b=tb0();return G.insId===b.id&&forkFit(b).ratio>=0.75;},
     fix:()=>{const fl=G.fl,b=tb0();Object.assign(fl,{th:Math.PI,v:0,ss:0,mast:0,y:b.y,x:b.x+b.d/2+FRONT+1.1-0.9*Math.min(1.1,b.d)});fl.fork=zF(b.z)+0.05;fl.forkT=fl.fork;G.prevFork=fl.fork;G.insId=b.id;}},
   {t:'少し持ち上げる',f:o=>`${o.up}で、荷を荷台から10cmほど持ち上げよう`,rv:'lever',hl:{def:'#fkUp',real:'#lvLiftU'},ok:()=>!!G.fl.load&&forkZ()>=BIG_BED.z+0.12,fix:()=>{if(!G.fl.load)pickUp(tb0());G.fl.fork=zF(BIG_BED.z+0.14);G.fl.forkT=G.fl.fork;G.prevFork=G.fl.fork;}},
   {t:'まっすぐバック',f:o=>`持ち上げたまま、${o.slowB}でまっすぐ下がり、荷を荷台から出そう。下げるのは荷台から出てから`,rv:'lever',hl:{def:'#fkInB',real:'#dirR,#pdInch,#pdAcc'},
@@ -2043,7 +2053,7 @@ const TUT_UNLOAD=[
   {t:'走れる高さまで下げる',f:o=>`荷台から出たら、${o.down}で床から15〜20cmまで下げよう`,rv:'lever',hl:{def:'#fkDn',real:'#lvLiftP'},ok:()=>!!G.fl.load&&forkZ()<=0.25,fix:()=>{G.fl.fork=0.45;G.fl.forkT=0.45;G.prevFork=0.45;}},
   {t:'後傾にする',tb:true,f:o=>`${o.tback}で、爪を手前に起こそう（4°以上）`,rv:'lever',hl:{def:'#fkTB',real:'#lvTiltB'},ok:()=>G.fl.mast>=4,fix:()=>{G.fl.mast=6;}},
   {t:'走行に戻る',f:o=>'「走行モードに戻る」を押そう',skipReal:true,hl:{def:'#fkExit'},ok:()=>!G.forkMode,fix:()=>setForkMode(false)},
-  {t:'置き場へ運ぶ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう）',f:o=>`${o.drive}で、床の置き場（点線の枠）まで運ぼう。荷が枠に入ったら止まります`,rv:'wheel',hl:{pedal:'#pFwd,#pBack',real:'#pdAcc,#pdBrake',def:'#stick'},
+  {t:'置き場へ運ぶ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう。荷役レバーを使うあいだは「駐車」で駐車ブレーキをかけると動きません）',f:o=>`${o.drive}で、床の置き場（点線の枠）まで運ぼう。荷が枠に入ったら止まります`,rv:'wheel',hl:{pedal:'#pFwd,#pBack',real:'#pdAcc,#pdBrake',def:'#stick'},
     ok:()=>{const fl=G.fl,b=fl.load;if(!b)return false;const lr=loadRect(fl,b);return Math.abs(lr.x-b.tx)<0.45&&Math.abs(lr.y-b.ty)<0.45&&angOK({ang:fl.th,long:false},0,0.35)&&Math.abs(fl.v)<0.1;},
     fix:()=>{const fl=G.fl,b=fl.load;if(!b)return;Object.assign(fl,{th:0,v:0,ss:0,x:b.tx-(FRONT+0.05+b.d/2),y:b.ty});}},
   {t:'水平に戻す',f:o=>realOn()?`${o.tfwd}で、爪を水平に戻そう`:'「フォーク操作」に切り替えて、「前傾」で水平に戻そう',rv:'lever',hl:{def:'#btnForkMode,#btnForkMode2,#fkTF',real:'#lvTiltF'},ok:()=>(G.forkMode||realOn())&&!!G.fl.load&&Math.abs(G.fl.mast)<=1,fix:()=>{if(!realOn())setForkMode(true);G.fl.mast=0;}},
@@ -2086,7 +2096,7 @@ function safetyPart2(){const fl=G.fl;const b={id:2,kind:'M',...CARGO.M,name:'中
 function safetyReload(){const fl=G.fl,b=G.blocks[0];if(fl.load||!b)return;b.state='carried';b.z=0;fl.load=b;fl.fork=Math.max(fl.fork,0.5);fl.forkT=fl.fork;G.prevFork=fl.fork;G.tilt=0;log('荷を爪の上に戻しました。続けよう','info');}
 const TUT_SAFETY=[
   {t:'フォーク操作へ',skipReal:true,all:'目の前の灰色の荷は「鋼材」約2.8t。この車の許容荷重は約2.4tです（荷の中心50cmなら2.5t）。「フォーク操作」を押そう',hl:{def:'#btnForkMode,#btnForkMode2'},ok:()=>G.forkMode},
-  {t:'差し込む',creepNote:'。奥まで入ったら、ブレーキを踏むかレバーを N にしよう',rv:'lever',f:o=>`鋼材は約2.8t。この車の許容荷重（約2.4t）を超えています。どうなるか体験します。まずは、${o.slowF}で奥まで差し込もう（75%以上）`,hl:{def:'#fkInF',real:'#dirF,#pdInch,#pdAcc'},ok:()=>{const b=tb0();return G.insId===b.id&&forkFit(b).ratio>=0.75;}},
+  {t:'差し込む',creepNote:'。駐車ブレーキがかかっていたら「駐車」で戻してから。奥まで入ったら、レバーを N にして駐車ブレーキをかけると、持ち上げる間に動きません',rv:'lever',f:o=>`鋼材は約2.8t。この車の許容荷重（約2.4t）を超えています。どうなるか体験します。まずは、${o.slowF}で奥まで差し込もう（75%以上）`,hl:{def:'#fkInF',real:'#dirF,#pdInch,#pdAcc'},ok:()=>{const b=tb0();return G.insId===b.id&&forkFit(b).ratio>=0.75;}},
   {t:'少しだけ上げる',rv:'lever',f:o=>`${o.up}で、少しだけ持ち上げてみよう。車体の後ろに注目`,hl:{def:'#fkUp',real:'#lvLiftU'},ok:()=>!!G.fl.load&&(G.rearUp||0)>0.4},
   {t:'すぐに下ろす',rv:'lever',f:o=>`後輪が浮きました！ 後輪で曲がるフォークリフトは、ハンドルが効きません。さらに上げる・前傾にする・急ブレーキで、前に倒れます。${o.down}で、すぐに床まで下ろそう`,hl:{def:'#fkDn',real:'#lvLiftP'},ok:()=>!G.fl.load&&tb0().state!=='carried'},
   {t:'爪を抜く',rv:'lever',f:o=>`下ろせました。許容荷重を超える荷は、持ち上げてはいけません。${o.slowB}で、まっすぐ下がって爪を抜こう`,hl:{def:'#fkInB',real:'#dirR,#pdInch,#pdAcc'},ok:()=>{const b=tb0();return G.insId!==b.id&&forkFit(b).face-FRONT-1.1>0.15;},fix:()=>{G.fl.y+=1.5;G.insId=null;}},
@@ -2102,15 +2112,15 @@ const TUT_STEER=[
   {t:'据え切り（右）',rv:'wheel',all:'止まったまま ▶ を押し続けて、ハンドルを右いっぱいまで切ろう（据え切り）。手を離してもタイヤは戻りません。運転席ビューの「タイヤ」の表示と、上方ビューの後輪の向きを見よう',hl:{real:'#rStR',def:'#pR'},ok:()=>(G.steerT||0)>=0.95&&Math.abs(G.fl.v)<0.05},
   {t:'切ったまま前進',rv:'wheel',real:'ハンドルから手を離したまま、前後進レバーを F に入れてアクセルで少し進もう。後輪が切れたままなので小さく回り、車体の後ろが外側へ大きく振り出します',all:'ハンドルから手を離したまま「前進」で少し進もう。後輪が切れたままなので小さく回り、車体の後ろが外側へ大きく振り出します',hl:{real:'#dirF,#pdAcc',def:'#pFwd'},ok:T=>T.fwd>=1.2&&(G.steerT||0)>0.8},
   {t:'切ったままバック（右）',rv:'wheel',real:'止まってから前後進レバーを R に入れ、ハンドルは右に切ったまま、アクセルでバックしよう。前進のときと逆の向きに回ります。後ろと尻振りに注意',all:'ハンドルは右に切ったまま「バック」で下がろう。前進のときと逆の向きに回ります。後ろと尻振りに注意',hl:{real:'#pdBrake,#dirR,#pdAcc',def:'#pBack'},ok:T=>T.rev>=1.2&&(G.steerT||0)>0.8},
-  {t:'左いっぱいへ据え切り',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう）',rv:'wheel',real:'ブレーキで止まってから、◀ を押し続けて左いっぱいまで切ろう。まっすぐの所で一度カチッと止まり、押し続けると左へ切れていきます',all:'止まってから ◀ を押し続けて左いっぱいまで切ろう。まっすぐの所で一度カチッと止まり、押し続けると左へ切れていきます',hl:{real:'#pdBrake,#rStL',def:'#pL'},ok:()=>(G.steerT||0)<=-0.95&&Math.abs(G.fl.v)<0.05},
+  {t:'左いっぱいへ据え切り',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう。荷役レバーを使うあいだは「駐車」で駐車ブレーキをかけると動きません）',rv:'wheel',real:'ブレーキで止まってから、◀ を押し続けて左いっぱいまで切ろう。まっすぐの所で一度カチッと止まり、押し続けると左へ切れていきます',all:'止まってから ◀ を押し続けて左いっぱいまで切ろう。まっすぐの所で一度カチッと止まり、押し続けると左へ切れていきます',hl:{real:'#pdBrake,#rStL',def:'#pL'},ok:()=>(G.steerT||0)<=-0.95&&Math.abs(G.fl.v)<0.05},
   {t:'切ったままバック（左）',rv:'wheel',real:'左に切ったまま、R でバックしよう',all:'左に切ったまま「バック」で下がろう',hl:{real:'#dirR,#pdAcc',def:'#pBack'},ok:T=>T.rev>=1.2&&(G.steerT||0)<-0.8},
-  {t:'まっすぐに戻す',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう）',rv:'wheel',all:'止まって ▶ を押し、ハンドルをまっすぐ（中央）に戻そう。中央でカチッと止まり、「タイヤ まっすぐ」と表示されます',hl:{real:'#rStR',def:'#pR'},ok:()=>Math.abs(G.steerT||0)<0.03&&Math.abs(G.fl.steer)<0.05&&Math.abs(G.fl.v)<0.05},
+  {t:'まっすぐに戻す',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう。荷役レバーを使うあいだは「駐車」で駐車ブレーキをかけると動きません）',rv:'wheel',all:'止まって ▶ を押し、ハンドルをまっすぐ（中央）に戻そう。中央でカチッと止まり、「タイヤ まっすぐ」と表示されます',hl:{real:'#rStR',def:'#pR'},ok:()=>Math.abs(G.steerT||0)<0.03&&Math.abs(G.fl.steer)<0.05&&Math.abs(G.fl.v)<0.05},
   {t:'切り返しで向きを変える',rv:'wheel',real:'最後に、切り返しで車体を反対（左向き）に向けよう。前進で右に切って曲がる → 止まって左に切り直す → バック、をくり返します。上方ビューで向きを確かめ、左を向いたら止まろう',all:'最後に、切り返しで車体を反対（左向き）に向けよう。前進で右に切って曲がる → 止まって左に切り直す → バック、をくり返します。上方ビューで向きを確かめ、左を向いたら止まろう',ok:()=>Math.cos(G.fl.th)<-0.94&&Math.abs(G.fl.v)<0.05}
 ];
 /* 港の積載：荷物を取りに行くところから（取る → バックで下がる → バックしながら向きを変える → 平台へ） */
 const portBedB=()=>truckBed(JOB_TRUCKS.port[0]);
 const TUT_PORT_PICK=[
-  {t:'荷物の前へ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう）',rv:'wheel',real:'前後進レバーを F に入れ、左（西）にある荷物に正面から向かって、1〜2m手前でブレーキを踏んで止まろう。近づくと視線が下がり、爪先をのぞき込む見え方になります',all:'左（西）にある荷物に正面から向かい、1〜2m手前で止まろう。爪は荷物の真ん中に向けます',hl:{real:'#dirF,#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:TUT_BASIC[3].ok},
+  {t:'荷物の前へ',creepNote:'（ブレーキを離すとクリープで動き出すので、止まったらブレーキを踏んだままにするか、前後進レバーを N にしよう。荷役レバーを使うあいだは「駐車」で駐車ブレーキをかけると動きません）',rv:'wheel',real:'前後進レバーを F に入れ、左（西）にある荷物に正面から向かって、1〜2m手前でブレーキを踏んで止まろう。近づくと視線が下がり、爪先をのぞき込む見え方になります',all:'左（西）にある荷物に正面から向かい、1〜2m手前で止まろう。爪は荷物の真ん中に向けます',hl:{real:'#dirF,#pdAcc,#pdBrake',pedal:'#pFwd',def:'#stick'},ok:TUT_BASIC[3].ok},
   ...TUT_BASIC.slice(4,13),
   {t:'バックで下がる',rv:'wheel',real:'後ろを確認して前後進レバーを R に入れ、まっすぐ4mほどバックしよう。バックのときは体を後ろに向けて確かめます（運転席ビューは後方に切り替わります）',all:'後ろを確認して「バック」で、まっすぐ4mほど下がろう。バックのときは後ろを向いて確かめます',hl:{real:'#pdBrake,#dirR,#pdAcc',pedal:'#pBack',def:'#stick'},ok:T=>T.rev>=4&&!!G.fl.load},
   {t:'バックしながら向きを変える',rv:'wheel',real:'R のまま、ハンドルを切ってバックし、車体を右（東・平台の方）へ向けよう。荷が大きいので、振り回す範囲に注意。右を向いたら止まって、ハンドルをまっすぐに戻そう',all:'ハンドルを切って「バック」し、車体を右（東・平台の方）へ向けよう。荷が大きいので、振り回す範囲に注意。右を向いたら止まって、ハンドルをまっすぐに戻そう',hl:{real:'#rStL,#rStR,#dirR,#pdAcc,#pdBrake',pedal:'#pL,#pR,#pBack',def:'#stick'},ok:()=>!!G.fl.load&&Math.cos(G.fl.th)>0.97&&Math.abs(G.fl.v)<0.05&&Math.abs(G.fl.steer)<0.1},
@@ -2857,6 +2867,7 @@ function drawForkView(){
 /* ---------- HUD ---------- */
 const sig=$('signalBox');
 function hud(){
+  if((G.hudN=(G.hudN||0)+1)%10===0)parkUI();
   const fl=G.fl;
   $('sScore').textContent=G.score;$('sDone').textContent=G.endless?`${G.endless.done}個`:`${G.blocks.filter(b=>b.state==='done').length}/${G.blocks.length}`;
   $('stFuel').hidden=$('stMiss').hidden=!G.endless;if(G.endless){const fu=$('sFuel');fu.textContent=Math.ceil(G.fuel)+'%';fu.classList.toggle('warn',G.fuel<25);fu.classList.toggle('caution',G.fuel>=25&&G.fuel<45);$('sMiss').textContent=`${endlessMiss()}/${END_MISS}`;$('sMiss').classList.toggle('warn',endlessMiss()>=END_MISS-1);}
@@ -3627,7 +3638,12 @@ $('vCam').onclick=()=>{const o=['mirror','around','none'],v=o[(o.indexOf(camMode
 document.addEventListener('contextmenu',e=>{if(!e.target.closest('textarea,input,select'))e.preventDefault();});
 document.addEventListener('selectstart',e=>{if(!e.target.closest||!e.target.closest('textarea,input,select'))e.preventDefault();});
 $('exBelt').onclick=()=>{const E=G&&G.exam;if(!E||E.done)return;if(E.belt&&Math.abs(G.fl.v)>0.05){log('走行中はシートベルトを外せません','warn');return;}E.belt=!E.belt;SFX.check();log(E.belt?'シートベルトを締めました':'シートベルトを外しました','info');};
-$('exBrake').onclick=()=>{const E=G&&G.exam;if(!E||E.done)return;if(!E.pbrake&&Math.abs(G.fl.v)>0.05){log('止まってから駐車ブレーキをかけよう','warn');return;}E.pbrake=!E.pbrake;SFX.check();log(E.pbrake?'駐車ブレーキをかけました':'駐車ブレーキを戻しました','info');};
+function togglePark(){if(!G||G.over)return;const E=G.exam;if(E&&E.done)return;const on=pbOn();
+  if(!on&&Math.abs(G.fl.v)>0.05){log('止まってから駐車ブレーキをかけよう','warn');return;}
+  if(E)E.pbrake=!on;else G.pbrake=!on;SFX.check();parkUI();
+  log(!on?'駐車ブレーキをかけました（アクセルを踏んでもクリープでも動きません）':'駐車ブレーキを戻しました','info');}
+function parkUI(){const on=pbOn();for(const id of ['exBrake','pdPark'])$(id).setAttribute('aria-pressed',on?'true':'false');}
+$('exBrake').onclick=togglePark;$('pdPark').onclick=togglePark;
 $('exEnd').onclick=()=>{if(G&&G.exam)examFinish();};
 $('lcExam').onclick=()=>startExam();
 $('tutToMenu').onclick=()=>{$('tutOv').hidden=true;if(hub==='play'){playStart({level:1});return;}renderStart();$('optLevel').value='1';showLvDesc();showOnly('startOv');};
@@ -3750,7 +3766,7 @@ addEventListener('keydown',e=>{
   if(e.code==='Escape'&&G&&!G.over&&$('startOv').hidden&&$('titleOv').hidden){$('btnPause').click();return;}
   if(driverLike()){
     if(KD[e.code]){keys[KD[e.code]]=true;e.preventDefault();}
-    if(!e.repeat&&!G.paused&&!G.over){if(e.code==='KeyG')setForkMode(!G.forkMode);if(!G.forkMode&&!realOn()){if(e.code==='KeyQ'){forkUp();SFX.sig('up');}if(e.code==='KeyE'){forkDown();SFX.sig('down');}}if(realOn()){if(e.code==='Digit1')setDir(1);if(e.code==='Digit2')setDir(0);if(e.code==='Digit3')setDir(-1);}if(e.code==='KeyC')callCheck(false);}
+    if(!e.repeat&&!G.paused&&!G.over){if(e.code==='KeyG')setForkMode(!G.forkMode);if(e.code==='KeyB'&&realOn())togglePark();if(!G.forkMode&&!realOn()){if(e.code==='KeyQ'){forkUp();SFX.sig('up');}if(e.code==='KeyE'){forkDown();SFX.sig('down');}}if(realOn()){if(e.code==='Digit1')setDir(1);if(e.code==='Digit2')setDir(0);if(e.code==='Digit3')setDir(-1);}if(e.code==='KeyC')callCheck(false);}
   }else if(KG[e.code]){e.preventDefault();if(!e.repeat)sendSignal(KG[e.code],false);}
 });
 addEventListener('keyup',e=>{if(KD[e.code])keys[KD[e.code]]=false;});

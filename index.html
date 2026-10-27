@@ -375,6 +375,14 @@ body.lsfit #examBtns .btn-ghost{flex:1 1 0;min-width:0;overflow:hidden;text-over
 body.lstight .k.steer{font-size:calc(26px * var(--ts,1))}
 body.lstight .k.ped{font-size:calc(12px * var(--ts,1));letter-spacing:-.05em}
 .easyrow input{flex-shrink:0}
+.creepcfg{display:grid;gap:2px;margin:-2px 0 6px;padding:6px 10px 8px 30px;border-left:3px solid var(--line)}
+.creepcfg.off{opacity:.45}
+.ccrow{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'l o' 'i i';align-items:center;column-gap:8px;font-size:.92em}
+.ccrow span{grid-area:l}.ccrow output{grid-area:o}.ccrow input[type=range]{grid-area:i}
+.ccrow input[type=range]{width:100%;accent-color:#f2c418;margin:0;height:28px}
+.ccrow output{text-align:right;font-variant-numeric:tabular-nums;color:#f2c418;white-space:nowrap}
+.ccfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;font-size:.82em;color:var(--mute)}
+.ccfoot .ccreset{padding:4px 10px;font-size:1em;min-height:30px}
 body.fs .signal{overflow:hidden}
 body.fstight .sigSub{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
 body.fstight #tutBtns{display:none}
@@ -765,7 +773,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
     <button class="tm" id="tmCont" type="button">つづきから<small id="tmContSub"></small></button>
     <div class="tmrow"><button class="tm s" id="tmRec" type="button">図鑑・コレクション</button><button class="tm s" id="tmSet" type="button">⚙ 設定</button></div>
   </nav>
-  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.34</div>
+  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.36</div>
 </div>
 
 
@@ -901,6 +909,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
     <p class="hint" id="stickHint"></p>
     <label class="easyrow"><input type="checkbox" id="optSteerHold" checked> ハンドルを切ったまま保つ（実車と同じ。手を離してもタイヤは戻りません。ボタン操作・実機配置。あそぶと共通）</label>
     <label class="easyrow"><input type="checkbox" id="optCreep" checked> クリープ現象（実機配置。前後進レバーが F・R でブレーキを離すと、アクセルを踏まなくてもゆっくり動き出す。あそぶと共通）</label>
+    <div class="creepcfg" data-cc></div>
     <p class="hint">あそぶの操作は、あそぶの画面で選べます。</p>
     <h3>ゲームコントローラー</h3>
     <p class="hint" id="padStat">未接続（Bluetoothでつなぐと自動で使えます）</p>
@@ -937,7 +946,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <label><input type="checkbox" id="optAssist" checked> AI誘導員の補助（運転者モード）</label>
       <label><input type="checkbox" id="optSnd" checked> 効果音・笛の音</label>
     </div>
-    <p class="hint">バージョン：Ver.34</p>
+    <p class="hint">バージョン：Ver.36</p>
     <p class="hint">設定はこの端末に保存され、次に開いたときも使われます。チュートリアルでは、補助表示・爪の高さ・フォークの倒れの表示・AI誘導員の補助は練習用の設定になります。</p>
     <div class="row startbar"><button class="go" id="setDone" type="button">OK</button></div>
   </div>
@@ -959,6 +968,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <div class="pview"><label class="easyrow"><input type="checkbox" id="pGauge"> 爪の高さ</label><label class="easyrow"><input type="checkbox" id="pTiltG"> フォークの倒れ</label><label class="easyrow"><input type="checkbox" id="pTire"> タイヤの角度</label></div>
       <label class="easyrow" id="pSteerRow"><input type="checkbox" id="pSteerHold"> ハンドルを切ったまま保つ（実車と同じ）</label>
       <label class="easyrow" id="pCreepRow"><input type="checkbox" id="pCreep"> クリープ現象（ブレーキを離すとゆっくり動き出す）</label>
+      <div class="creepcfg" data-cc id="pCreepCfg"></div>
       <p class="hint" id="pStickMsg"></p></div>
     <div class="pbtns">
       <button class="go" id="pResume" type="button">再開する</button>
@@ -1418,6 +1428,8 @@ function log(msg,type='info'){
 const gaugeOn=()=>!!(G&&G.tut)||!!settings.lecture||$('optGauge').checked;
 const tiltGOn=()=>!!(G&&G.tut)||!!settings.lecture||$('optTiltG').checked;
 const creepOn=()=>REC.creep!==false;
+const CC_ITEMS=[['d','動き出すまでの間',0,1.5,0.1,'秒',0.5],['r','速さが上がるまでの時間',0.5,5,0.1,'秒',2.5],['v','クリープの速さ（前進）',0.5,2.5,0.1,'km/h',1.2]];
+function creepCfg(){const c=REC.creepCfg||{},o={};for(const [k,,mn,mx,,,df] of CC_ITEMS){const v=+c[k];o[k]=Number.isFinite(v)?Math.min(mx,Math.max(mn,v)):df;}return o;}
 const tireOn=()=>!!(G&&G.tut&&G.tut.job==='steer')||!!settings.lecture||$('optTire').checked;
 function tip(key,msg){if(G.tips[key])return;G.tips[key]=1;log(msg,'warn');}
 function unlock(id){
@@ -1680,11 +1692,12 @@ function update(dt){
     const dir=G.dirL,acc=keys.acc||keys.up,brk=keys.brake||keys.down,inch=keys.inch;
     if(acc&&dir&&!brk)G.holdT+=dt;else G.holdT=0;
     // クリープ現象：F・R に入れてブレーキを離すと、アクセルなしでもゆっくり進む（インチングを踏むと切れる）
-    const crp=creepOn()&&dir&&!brk&&!inch&&!(G.exam&&G.exam.pbrake);G.creepT=crp?Math.min(1.5,(G.creepT||0)+dt):0;
-    const cv=crp?(dir>0?0.17:0.2)*(fl.load?0.8:1)*Math.min(1,G.creepT/1.5):0;
+    const crp=creepOn()&&dir&&!brk&&!inch&&!(G.exam&&G.exam.pbrake);const CC=creepCfg();G.creepT=crp?Math.min(CC.d+CC.r,(G.creepT||0)+dt):0;
+    // ブレーキを離してから CC.d 秒おいて、CC.r 秒かけてじわっと立ち上がる（設定で変えられる。後進は前進の0.8倍）
+    const cf=Math.max(0,Math.min(1,(G.creepT-CC.d)/Math.max(0.1,CC.r))),cv=crp?(dir>0?CC.v/3.6/2.5:CC.v*0.8/3.6/1.6)*(fl.load?0.8:1)*cf*cf*(3-2*cf):0;
     let pw=Math.min(dir>0?0.62:0.5,0.12+G.holdT*0.3);if(PAD.on&&PAD.r2>0.05&&keys.acc&&!keys.up)pw=(dir>0?0.62:0.5)*PAD.r2;if(crp)pw=Math.max(pw,cv);if(inch)pw=Math.min(pw,0.1);
     thr=(acc&&dir&&!brk)?pw*dir:cv*dir;
-    if(crp&&!acc&&Math.abs(fl.v)<0.15&&G.creepT>0.3)tip('creep','ブレーキを離したので、アクセルを踏まなくてもゆっくり動き出しました（クリープ現象）。止まっているときはブレーキを踏むか、レバーを N にしよう');G.brake=!!brk||(inch&&!acc);
+    if(crp&&!acc&&Math.abs(fl.v)<0.15&&G.creepT>creepCfg().d+0.6)tip('creep','ブレーキを離したので、アクセルを踏まなくてもゆっくり動き出しました（クリープ現象）。止まっているときはブレーキを踏むか、レバーを N にしよう');G.brake=!!brk||(inch&&!acc);
     if(acc&&!dir)tip('neutral','前後進レバーが N（中立）です。F（前進）か R（後進）に入れてからアクセルを踏もう');
     st=steerInput(dt);
     const sx=((keys.ssr||keys.rotr)?1:0)-((keys.ssl||keys.rotl)?1:0);
@@ -3650,7 +3663,7 @@ function openPause(){if(!G||G.over||!$('startOv').hidden||!$('recOv').hidden||!$
   $('pauseInfo').textContent=G.tut?`チュートリアル ${Math.min(G.tut.i+1,TUT.length)}/${TUT.length}`:`${MODE_NAME[settings.mode]}・${ST().name}・Lv${settings.level}　搬送 ${G.blocks.filter(b=>b.state==='done').length}/${G.blocks.length}・経過 ${fmtT(G.t)}`;
   $('pRetry').textContent=G.tut?'チュートリアルを最初から':settings.job==='free'?'この配置で最初から':'最初からやり直す';$('pEdit').hidden=settings.job!=='free'||!!G.tut;
   $('pStickBox').hidden=false;$('pStickBox').querySelector('.playctl').hidden=settings.mode==='guide';padStatus();document.querySelectorAll('input[name=pStick]').forEach(r=>r.checked=r.value===settings.stick);$('pStickMsg').textContent='';
-  $('pTire').checked=$('optTire').checked;$('pGauge').checked=$('optGauge').checked;$('pTiltG').checked=$('optTiltG').checked;$('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal','car'].includes(settings.stick)||(G.tut&&G.tut.job==='steer');$('pCreep').checked=creepOn();$('pCreepRow').hidden=settings.stick!=='real';
+  $('pTire').checked=$('optTire').checked;$('pGauge').checked=$('optGauge').checked;$('pTiltG').checked=$('optTiltG').checked;$('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal','car'].includes(settings.stick)||(G.tut&&G.tut.job==='steer');$('pCreep').checked=creepOn();$('pCreepRow').hidden=$('pCreepCfg').hidden=settings.stick!=='real';ccSync();
   $('pkEasy').closest('label').hidden=!!(G.tut&&G.tut.job==='steer');
   $('pTutSkip').hidden=!G.tut;
   $('pauseOv').hidden=false;}
@@ -3663,8 +3676,16 @@ function switchScheme(st){if(!G||settings.stick===st)return;settings.stick=st;if
   if(G.tut){$('sMode').textContent='チュートリアル';tutHighlight();}
   $('stickTitle').textContent=STICK_TITLE[st]||'';
   $('pStickMsg').textContent=`「${{pedal:'ボタン',easy:'スティック',real:'実機配置'}[st]}」に切り替えました。「再開する」で続きから運転できます`;}
-document.querySelectorAll('input[name=pStick]').forEach(r=>r.addEventListener('change',()=>{if(r.checked)switchScheme(r.value);$('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal','car'].includes(settings.stick)||!!(G&&G.tut&&G.tut.job==='steer');$('pCreepRow').hidden=settings.stick!=='real';}));
-function setCreep(on){REC.creep=on;for(const id of ['optCreep','playCreep','pCreep'])$(id).checked=on;saveRec();}
+document.querySelectorAll('input[name=pStick]').forEach(r=>r.addEventListener('change',()=>{if(r.checked)switchScheme(r.value);$('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal','car'].includes(settings.stick)||!!(G&&G.tut&&G.tut.job==='steer');$('pCreepRow').hidden=$('pCreepCfg').hidden=settings.stick!=='real';}));
+function setCreep(on){REC.creep=on;for(const id of ['optCreep','playCreep','pCreep'])$(id).checked=on;saveRec();ccSync();}
+function ccSync(){const c=creepCfg();document.querySelectorAll('[data-cc]').forEach(box=>{box.classList.toggle('off',!creepOn());
+  for(const [k,,,,,u] of CC_ITEMS){const i=box.querySelector(`input[data-k=${k}]`),o=box.querySelector(`output[data-k=${k}]`);if(!i)continue;i.value=c[k];o.textContent=c[k].toFixed(1)+u;}
+  const b=box.querySelector('.ccback');if(b)b.textContent=`後進は前進の約8割（${(c.v*0.8).toFixed(1)}km/h）。荷を積むと少し遅くなります`;});}
+function ccBuild(){document.querySelectorAll('[data-cc]').forEach(box=>{
+  box.innerHTML=CC_ITEMS.map(([k,l,mn,mx,stp])=>`<label class="ccrow"><span>${l}</span><input type="range" data-k="${k}" min="${mn}" max="${mx}" step="${stp}"><output data-k="${k}"></output></label>`).join('')+'<div class="ccfoot"><span class="ccback"></span><button type="button" class="btn-ghost ccreset">初期値に戻す</button></div>';
+  box.querySelectorAll('input[type=range]').forEach(i=>{i.addEventListener('input',()=>{REC.creepCfg={...creepCfg(),[i.dataset.k]:+i.value};ccSync();});i.addEventListener('change',()=>saveRec());});
+  box.querySelector('.ccreset').onclick=()=>{REC.creepCfg=null;saveRec();ccSync();};});ccSync();}
+ccBuild();
 function setSteerHold(on){REC.steerHold=on;$('playSteerHold').checked=on;$('optSteerHold').checked=on;saveRec();if(!on&&G)G.steerT=0;}
 $('pTire').addEventListener('change',()=>{$('optTire').checked=$('pTire').checked;savePrefs();$('pStickMsg').textContent=$('pTire').checked?'タイヤの角度を表示します':'タイヤの角度を消しました（ミラーに映る後輪で確かめよう）';});
 for(const [p,o,n] of [['pGauge','optGauge','爪の高さ'],['pTiltG','optTiltG','フォークの倒れ（チルトの角度）']])$(p).addEventListener('change',()=>{$(o).checked=$(p).checked;savePrefs();$('pStickMsg').textContent=`${n}の表示を${$(p).checked?'出しました':'消しました'}${G&&G.tut?'（チュートリアル中は常に表示されます）':''}`;});

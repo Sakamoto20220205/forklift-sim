@@ -760,7 +760,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
     <button class="tm" id="tmCont" type="button">つづきから<small id="tmContSub"></small></button>
     <div class="tmrow"><button class="tm s" id="tmRec" type="button">図鑑・コレクション</button><button class="tm s" id="tmSet" type="button">⚙ 設定</button></div>
   </nav>
-  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.31</div>
+  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.32</div>
 </div>
 
 
@@ -928,7 +928,7 @@ body.fs.subpos-tl .stage .view.sub,body.fs.subpos-bl .stage .view.sub{left:max(8
       <label><input type="checkbox" id="optAssist" checked> AI誘導員の補助（運転者モード）</label>
       <label><input type="checkbox" id="optSnd" checked> 効果音・笛の音</label>
     </div>
-    <p class="hint">バージョン：Ver.31</p>
+    <p class="hint">バージョン：Ver.32</p>
     <p class="hint">設定はこの端末に保存され、次に開いたときも使われます。チュートリアルでは、補助表示・計器表示・AI誘導員の補助は練習用の設定になります。</p>
     <div class="row startbar"><button class="go" id="setDone" type="button">OK</button></div>
   </div>
@@ -2542,6 +2542,16 @@ function blitMirrors(g,L){const w=g.canvas.width,fs=Math.max(11,L.pw*0.085);
     if(left){g.moveTo(x+L.pw,y+L.ph*0.45);g.lineTo(x+L.pw*0.8,y+L.ph*0.62);g.lineTo(x+L.pw*0.74,y+L.ph);g.lineTo(x+L.pw,y+L.ph);}
     else{g.moveTo(x,y+L.ph*0.45);g.lineTo(x+L.pw*0.2,y+L.ph*0.62);g.lineTo(x+L.pw*0.26,y+L.ph);g.lineTo(x,y+L.ph);}
     g.closePath();g.fill();g.stroke();
+    // 後輪：ハンドルの切れ角に合わせて向きが変わる（鏡の中では、タイヤの後ろ側が上）
+    {const st=G.fl.steer||0,tx=left?x+L.pw*0.7:x+L.pw*0.3,ty=y+L.ph*0.84,tw=L.pw*0.13,th=L.ph*0.42,ang=st*0.85;
+     g.save();g.translate(tx,ty);g.rotate(ang);
+     g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(tw*0.15,th*0.08,tw*0.62,th*0.55,0,0,7);g.fill();
+     g.fillStyle='#1b1d1f';g.strokeStyle='#050606';g.lineWidth=2;g.beginPath();g.roundRect(-tw/2,-th/2,tw,th,tw*0.35);g.fill();g.stroke();
+     g.strokeStyle='#3a3f42';g.lineWidth=Math.max(1,tw*0.08);g.beginPath();for(let k=-3;k<=3;k++){const yy=k*th*0.13;g.moveTo(-tw*0.42,yy-th*0.03);g.lineTo(tw*0.42,yy+th*0.03);}g.stroke();
+     g.fillStyle='#8d9499';g.fillRect(left?-tw*0.62:tw*0.42,-th*0.12,tw*0.2,th*0.24);
+     if(Math.abs(st)>0.03){g.strokeStyle='rgba(242,196,24,.9)';g.lineWidth=Math.max(2,tw*0.1);g.beginPath();g.moveTo(0,-th*0.62);g.lineTo(0,-th*0.95);g.stroke();
+       g.fillStyle='rgba(242,196,24,.9)';g.beginPath();g.moveTo(0,-th*1.08);g.lineTo(-tw*0.28,-th*0.9);g.lineTo(tw*0.28,-th*0.9);g.closePath();g.fill();}
+     g.restore();}
     // 鏡のつや
     const gl=g.createLinearGradient(x,y,x+L.pw,y+L.ph);gl.addColorStop(0,'rgba(255,255,255,.22)');gl.addColorStop(0.35,'rgba(255,255,255,0)');gl.addColorStop(1,'rgba(200,220,255,.08)');g.fillStyle=gl;g.fillRect(x,y,L.pw,L.ph);
     g.restore();

@@ -1,0 +1,16 @@
+{
+  "name": "フォークリフト誘導訓練",
+  "short_name": "フォークリフト",
+  "description": "子どもから大人まで、遊びながらフォークリフトの運転と誘導を学べる訓練ゲーム",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#181b1d",
+  "theme_color": "#181b1d",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

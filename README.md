@@ -5,6 +5,17 @@
 
 **▶ 遊ぶ：https://sakamoto20220205.github.io/forklift-sim/**
 
+## 操作マニュアル（Ver.49）
+- タイトル画面の「📖 マニュアル」、一時停止メニュー、設定から開けます。ネットなしで見られます
+- 画面の見方・遊び方の流れ・画面のボタン（ボタン操作／スティック／実機配置）・キーボード・ゲームコントローラー・誘導員モードの合図・視点の切り替え・困ったとき、をまとめています
+- キーボードとコントローラーの表は、**いまの割り当て**で表示されます。「印刷・PDFに保存」で紙やPDFにできます
+- 印刷用のPDF：forklift-sim-manual.pdf（初期の割り当て）
+
+## ゲームコントローラーの割り当て（Ver.49）
+- 「設定」→「ゲームコントローラー」→「ボタンの割り当てを見る・変える」。「変える」を押してから、コントローラーのボタンを押すかスティックを倒すと割り当てられます（10秒・Esc で取り消し、× で外す）
+- ハンドルは左スティック・右スティックから選べます。運転と誘導員モードの中で同じボタンを選ぶと、前の割り当てから外れます
+- 割り当てはこの端末に保存されます。「初期の割り当てに戻す」で元に戻せます
+
 ## ダウンロード（PC用・ネットにつながらないPC用）
 - **ダウンロードページ：** https://sakamoto20220205.github.io/forklift-sim/download.html （説明書つきのZIPと、アプリ本体のHTMLをダウンロードできます）
 - **PC用ファイル：** タイトル画面の「⬇ PC用ファイルをダウンロード」でも保存できます（forklift-sim-v○○.html という名前で保存されます）
@@ -21,7 +32,7 @@
 - 新しい版を公開すると、ネットにつながったときに自動で新しい版に入れ替わります。
 
 ### GitHub に置くファイル
-リポジトリの一番上に、次の9つを置きます。index.html（アプリ）、README.md、sw.js（オフライン用の仕組み）、manifest.webmanifest（アプリの名前とアイコン）、icon-192.png、icon-512.png、forklift-sim-offline.html（PC用のファイル）、download.html（ダウンロードページ）、forklift-sim-offline.zip（説明書つきのZIP）。版を上げるたびに index.html・forklift-sim-offline.html・forklift-sim-offline.zip・sw.js・download.html を差し替えます。
+リポジトリの一番上に、次の10個を置きます。index.html（アプリ）、README.md、sw.js（オフライン用の仕組み）、manifest.webmanifest（アプリの名前とアイコン）、icon-192.png、icon-512.png、forklift-sim-offline.html（PC用のファイル）、download.html（ダウンロードページ）、forklift-sim-offline.zip（説明書つきのZIP）、forklift-sim-manual.pdf（操作マニュアル）。版を上げるたびに index.html・forklift-sim-offline.html・forklift-sim-offline.zip・sw.js・download.html を差し替えます。
 
 ## タイトル画面とメニュー
 

@@ -226,6 +226,25 @@ body.notop .stage{grid-template-columns:1fr}
 .gains{display:flex;flex-wrap:wrap;gap:6px}
 .gains span{border:1px solid var(--yel);color:var(--yel);border-radius:999px;padding:2px 10px;font-size:calc(12.5px * var(--ts,1))}
 .offdot{display:inline-block;border-radius:999px;padding:0 8px;font-size:calc(12px * var(--ts,1))}.offdot.on{background:#2f6b3f;color:#e6ffe9}.offdot.off{background:#7a4a1c;color:#ffe9cf}
+.tmrow.three{grid-template-columns:1fr 1fr 1fr}@media (max-width:480px){.tmrow.three .tm.s{font-size:calc(13px * var(--ts,1));padding-left:4px;padding-right:4px;letter-spacing:0}}
+.sheet.man{max-width:880px}
+.manhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}.manhead h2{margin:0}
+.mtoc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}.mtoc a{border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);text-decoration:none;font-size:calc(12.5px * var(--ts,1))}.mtoc a:hover{border-color:var(--yel);color:var(--yel)}
+.sheet.man h3{margin-top:22px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.mtab{width:100%;margin:4px 0 8px}.mtab td,.mtab th{text-align:left!important;vertical-align:top}.sheet.man .hint{max-width:none}.gprow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;border-bottom:1px solid var(--line);padding:5px 2px;font-size:calc(13px * var(--ts,1))}.gprow>span:first-child{flex:1 1 14em;min-width:0}.gpc{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.gpc .kbtn{min-width:8.5em;text-align:left}.mtab th{text-align:left;font-weight:700;color:var(--mute);font-size:calc(12px * var(--ts,1))}.mtab td:first-child{min-width:9em}
+.mtab kbd{font-family:var(--f-num);background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:0 5px;white-space:nowrap}
+.gpk{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;white-space:nowrap;font-size:calc(12.5px * var(--ts,1))}
+.mlist{margin:4px 0 8px;padding-left:1.4em}
+@media screen and (max-width:640px){.mtab thead{display:none}.mtab,.mtab tbody,.mtab tr{display:block;width:100%}.mtab tr{border-bottom:1px solid var(--line);padding:5px 0}.mtab td{display:block;border:0!important;padding:1px 4px!important;min-width:0!important}.mtab td:first-child{font-weight:700}.mtab td+td[data-h]::before{content:attr(data-h) '：';color:var(--mute);font-size:.9em}}.mlist li{margin:2px 0}
+.kclr{background:none;border:1px solid var(--line);border-radius:4px;padding:0 6px;margin-left:4px;color:var(--mute)}
+@media print{html,body{overflow:visible!important;height:auto!important;background:#fff!important;color:#000!important;padding:0!important}
+  body>*:not(#manOv){display:none!important}
+  #manOv{position:static!important;display:block!important;background:#fff!important;overflow:visible!important;padding:0!important;inset:auto!important}
+  #manOv .sheet{max-width:none!important;width:auto!important;box-shadow:none!important;border:0!important;background:#fff!important;color:#000!important;animation:none!important;transform:none!important;padding:0!important;max-height:none!important}
+  #manOv .manhead .row,#manOv .startbar,#manOv .mtoc{display:none!important}
+  #manOv *{color:#000!important;background:transparent!important}
+  #manOv .mtab th,#manOv .mtab td{border:1px solid #999!important}
+  #manOv h3{break-after:avoid}#manOv tr{break-inside:avoid}}
 .gains span.miss{border-color:#e08a8a;color:#f0a8a8}.gains span.note{border-style:dashed;color:var(--mut,#aab)}
 .lvt .rw{display:block;font-style:normal;font-size:calc(12px * var(--ts,1));margin-top:3px;opacity:.9}
 
@@ -681,8 +700,8 @@ body.splitpad .pgrp .lev .k{min-height:calc(40px * var(--padk,1))}
 .sigmin{position:absolute;top:4px;right:6px;z-index:2;background:rgba(20,24,26,.7);border:1px solid var(--line);color:var(--mute);border-radius:999px;padding:2px 10px;font-size:calc(11.5px * var(--ts,1));line-height:1.6}
 body.sigmin .signal .sigSub,body.sigmin #tutBtns,body.sigmin #examBtns,body.sigmin .signal .voice{display:none!important}
 body.sigmin .signal{padding-top:4px;padding-bottom:4px}
-.padsides{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px 12px}
-.padsides label{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:calc(13px * var(--ts,1))}
+.padsides{display:flex;flex-wrap:wrap;gap:6px 10px}
+.padsides label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:3px 4px 3px 10px;font-size:calc(13px * var(--ts,1))}
 /* 駐車ブレーキ（実機配置の下の段） */
 .realpanel .r-tg{grid-area:3/1/4/4}.realpanel .r-pk{grid-area:3/4/4/6}.realpanel .r-c{grid-area:3/6/4/8}
 body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
@@ -859,10 +878,10 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
     <button class="tm main" id="tmPlay" type="button">あそぶ<small>荷物を運んでごほうび集め。エンドレス・2人あそびも</small></button>
     <button class="tm learn" id="tmLearn" type="button">まなぶ<small>技能講習の予習・復習に。作業別トレーニング・講師向けの練習モード</small></button>
     <button class="tm" id="tmCont" type="button">つづきから<small id="tmContSub"></small></button>
-    <div class="tmrow"><button class="tm s" id="tmRec" type="button">図鑑・コレクション</button><button class="tm s" id="tmSet" type="button">⚙ 設定</button></div>
+    <div class="tmrow three"><button class="tm s" id="tmRec" type="button">図鑑・コレクション</button><button class="tm s" id="tmMan" type="button">📖 マニュアル</button><button class="tm s" id="tmSet" type="button">⚙ 設定</button></div>
     <button class="tdl" id="tmDl" type="button" hidden>⬇ PC用ファイルをダウンロード<small>ネットにつながらないPCでも使えます</small></button>
   </nav>
-  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.48</div>
+  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.49</div>
 </div>
 
 
@@ -1021,6 +1040,7 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
     <label class="easyrow"><input type="checkbox" id="optCreep" checked> クリープ現象（実機配置。前後進レバーが F・R でブレーキを離すと、アクセルを踏まなくてもゆっくり動き出す。あそぶと共通）</label>
     <div class="creepcfg" data-cc></div>
     <p class="hint">あそぶの操作は、あそぶの画面で選べます。</p>
+    <div class="row"><button type="button" class="btn-ghost" id="setMan">📖 操作マニュアルを開く（ボタン・キー・コントローラーの一覧）</button></div>
     <h3>操作ボタンの配置</h3>
     <div id="padBox"></div>
     <h3>キーボードの割り当て（パソコン）</h3>
@@ -1029,20 +1049,8 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
     <div id="offBox"></div>
     <h3>ゲームコントローラー</h3>
     <p class="hint" id="padStat">未接続（Bluetoothでつなぐと自動で使えます）</p>
-    <details class="padmap"><summary>ボタンの割り当てを見る</summary>
-      <table class="rtable"><tbody>
-        <tr><td>左スティック</td><td>ハンドル（スティック操作では走行スティック）</td></tr>
-        <tr><td>R2 ／ L2</td><td>実機配置：アクセル／ブレーキ（押し込む量で速さが変わる）。ボタン操作：前進／バック</td></tr>
-        <tr><td>L1</td><td>インチング（実機配置）</td></tr>
-        <tr><td>十字キー 上／下</td><td>前後進レバー F・N・R（実機配置）</td></tr>
-        <tr><td>右スティック 上／下</td><td>リフト 上げ／下げ</td></tr>
-        <tr><td>右スティック 左／右</td><td>チルト 後傾／前傾（R1を押しながらでサイドシフト。十字キー左右でも可）</td></tr>
-        <tr><td>A（×）</td><td>ボタン操作：フォーク操作の切り替え／実機配置：ハンドルと荷役レバーの表示切替</td></tr>
-        <tr><td>B（○）</td><td>指差確認</td></tr>
-        <tr><td>X（□）／Y（△）</td><td>ミラー切替／視点の切替（検定コースではシートベルト／駐車ブレーキ）</td></tr>
-        <tr><td>スタート（オプション）</td><td>一時停止・再開</td></tr>
-        <tr><td>誘導員モード</td><td>十字キー＝前進・後進・左・右、B＝停止、A＝まっすぐ、X＝徐行、Y＝指差確認、L1／R1＝上げ／下げ</td></tr>
-      </tbody></table>
+    <details class="padmap gpmap"><summary>ボタンの割り当てを見る・変える</summary>
+      <div id="gpBox"></div>
       <p class="hint">PS（DualSense／DUALSHOCK 4）・Xbox・Switch Pro コントローラーなど、標準配置のものに対応します。ボタンの位置名は機種によって違います（A＝×、B＝○ など）。</p>
     </details>
     <h3>見え方</h3>
@@ -1065,12 +1073,19 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
       <label><input type="checkbox" id="optAssist" checked> AI誘導員の補助（運転者モード）</label>
       <label><input type="checkbox" id="optSnd" checked> 効果音・笛の音</label>
     </div>
-    <p class="hint">バージョン：Ver.48</p>
+    <p class="hint">バージョン：Ver.49</p>
     <p class="hint">設定はこの端末に保存され、次に開いたときも使われます。チュートリアルでは、補助表示・爪の高さ・フォークの倒れの表示・AI誘導員の補助は練習用の設定になります。</p>
     <div class="row startbar"><button class="go" id="setDone" type="button">OK</button></div>
   </div>
 </div>
 
+<div class="overlay" id="manOv" hidden>
+  <div class="sheet man">
+    <div class="manhead"><h2>操作マニュアル</h2><div class="row"><button class="btn-ghost" id="manPrint" type="button">印刷・PDFに保存</button><button class="go" id="manClose" type="button">閉じる</button></div></div>
+    <div id="manBody"></div>
+    <div class="row startbar"><button class="go" id="manClose2" type="button">閉じる</button></div>
+  </div>
+</div>
 <div class="overlay" id="pauseOv" hidden>
   <div class="sheet pause">
     <h2>一時停止中</h2>
@@ -1094,6 +1109,7 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
     <div class="pbtns">
       <button class="go" id="pResume" type="button">再開する</button>
       <button class="btn-ghost" id="pTutSkip" type="button" hidden>この手順を飛ばす</button>
+      <button class="btn-ghost" id="pMan" type="button">📖 操作マニュアル</button>
       <button class="btn-ghost" id="pGtip" type="button">誘導のコツ・現場ルール</button>
       <button class="btn-ghost" id="pKeys" type="button">キーボードの割り当て</button>
       <button class="btn-ghost" id="pRetry" type="button">最初からやり直す</button>
@@ -4442,7 +4458,7 @@ document.addEventListener('visibilitychange',()=>{
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 $('btnStart').onclick=startGame;
 /* ---------- タイトル・メニュー ---------- */
-const OVS=['titleOv','playOv','learnOv','ptsOv','gtipOv','startOv','tutSelOv','setOv','resultOv','recOv','pauseOv','tutOv','edOv','edDlg'];
+const OVS=['manOv','titleOv','playOv','learnOv','ptsOv','gtipOv','startOv','tutSelOv','setOv','resultOv','recOv','pauseOv','tutOv','edOv','edDlg'];
 const anyOv=()=>OVS.some(id=>!$(id).hidden);
 function showOnly(id){for(const o of ['titleOv','playOv','learnOv','ptsOv','gtipOv','startOv','tutSelOv','setOv','edOv'])$(o).hidden=o!==id;if(id==='titleOv')startTitleAnim();}
 function showTitle(menu){showOnly('titleOv');$('titlePress').hidden=!!menu;$('titleMenu').hidden=!menu;if(menu)refreshTitleMenu();}
@@ -4508,7 +4524,7 @@ $('tsBack').onclick=()=>showHub('learn');
 let setFrom='titleOv';
 $('startSet').onclick=()=>{setFrom='startOv';renderSet();showOnly('setOv');};
 $('setBack').onclick=$('setDone').onclick=()=>{savePrefs();if(setFrom==='startOv'){renderStart();showOnly('startOv');}else if(setFrom==='playOv')showHub('play');else if(setFrom==='learnOv')showHub('learn');else if(setFrom==='pauseOv'){$('setOv').hidden=true;$('pauseOv').hidden=false;}else showTitle(true);};
-function renderSet(){$('optSnd').checked=SND.on;stickHintUpd();siteRender();padRender();keyCap=null;keyRender();offRender();}
+function renderSet(){$('optSnd').checked=SND.on;stickHintUpd();siteRender();padRender();keyCap=null;keyRender();offRender();gpRender();}
 /* ---------- オフラインで使う（v47） ---------- */
 const OFF_PWA=()=>!!document.querySelector('link[rel=manifest]')&&/^https?:$/.test(location.protocol)&&'serviceWorker' in navigator;
 let offSW=null,offPrompt=null;
@@ -4552,6 +4568,77 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();offPrompt=e;offRen
 addEventListener('appinstalled',()=>{offPrompt=null;offRender();});
 addEventListener('online',()=>{offRender();toast('通信','オンラインに戻りました');});
 addEventListener('offline',()=>{offRender();toast('通信','オフラインになりました。声の合図以外はそのまま使えます');if(typeof voiceOn!=='undefined'&&voiceOn){stopVoice();voiceMsg('オフラインのため声の合図を止めました。ボタンの合図を使ってください','bad');}});
+/* ---------- 操作マニュアル（アプリの中・オフラインで見られる）（v49） ---------- */
+let manHide=[];
+function manJump(t){const o=$('manOv');o.scrollTop+=t.getBoundingClientRect().top-o.getBoundingClientRect().top-12;}
+function openMan(sec){manHide=[...document.querySelectorAll('.overlay:not([hidden])')].filter(o=>o.id!=='manOv');for(const o of manHide)o.hidden=true;
+  manRender();$('manOv').hidden=false;$('manOv').scrollTop=0;if(sec){const t=document.getElementById('man-'+sec);if(t)requestAnimationFrame(()=>manJump(t));}}
+function closeMan(){$('manOv').hidden=true;for(const o of manHide)o.hidden=false;manHide=[];if(!$('titleOv').hidden)startTitleAnim();if(!$('setOv').hidden)renderSet();}
+function manRender(){const T=(head,rows)=>`<table class="rtable mtab"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td data-h="${head[i]}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const K=id=>`<kbd>${keyOf(id)}</kbd>`,P=id=>`<span class="gpk">${gpOf(id)}</span>`;
+  const kg=[...new Set(KEY_ACTS.map(a=>a[2]))],gg=[...new Set(GP_ACTS.map(a=>a[2]))];
+  const ver=appVer();
+  const VW2=Object.fromEntries(VOICE_WORDS.map(([c,w])=>[c,w.filter(x=>!/^[ぁ-んー]+$/.test(x)).slice(0,3).join('・')]));
+  const SIGS=[['fwd','オーライ','前進してよい','g_fwd'],['back','バック','後進してよい','g_back'],['left','左へ','左へハンドルを切る','g_left'],['right','右へ','右へハンドルを切る','g_right'],['straight','まっすぐ','ハンドルを中央に戻す','g_straight'],['stop','ストップ','すぐ止まる','g_stop'],['slow','ゆっくり','徐行する','g_slow'],['up','上げ','フォークを上げる','g_up'],['down','下げ','フォークを下げる','g_down'],['check','指差','指差確認','g_check']];
+  $('manBody').innerHTML=`
+<nav class="mtoc">${[['view','画面の見方'],['flow','遊び方の流れ'],['touch','画面のボタン'],['key','キーボード'],['pad','コントローラー'],['guide','誘導員モード'],['cam','視点・表示'],['help','困ったとき']].map(([k,t])=>`<a href="#" data-mj="${k}">${t}</a>`).join('')}</nav>
+
+<h3 id="man-view">1. 画面の見方</h3>
+${T(['場所','内容'],[
+ ['運転席ビュー','運転者から見える景色です。左・後方・右のミラー（または全周モニター）が上に出ます。'],
+ ['上方ビュー','上から見た地図です。荷物の番号と、同じ番号の置き場が出ます。<b>オレンジの丸</b>は誘導員で、指やマウスで引っぱると立つ場所を動かせます。'],
+ ['合図パネル','AI誘導員の合図や、チュートリアルの説明が出ます。「小さく」でたためます。'],
+ ['操作ボタン','縦向きの画面では下、横向きでは左右に出ます（「設定」→「操作ボタンの配置」で変えられます）。'],
+ ['上の帯','スコア・運んだ数・時間・速さ・爪の高さ・チルト・荷揺れ。右のボタンは「小窓」「全画面」「音」「記録」「メニュー（一時停止）」です。']])}
+
+<h3 id="man-flow">2. 遊び方の流れ</h3>
+<ol class="mlist"><li>荷物の正面まで走ります。通路の手前では止まって<b>指差確認</b>（右よし・左よし）。</li>
+<li><b>フォーク操作</b>に切り替え、爪の高さを差し込み口に合わせて、ゆっくり前進して差し込みます。</li>
+<li>少し上げてから、後ろに下がって向きを変えます（爪は床から10〜20cmで走ります）。</li>
+<li>同じ番号の置き場の前で止まり、下げて、バックで爪を抜きます。</li></ol>
+<p class="hint">はじめての人は、「あそぶ」の「あそびかた」（約4分）で、光るボタンに沿って練習できます。</p>
+
+<h3 id="man-touch">3. 画面のボタン（操作方法は3種類）</h3>
+<p class="hint">操作方法は「あそぶ」「まなぶ」の開始画面や、一時停止メニューでいつでも切り替えられます。</p>
+<h4 class="kgh">ボタン操作（はじめての人向け）</h4>
+${T(['ボタン','はたらき'],[['◀ ／ ▶','ハンドルを左・右に切る（押している間だけ切れる。離しても戻らない設定のときは、切ったまま保つ）'],['前進 ／ バック','押している間だけ進む・下がる'],['フォーク操作','荷を取る・置く画面に切り替える'],['上げ ／ 下げ','フォークを上げる・下げる'],['前傾 ／ 後傾','マストを前・後ろに倒す'],['指差確認','通路の手前で押す']])}
+<h4 class="kgh">フォーク操作中</h4>
+${T(['ボタン','はたらき'],[['◀ ／ ▶','爪を左・右へ（サイドシフト）。クランプは「開く・閉じる」、ポジショナーは「狭く・広く」になります'],['前進 ／ バック','ゆっくり進む・下がる（長押しで少し速く）'],['↺ ／ ↻','その場で少し向きを変える'],['上げ・下げ・前傾・後傾','荷役の操作'],['走行モードに戻る','走る画面に戻る']])}
+<h4 class="kgh">スティック操作</h4>
+${T(['ボタン','はたらき'],[['画面のスティック','倒した方向へ走る・曲がる'],['バック','まっすぐ後ろへ下がる'],['上げ・下げ・前傾・後傾','荷役の操作'],['フォーク操作・指差確認','ボタン操作と同じ']])}
+<h4 class="kgh">実機配置（本物と同じ並び）</h4>
+${T(['ボタン','はたらき'],[['◀ ／ ▶','ハンドル'],['前後進レバー F・N・R','F＝前進、N＝中立、R＝後進'],['インチング（左足）','ゆっくり動かす（荷役の微調整）'],['ブレーキ ／ アクセル（右足）','止まる・進む。クリープ現象がオンのときは、ブレーキを離すとゆっくり動き出します'],['駐車ブレーキ','かける・戻す（パレット作業中に車体が動かないように）'],['荷役レバーを表示','ハンドル ⇄ リフト・チルト・サイドシフトのレバーを切り替える'],['指差確認','通路の手前で押す']])}
+<p class="hint">ボタンが小さいとき・指が届かないときは、「設定」→「操作ボタンの配置」で、左右に分ける・左利き・大きさを変えられます。</p>
+
+<h3 id="man-key">4. キーボード（パソコン）</h3>
+<p class="hint">いまの割り当てを表示しています。「設定」→「キーボードの割り当て」で変えられます。</p>
+${kg.map(g=>`<h4 class="kgh">${g}</h4>`+T(['操作','キー'],KEY_ACTS.filter(a=>a[2]===g).map(([id,l])=>[l,K(id)]))).join('')}
+
+<h3 id="man-pad">5. ゲームコントローラー</h3>
+<p class="hint">Bluetoothでつなぐと自動で使えます（PS・Xbox・Switch Pro など標準配置のもの）。いまの割り当てを表示しています。「設定」→「ゲームコントローラー」で変えられます。</p>
+${gg.map(g=>`<h4 class="kgh">${g}</h4>`+T(['操作','ボタン'],GP_ACTS.filter(a=>a[2]===g).map(([id,l])=>[l,P(id)]))).join('')}
+
+<h3 id="man-guide">6. 誘導員モード</h3>
+<p>あなたが誘導員になり、合図でAIの運転手さんを置き場まで案内します。上方ビューのオレンジの丸を引っぱると、立つ場所を変えられます。危ない場所では「危険」と出ます。</p>
+${T(['合図（ボタン）','意味','キー','コントローラー','声の例'],SIGS.map(([c,b,m,g])=>[b,m,K(g),P(g),VW2[c]||'']))}
+<p class="hint">声の合図は「音声」ボタンで始めます（ネットにつながっているときに使えます）。合図の言い方は「誘導のコツ・現場ルール」で現場に合わせて変えられます。</p>
+
+<h3 id="man-cam">7. 視点・表示の切り替え</h3>
+${T(['ボタン','はたらき'],[['ミラー','左右ミラー・全周モニター・なしを切り替える'],['視点：運転者 など','誘導員モード：運転者・誘導員・上空・横から・後ろから・前から・しゃがむ・合わせ図の見え方に切り替える（キー '+keyOf('view')+'）'],['立ち位置：自動 ／ 固定','誘導員が自分で動くか、引っぱった場所にとどまるか'],['⇄ 切替','運転席ビューと上方ビューを入れ替える'],['小窓 ／ 小窓の位置','小さい画面の表示と位置'],['全画面','画面いっぱいに表示する（キー '+keyOf('fs')+'）']])}
+
+<h3 id="man-help">8. 困ったとき</h3>
+${T(['こんなとき','こうする'],[
+ ['ボタンが小さい・重なる','「設定」→「操作ボタンの配置」で大きさや左右の配置を変える'],
+ ['声の合図が使えない','ネットにつながっているか確認。オフラインではボタンの合図を使う。マイクの許可も確認'],
+ ['コントローラーが動かない','一度どれかボタンを押す（ブラウザが認識します）。「設定」に「接続中」と出るか確認'],
+ ['途中でやめたい','「メニュー」（キー '+keyOf('pause')+'）で一時停止。タイトルに戻れます'],
+ ['記録が消えた','記録はこの端末のブラウザに保存されます。別のブラウザやファイルの場所を変えると、別の記録になります'],
+ ['ネットがない場所で使いたい','スマホは「ホーム画面に追加」、PCは「PC用ファイルをダウンロード」（設定の「オフラインで使う」）']])}
+<p class="hint">このアプリは学習用です。フォークリフトの運転には、技能講習・特別教育の修了が必要です。${ver?'　Ver.'+ver:''}</p>`;
+  $('manBody').querySelectorAll('[data-mj]').forEach(a=>a.onclick=e=>{e.preventDefault();const t=$('man-'+a.dataset.mj);if(t)manJump(t);});}
+addEventListener('keydown',e=>{if(e.code==='Escape'&&!$('manOv').hidden){e.preventDefault();e.stopImmediatePropagation();closeMan();}},true);
+$('manClose').onclick=$('manClose2').onclick=closeMan;$('manPrint').onclick=()=>window.print();
+$('tmMan').onclick=()=>openMan();$('pMan').onclick=()=>openMan();$('setMan').onclick=()=>openMan();
 
 function stickHintUpd(){$('stickHint').textContent=STICK_TITLE[$('optStick').value]||'';}
 $('optStick').addEventListener('change',stickHintUpd);
@@ -4635,7 +4722,7 @@ $('btnEdit').onclick=()=>{$('resultOv').hidden=true;openEditor();};
 $('btnNext').onclick=()=>{if(settings.ov){$('resultOv').hidden=true;startGame({...settings.ov,level:Math.min(LV_MAX,settings.level+1)});return;}$('optLevel').value=String(Math.min(LV_MAX,settings.level+1));showLvDesc();$('resultOv').hidden=true;startGame();};
 $('optLevel').addEventListener('change',showLvDesc);
 $('btnMenu').onclick=()=>{const h=settings.job==='free'?'learn':hub;goTitle();showHub(h);};
-function openPause(){if(!G||G.over||!$('gtipOv').hidden||!$('startOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden)return;G.paused=true;for(const k in keys)keys[k]=false;stick.on=false;
+function openPause(){if(!G||G.over||!$('gtipOv').hidden||!$('manOv').hidden||!$('startOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden)return;G.paused=true;for(const k in keys)keys[k]=false;stick.on=false;
   $('pauseInfo').textContent=G.tut?`チュートリアル ${Math.min(G.tut.i+1,TUT.length)}/${TUT.length}`:`${MODE_NAME[settings.mode]}・${ST().name}・Lv${settings.level}　搬送 ${G.blocks.filter(b=>b.state==='done').length}/${G.blocks.length}・経過 ${fmtT(G.t)}`;
   $('pRetry').textContent=G.tut?'チュートリアルを最初から':settings.job==='free'?'この配置で最初から':'最初からやり直す';$('pEdit').hidden=settings.job!=='free'||!!G.tut;
   $('pStickBox').hidden=false;$('pStickBox').querySelector('.playctl').hidden=settings.mode==='guide';padStatus();document.querySelectorAll('input[name=pStick]').forEach(r=>r.checked=r.value===settings.stick);$('pStickMsg').textContent='';
@@ -4792,7 +4879,7 @@ addEventListener('keydown',e=>{if(!keyCap)return;e.preventDefault();e.stopImmedi
     c[id][i]=e.code;}
   REC.keymap=c;saveRec();keyBuild();keyRender();if(msg&&$('keyMsg'))$('keyMsg').textContent=msg;},true);
 addEventListener('keydown',e=>{
-  if(!G||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden||!$('edDlg').hidden||!$('gtipOv').hidden||!$('siteShareOv').hidden)return;
+  if(!G||!$('manOv').hidden||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden||!$('edDlg').hidden||!$('gtipOv').hidden||!$('siteShareOv').hidden)return;
   const P=KP[e.code]||[],has=a=>P.includes(a);
   if(e.code==='Escape'&&document.body.classList.contains('fs')){setFS(false);return;}
   if(e.code==='Escape'&&G&&!G.over){$('btnPause').click();return;}
@@ -4820,48 +4907,119 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 if(REC.prefTop===false)$('optTop').checked=false;
 loadPrefs();renderStart();newGame();applyModeUI();resize();showTitle(false);loadSharedFromHash()||loadSiteFromHash();
 let last=performance.now();
-/* ---------- ゲームコントローラー（Bluetooth・標準配置） ---------- */
-// PS（DualSense／DUALSHOCK）・Xbox・Switch Pro などの「標準配置」を想定。ボタン番号：0=A/×,1=B/○,2=X/□,3=Y/△,4=L1,5=R1,6=L2,7=R2,8=セレクト,9=スタート,12〜15=十字キー
-const PAD={on:false,name:'',sx:0,r2:0,l2:0,prevB:[],prevK:{},own:false};
+/* ---------- ゲームコントローラー（Bluetooth・標準配置）・割り当て（v49） ---------- */
+// 入力の書き方：b0〜b16＝ボタン、a0〜a3＋/−＝スティックの向き（a0/a1＝左スティック、a2/a3＝右スティック）
+// 標準配置のボタン番号：0=A/×,1=B/○,2=X/□,3=Y/△,4=L1,5=R1,6=L2,7=R2,8=セレクト,9=スタート,10=L3,11=R3,12〜15=十字キー,16=ホーム
+const GP_ACTS=[
+  ['steer','ハンドル（スティック操作では走行スティック）','運転','stickL'],
+  ['acc','アクセル（実機配置）・前進（ボタン操作のフォーク操作中）','運転','b7'],
+  ['brake','ブレーキ（実機配置）・バック（スティック操作・フォーク操作中）','運転','b6'],
+  ['inch','インチング（実機配置）','運転','b4'],
+  ['dirUp','前後進レバーを前へ（R→N→F・実機配置）','運転','b12'],
+  ['dirDn','前後進レバーを後ろへ（F→N→R・実機配置）','運転','b13'],
+  ['park','駐車ブレーキ（実機配置）','運転',''],
+  ['fup','リフト 上げ','荷役','a3-'],
+  ['fdn','リフト 下げ','荷役','a3+'],
+  ['tfwd','チルト 前傾（ロールクランプは縦へ）','荷役','a2+'],
+  ['tback','チルト 後傾（ロールクランプは横へ）','荷役','a2-'],
+  ['ssl','サイドシフト 左（クランプは開く・ポジショナーは狭く）','荷役','b14'],
+  ['ssr','サイドシフト 右（クランプは閉じる・ポジショナーは広く）','荷役','b15'],
+  ['ssmod','押しながらチルトを倒すとサイドシフト','荷役','b5'],
+  ['fmode','フォーク操作の切り替え（実機配置：ハンドル⇄荷役レバー）','荷役','b0'],
+  ['check','指差確認','安全・画面','b1'],
+  ['cam','ミラーの切り替え（検定コース：シートベルト）','安全・画面','b2'],
+  ['view','視点の切り替え（検定コース：駐車ブレーキ）','安全・画面','b3'],
+  ['sub','小窓のあり・なし','安全・画面','b8'],
+  ['pause','一時停止・再開','安全・画面','b9'],
+  ['g_fwd','合図：前進（オーライ）','誘導員モード','b12'],
+  ['g_back','合図：後進（バック）','誘導員モード','b13'],
+  ['g_left','合図：左へ','誘導員モード','b14'],
+  ['g_right','合図：右へ','誘導員モード','b15'],
+  ['g_stop','合図：停止（ストップ）','誘導員モード','b1'],
+  ['g_straight','合図：まっすぐ','誘導員モード','b0'],
+  ['g_slow','合図：徐行（ゆっくり）','誘導員モード','b2'],
+  ['g_check','合図：指差確認','誘導員モード','b3'],
+  ['g_up','合図：フォーク上げ','誘導員モード','b4'],
+  ['g_down','合図：フォーク下げ','誘導員モード','b5']];
+const GP_BN=['A（×）','B（○）','X（□）','Y（△）','L1','R1','L2','R2','セレクト（Share・View）','スタート（Options・Menu）','L3（左スティック押し込み）','R3（右スティック押し込み）','十字キー ↑','十字キー ↓','十字キー ←','十字キー →','ホーム（PS・Xbox）'];
+function gpName(c){if(!c)return 'なし';if(c==='stickL')return '左スティック';if(c==='stickR')return '右スティック';
+  if(c[0]==='b'){const n=+c.slice(1);return GP_BN[n]||`ボタン${n}`;}
+  const m=c.match(/^a(\d+)([+-])$/);if(!m)return c;const n=+m[1],s=m[2];const st=n<2?'左スティック':n<4?'右スティック':`軸${n}`;
+  return st+' '+(n%2===0?(s==='-'?'←':'→'):(s==='-'?'↑':'↓'));}
+function gpCfg(){const m=REC.gpmap||{},o={};for(const [id,,,d] of GP_ACTS)o[id]=typeof m[id]==='string'?m[id]:d;return o;}
+const gpOf=id=>gpName(gpCfg()[id]);
+const PAD={on:false,name:'',sx:0,r2:0,l2:0,prevA:{},prevK:{},own:false};
+let GP_CAP=null;
 const dz=(v,d=0.18)=>Math.abs(v)<d?0:Math.sign(v)*(Math.abs(v)-d)/(1-d);
 function padGet(){const L=navigator.getGamepads?navigator.getGamepads():[];for(const g of L)if(g&&g.connected&&g.buttons.length>=12)return g;return null;}
+function gpRaw(g,c){if(!c)return 0;if(c[0]==='b'){const b=g.buttons[+c.slice(1)];return b?(typeof b==='object'?(b.value||(b.pressed?1:0)):b):0;}
+  const m=c.match(/^a(\d+)([+-])$/);if(!m)return 0;const v=dz(g.axes[+m[1]]||0);return Math.max(0,m[2]==='+'?v:-v);}
+function gpActive(g){const o=[];g.buttons.forEach((b,i)=>{if(gpRaw(g,'b'+i)>0.6)o.push('b'+i);});for(let i=0;i<Math.min(4,g.axes.length);i++){const v=g.axes[i]||0;if(Math.abs(v)>0.7)o.push(`a${i}${v<0?'-':'+'}`);}return o;}
+// 割り当ての受け付け：押されたボタン・倒された向きを1つ取る
+function gpCapture(g){const C=GP_CAP;if(performance.now()-C.t0>10000){GP_CAP=null;gpRender('時間切れです。もう一度「変える」を押してください');return;}
+  const act=gpActive(g);const fresh=act.filter(c=>!C.base.includes(c));C.base=C.base.filter(c=>act.includes(c));
+  if(!fresh.length)return;const code=fresh[0];const c=gpCfg(),id=C.id;let msg='';
+  const grp=x=>x.startsWith('g_')?'g':'d';
+  for(const [oid,olab] of GP_ACTS){if(oid===id||oid==='steer')continue;if(c[oid]!==code)continue;
+    if(grp(oid)===grp(id)||oid==='pause'||id==='pause'){c[oid]='';msg=`「${olab}」から ${gpName(code)} を外しました`;}}
+  c[id]=code;REC.gpmap=c;saveRec();GP_CAP=null;PAD.prevA={};gpRender(msg||`${gpName(code)} を割り当てました`);}
 function padPoll(){const g=padGet();
   if(!g){if(PAD.on){PAD.on=false;PAD.sx=PAD.r2=PAD.l2=0;for(const k in PAD.prevK)if(PAD.prevK[k])keys[k]=false;PAD.prevK={};if(PAD.own){stick.on=false;stick.dirSet=false;PAD.own=false;}padStatus();}return;}
-  if(!PAD.on||PAD.name!==g.id){PAD.on=true;PAD.name=g.id;padStatus();log('ゲームコントローラーを接続しました','ok');toast('コントローラー','接続しました（操作はメニューの「操作方法」で確認）');}
-  const bv=i=>{const b=g.buttons[i];return b?(typeof b==='object'?b.value||(b.pressed?1:0):b):0;},bp=i=>bv(i)>0.5,ax=i=>g.axes[i]||0;
-  const edge=i=>{const now=bp(i),was=!!PAD.prevB[i];PAD.prevB[i]=now;return now&&!was;};
-  const E=[];for(let i=0;i<17;i++)E[i]=edge(i);
-  const lx=dz(ax(0)),ly=dz(ax(1)),rx=dz(ax(2)),ry=dz(ax(3));PAD.r2=bv(7);PAD.l2=bv(6);
+  if(!PAD.on||PAD.name!==g.id){PAD.on=true;PAD.name=g.id;padStatus();log('ゲームコントローラーを接続しました','ok');toast('コントローラー','接続しました（ボタンの割り当ては「設定」、使い方は「操作マニュアル」）');}
+  if(GP_CAP){gpCapture(g);return;}
+  const M=gpCfg();
+  const A=id=>gpRaw(g,M[id]),P=id=>{const c=M[id];return !!c&&gpRaw(g,c)>(c[0]==='a'?0.4:0.5);};
+  const E=id=>{const now=P(id),was=!!PAD.prevA[id];PAD.prevA[id]=now;return now&&!was;};
+  const ids=GP_ACTS.map(a=>a[0]).filter(i=>i!=='steer');const EV={};for(const i of ids)EV[i]=E(i);
+  const sc=M.steer==='stickR'?[2,3]:[0,1];const lx=dz(g.axes[sc[0]]||0),ly=dz(g.axes[sc[1]]||0);
+  PAD.r2=A('acc');PAD.l2=A('brake');
   // メニュー・一時停止
-  if(E[9]){if(G&&!G.over&&$('startOv').hidden&&$('titleOv').hidden)$('btnPause').click();return;}
-  if(!$('pauseOv').hidden){if(E[0])$('pResume').click();PAD.sx=0;return;}
+  if(EV.pause){if(G&&!G.over&&$('startOv').hidden&&$('titleOv').hidden&&$('manOv').hidden)$('btnPause').click();return;}
+  if(!$('pauseOv').hidden){if(EV.fmode||EV.g_straight)$('pResume').click();PAD.sx=0;return;}
   if(!G||G.paused||G.over){PAD.sx=0;return;}
   const want={};
   if(settings.mode==='guide'){
-    if(E[12])sendSignal('fwd',false);if(E[13])sendSignal('back',false);if(E[14])sendSignal('left',false);if(E[15])sendSignal('right',false);
-    if(E[1])sendSignal('stop',false);if(E[0])sendSignal('straight',false);if(E[2])sendSignal('slow',false);if(E[3])sendSignal('check',false);if(E[4])sendSignal('up',false);if(E[5])sendSignal('down',false);
+    for(const [i,s] of [['g_fwd','fwd'],['g_back','back'],['g_left','left'],['g_right','right'],['g_stop','stop'],['g_straight','straight'],['g_slow','slow'],['g_check','check'],['g_up','up'],['g_down','down']])if(EV[i])sendSignal(s,false);
     PAD.sx=0;
   }else{
     const real=realOn(),stickMode=['easy','map','car'].includes(settings.stick)&&!G.forkMode;
-    // 左スティック：ハンドル（スティック操作では走行スティック）
     if(stickMode){const m=Math.hypot(lx,ly);if(m>0.05){stick.on=true;stick.x=clamp(lx,-1,1);stick.y=clamp(ly,-1,1);PAD.own=true;}else if(PAD.own){stick.on=false;stick.dirSet=false;stick.x=stick.y=0;PAD.own=false;}PAD.sx=0;}
     else PAD.sx=G.forkMode&&!real?0:lx;
-    // 右スティック：上下＝リフト、左右＝チルト（R1を押しながら左右＝サイドシフト）
-    want.fup=ry<-0.4;want.fdn=ry>0.4;
-    const r1=bp(5);want.tfwd=!r1&&rx>0.5;want.tback=!r1&&rx<-0.5;
-    want.ssl=(r1&&rx<-0.4)||bp(14);want.ssr=(r1&&rx>0.4)||bp(15);
-    if(real){want.acc=PAD.r2>0.05;want.brake=PAD.l2>0.3;want.inch=bp(4);
-      if(E[12])setDir(Math.min(1,G.dirL+1));if(E[13])setDir(Math.max(-1,G.dirL-1));
-      if(E[0])$('rToggle').click();}
-    else if(G.forkMode){want.up=PAD.r2>0.2;want.back=PAD.l2>0.2;want.left=lx<-0.4;want.right=lx>0.4;if(E[0])setForkMode(false);}
-    else{if(E[0])setForkMode(true);if(settings.stick==='easy')want.back=PAD.l2>0.3;}
-    if(E[1])callCheck(false);
-    if(E[2]){if(G.exam)$('exBelt').click();else $('vCam').click();}
-    if(E[3]){if(G.exam)$('exBrake').click();else $('vSwap').click();}
-    if(E[8])$('btnSub').click();
+    want.fup=P('fup');want.fdn=P('fdn');
+    const mod=P('ssmod');want.tfwd=!mod&&P('tfwd');want.tback=!mod&&P('tback');
+    want.ssl=(mod&&P('tback'))||P('ssl');want.ssr=(mod&&P('tfwd'))||P('ssr');
+    if(real){want.acc=PAD.r2>0.05;want.brake=PAD.l2>0.3;want.inch=P('inch');
+      if(EV.dirUp)setDir(Math.min(1,G.dirL+1));if(EV.dirDn)setDir(Math.max(-1,G.dirL-1));
+      if(EV.park&&$('pdPark'))$('pdPark').click();
+      if(EV.fmode)$('rToggle').click();}
+    else if(G.forkMode){want.up=PAD.r2>0.2;want.back=PAD.l2>0.2;want.left=lx<-0.4;want.right=lx>0.4;if(EV.fmode)setForkMode(false);}
+    else{if(EV.fmode)setForkMode(true);if(settings.stick==='easy')want.back=PAD.l2>0.3;}
+    if(EV.check)callCheck(false);
+    if(EV.cam){if(G.exam)$('exBelt').click();else $('vCam').click();}
+    if(EV.view){if(G.exam)$('exBrake').click();else $('vSwap').click();}
+    if(EV.sub)$('btnSub').click();
   }
   for(const k of new Set([...Object.keys(want),...Object.keys(PAD.prevK)])){const v=!!want[k];if(v!==!!PAD.prevK[k])keys[k]=v;}
   PAD.prevK=want;}
+// 設定画面：ボタンの割り当て
+function gpRender(msg){const box=$('gpBox');if(!box)return;const c=gpCfg();let html='',grp='';
+  for(const [id,label,g] of GP_ACTS){if(g!==grp){grp=g;html+=`<h4 class="kgh">${g}</h4>`;}
+    let cell;
+    if(id==='steer')cell=`<select data-gsel="steer"><option value="stickL"${c.steer!=='stickR'?' selected':''}>左スティック</option><option value="stickR"${c.steer==='stickR'?' selected':''}>右スティック</option></select>`;
+    else{const cap=GP_CAP&&GP_CAP.id===id;cell=`<button type="button" class="kbtn${cap?' cap':''}" data-gid="${id}">${cap?'ボタンを押す…':gpName(c[id])}</button> <button type="button" class="kclr" data-gclr="${id}" aria-label="${label}の割り当てを外す">×</button>`;}
+    html+=`<div class="gprow"><span>${label}</span><span class="gpc">${cell}</span></div>`;}
+  html+=`<p class="hint" id="gpMsg">${msg||'「変える」のボタンを押してから、コントローラーのボタンを押すか、スティックを倒します（10秒で取り消し。Esc でも取り消し）。運転と誘導員モードの中で同じボタンを選ぶと、前の割り当てから外します。'}</p>
+   <div class="row"><button type="button" class="btn-ghost" id="gpReset">初期の割り当てに戻す</button></div>`;
+  box.innerHTML=html;
+  box.querySelectorAll('[data-gid]').forEach(b=>b.onclick=()=>{const g=padGet();if(!g){gpRender('コントローラーがつながっていません。Bluetoothでつないで、どれかボタンを押してから、もう一度選んでください');return;}
+    GP_CAP={id:b.dataset.gid,t0:performance.now(),base:gpActive(g)};gpRender();});
+  box.querySelectorAll('[data-gclr]').forEach(b=>b.onclick=()=>{const c=gpCfg();c[b.dataset.gclr]='';REC.gpmap=c;saveRec();gpRender();});
+  box.querySelector('[data-gsel=steer]').onchange=e=>{const c=gpCfg();c.steer=e.target.value;REC.gpmap=c;saveRec();gpRender(e.target.value==='stickR'?'ハンドルを右スティックにしました。リフト・チルトを左スティックへ変えると使いやすくなります':'ハンドルを左スティックにしました');};
+  $('gpReset').onclick=()=>{REC.gpmap=null;saveRec();GP_CAP=null;gpRender('初期の割り当てに戻しました');};}
+addEventListener('keydown',e=>{if(GP_CAP&&e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();GP_CAP=null;gpRender('取り消しました');}},true);
+// 設定のループ：受け付け中は設定画面でも読む（ゲームの frame が止まっていても動かす）
+(function gpSetLoop(){if(GP_CAP){const g=padGet();if(g)gpCapture(g);}requestAnimationFrame(gpSetLoop);})();
+
 function padStatus(){const t=PAD.on?`接続中：${PAD.name.replace(/\(.*?\)/g,'').trim().slice(0,40)||'コントローラー'}`:'未接続（Bluetoothでつなぐと自動で使えます）';for(const id of ['padStat','pPadStat'])if($(id))$(id).textContent=t;}
 addEventListener('gamepadconnected',()=>padStatus());addEventListener('gamepaddisconnected',()=>padStatus());
 function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;

@@ -222,6 +222,8 @@ body.notop .stage{grid-template-columns:1fr}
 .tutrow:not(.first) .tutbtn2 .go.alt{color:#cbbcff;border-color:#7a6aa8}
 .gains{display:flex;flex-wrap:wrap;gap:6px}
 .gains span{border:1px solid var(--yel);color:var(--yel);border-radius:999px;padding:2px 10px;font-size:calc(12.5px * var(--ts,1))}
+.gains span.miss{border-color:#e08a8a;color:#f0a8a8}.gains span.note{border-style:dashed;color:var(--mut,#aab)}
+.lvt .rw{display:block;font-style:normal;font-size:calc(12px * var(--ts,1));margin-top:3px;opacity:.9}
 
 .rec-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
@@ -642,6 +644,14 @@ canvas.gtcv{width:100%;display:block;border-radius:8px}
 #siteShareOv{z-index:70}
 .sitename{display:grid;gap:4px;font-size:calc(12.5px * var(--ts,1));color:var(--mute)}
 .sitename input{background:#14181a;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:8px 10px;font-size:calc(15px * var(--ts,1))}
+/* 画面（オーバーレイ）のスクロール：上が切れて戻れなくならないよう、中央寄せはグリッドの上下の余白で行う */
+.overlay:not(.title){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto minmax(0,1fr);justify-items:center;align-items:start;overscroll-behavior:contain}
+.overlay:not(.title)::before,.overlay:not(.title)::after{content:"";display:block}
+html.ovlock,html.ovlock body{overflow:hidden;overscroll-behavior:none}
+.ktab{width:100%;table-layout:fixed}.ktab td{padding:4px 6px}.ktab td:nth-child(2),.ktab td:nth-child(3){width:104px;text-align:center}.ktab td:first-child{font-size:calc(12.5px * var(--ts,1))}
+.kgh{margin:10px 0 2px;font-size:calc(13px * var(--ts,1));color:var(--yel)}
+.kbtn{min-width:86px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:#14181a;color:var(--ink);font:700 calc(13px * var(--ts,1)) "Share Tech Mono",monospace}
+.kbtn.cap{border-color:var(--yel);color:var(--yel);animation:hlp 1s ease-in-out infinite}
 /* 操作ボタンのパネル（左右に分ける） */
 #padSpace{height:0}
 .pad{position:fixed;z-index:31;display:none;flex-direction:column-reverse;gap:6px;width:calc(min(30vw,230px) * var(--padk,1));pointer-events:none}
@@ -774,7 +784,7 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
         <button type="button" class="k tilt f10" id="fkTB" data-hold="tback">後傾<small>X</small></button>
         <button type="button" class="k fmode f11" id="fkExit" data-act="drive">走行モードに戻る<small>G</small></button>
       </div>
-      <div class="keys">キーボード：<kbd>↑↓</kbd> 前進・後進、<kbd>←→</kbd> ハンドル（<kbd>WASD</kbd> も可）、<kbd>G</kbd> フォーク操作の切替（フォーク操作中：<kbd>↑↓</kbd> ゆっくり前進・バック、<kbd>←→</kbd> 爪を左右へ、<kbd>,</kbd> <kbd>.</kbd> 回す、<kbd>Q</kbd> <kbd>E</kbd> 上げ・下げ、<kbd>Z</kbd> <kbd>X</kbd> 前傾・後傾）、<kbd>C</kbd> 指差確認、<kbd>P</kbd> 一時停止。実機配置では <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 前後進レバー F・N・R、<kbd>↑</kbd> アクセル、<kbd>↓</kbd> ブレーキ、<kbd>Shift</kbd> インチング、<kbd>Q</kbd> <kbd>E</kbd> リフト、<kbd>Z</kbd> <kbd>X</kbd> チルト、<kbd>,</kbd> <kbd>.</kbd> サイドシフト、<kbd>F</kbd> 全画面、<kbd>V</kbd> 小窓、<kbd>M</kbd> 音</div>
+      <div class="keys" id="keyHint"></div>
     </div>
 
     <div class="controls" id="ctlGuide" hidden>
@@ -846,14 +856,14 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
     <button class="tm" id="tmCont" type="button">つづきから<small id="tmContSub"></small></button>
     <div class="tmrow"><button class="tm s" id="tmRec" type="button">図鑑・コレクション</button><button class="tm s" id="tmSet" type="button">⚙ 設定</button></div>
   </nav>
-  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.43</div>
+  <div class="tfoot">学習用のゲームです。実際の運転には技能講習などの修了が必要です<br>© 合同会社アップテック　Ver.46</div>
 </div>
 
 
 <div class="overlay" id="playOv" hidden>
   <div class="sheet">
     <div class="sheethead"><button class="btn-ghost back" id="playBack" type="button">◀ タイトル</button><h2>あそぶ</h2></div>
-    <p class="hubintro">荷物を、同じ番号の置き場へ運ぼう。ぶつけず・こぼさず運ぶと、ぬいぐるみや魚などのごほうびがもらえます。</p>
+    <p class="hubintro">荷物を、同じ番号の置き場へ運ぼう。ぬいぐるみ・鮮魚・水槽の荷物を、ぶつけず・こぼさず運ぶと、ごほうびがもらえます（ステージの🧸🐟🪸が目印）。もらったものは「コレクション」で見られます。</p>
     <details class="playopts" id="playOpts"><summary><span class="pok">操作とルール</span><span id="playOptSum"></span><span class="pochg">変更</span></summary>
     <label class="easyrow"><input type="checkbox" id="playEasy" checked> かんたん（棚や柱なし・ぶつかっても減点なし）</label>
     <div class="playctl" role="radiogroup" aria-label="あそぶときの操作"><span class="pk">操作</span>
@@ -1007,6 +1017,8 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
     <p class="hint">あそぶの操作は、あそぶの画面で選べます。</p>
     <h3>操作ボタンの配置</h3>
     <div id="padBox"></div>
+    <h3>キーボードの割り当て（パソコン）</h3>
+    <details class="padmap keymap"><summary>キーの割り当てを見る・変える</summary><div id="keyBox"></div></details>
     <h3>ゲームコントローラー</h3>
     <p class="hint" id="padStat">未接続（Bluetoothでつなぐと自動で使えます）</p>
     <details class="padmap"><summary>ボタンの割り当てを見る</summary>
@@ -1045,7 +1057,7 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
       <label><input type="checkbox" id="optAssist" checked> AI誘導員の補助（運転者モード）</label>
       <label><input type="checkbox" id="optSnd" checked> 効果音・笛の音</label>
     </div>
-    <p class="hint">バージョン：Ver.43</p>
+    <p class="hint">バージョン：Ver.46</p>
     <p class="hint">設定はこの端末に保存され、次に開いたときも使われます。チュートリアルでは、補助表示・爪の高さ・フォークの倒れの表示・AI誘導員の補助は練習用の設定になります。</p>
     <div class="row startbar"><button class="go" id="setDone" type="button">OK</button></div>
   </div>
@@ -1075,6 +1087,7 @@ body.lsfit .realpanel .r-c{grid-area:3/6/4/8}
       <button class="go" id="pResume" type="button">再開する</button>
       <button class="btn-ghost" id="pTutSkip" type="button" hidden>この手順を飛ばす</button>
       <button class="btn-ghost" id="pGtip" type="button">誘導のコツ・現場ルール</button>
+      <button class="btn-ghost" id="pKeys" type="button">キーボードの割り当て</button>
       <button class="btn-ghost" id="pRetry" type="button">最初からやり直す</button>
       <button class="btn-ghost" id="pEdit" type="button" hidden>配置を編集（いまの位置から）</button>
       <button class="btn-ghost" id="pTitle" type="button">タイトルに戻る</button>
@@ -1380,7 +1393,7 @@ function makeBlock(t,idx){const c=CARGO[t.k];const b={id:idx+1,kind:t.k,...c,nee
 const SLOT={S:{x:3.2,y:2.4,tx:22.6,ty:13.2},F:{x:3.2,y:2.4,tx:22.6,ty:13.2},M:{x:3.2,y:5.8,tx:22.6,ty:5.8},L:{x:3.2,y:13.2,tx:22.6,ty:2.4},LONG:{x:3.2,y:9.4,tx:22.6,ty:9.4}};
 // レベルごとの荷物：[種類, 取りに行く位置(y), 置き場(y)]。置き場は右側、荷物は左側
 const CARGO_BY_LEVEL={
-  1:[['S',5.8,5.8]],
+  1:[['S',5.8,5.8],['PLUSH',9.4,9.4]],
   2:[['M',5.8,5.8],['PLUSH',9.4,9.4]],
   3:[['FISH',5.8,5.8],['L',13.2,13.2]],
   4:[['TANK',2.4,13.2],['M',5.8,5.8],['L',13.2,2.4]],
@@ -1406,8 +1419,8 @@ const STAGES={
 };
 const STAGE_ORDER=['warehouse','freezer','night','yard'];
 const LEVELS={
-  1:{name:'入門',sub:'小さな荷物を1つ',drv:0.30,delay:0.40,freq:[28,40],isp:0.70,stopSee:'all',slope:0,only:['person','chick'],
-     desc:'小さな荷物を1つ、まっすぐ向かいの置き場へ。前がよく見えるので、取る・運ぶ・下ろすの流れに慣れよう。通路にはときどき作業員やひよこが来ます。'},
+  1:{name:'入門',sub:'小さな荷物とぬいぐるみ',drv:0.30,delay:0.40,freq:[28,40],isp:0.70,stopSee:'all',slope:0,only:['person','chick'],
+     desc:'小さな荷物とぬいぐるみを、まっすぐ向かいの置き場へ。前がよく見えるので、取る・運ぶ・下ろすの流れに慣れよう。ぬいぐるみは揺れやすいので、ぶつけず、ゆっくり運ぶとごほうびがもらえます。通路にはときどき作業員やひよこが来ます。'},
   2:{name:'初級',sub:'中くらいの荷物とぬいぐるみ',drv:0.35,delay:0.45,freq:[20,28],isp:0.80,stopSee:'all',slope:0,only:['person','chick','cat','cone'],
      desc:'中くらいの荷物（高さ1.1m）と、背が高く揺れやすいぬいぐるみ。足元や小さな動物が荷に隠れます。通路の手前で止まって指差確認をしよう。'},
   3:{name:'中級',sub:'大きな荷物で前が見えない',drv:0.42,delay:0.50,freq:[16,22],isp:0.90,stopSee:'all',slope:0,only:['person','chick','cat','cone','dog'],
@@ -1749,14 +1762,17 @@ function cargoEffects(b,lat,acc,et,dt){
 function nearTruck(){const fl=G.fl;for(const st of G.statics)if(isDeck(st)&&Math.abs(fl.x-st.x)<st.hw+3.2&&Math.abs(fl.y-st.y)<st.hh+1.5)return true;return false;}
 const REWARD_POOL={plush:['クマ','ウサギ','ネコ','ひよこ','コーンちゃん','ペンギン'],fish:['金魚','メダカ','ネオンテトラ','カクレクマノミ','エンゼルフィッシュ','ナンヨウハギ'],deco:['水草','流木','貝がら','小さなお城','気泡石','サンゴ']};
 const REWARD_CAT={plush:'ぬいぐるみ',fish:'魚',deco:'水槽の飾り'};
+const REWAR_E={plush:'🧸',fish:'🐟',deco:'🪸'};
+function lvRewards(n){const o=[];for(const [k] of (CARGO_BY_LEVEL[n]||[])){const r=CARGO[k]&&CARGO[k].reward;if(r&&!o.includes(r))o.push(r);}return o;}
 function tryReward(b){
   if(!b.reward||G.tut&&G.tut.noReward)return;
   const bad=b.broken?'破損':b.spilledW?'水がこぼれた':b.dropped?'荷崩れ':b.bumped?'ぶつけた':(b.fresh&&b.freshT<=0)?'鮮度が落ちた':null;
-  if(bad){log(`荷物${b.id}（${b.name}）は${bad}ため、ごほうびはありません`,'info');return;}
+  if(bad){log(`惜しい！荷物${b.id}（${b.name}）は${bad}ため、ごほうびはありません。次はぶつけず・ゆっくり運ぼう`,'warn');(G.rewMiss=G.rewMiss||[]).push(`${REWARD_CAT[b.reward]}（${bad}）`);return;}
+  const firstEver=!REC.coll||!Object.values(REC.coll).some(o=>o&&Object.keys(o).length);
   REC.coll=REC.coll||{plush:{},fish:{},deco:{}};const box=REC.coll[b.reward]||(REC.coll[b.reward]={});
   const pool=REWARD_POOL[b.reward],un=pool.filter(n=>!box[n]);const name=pick(un.length?un:pool);
   box[name]=(box[name]||0)+1;saveRec();(G.rewards=G.rewards||[]).push(name);
-  toast('ごほうび',`${REWARD_CAT[b.reward]}「${name}」をもらいました`);SFX.dex();log(`ていねいに運べたので、${REWARD_CAT[b.reward]}「${name}」をもらいました！（図鑑・実績 → コレクション）`,'ok');
+  toast('ごほうび',`${REWAR_E[b.reward]} ${REWARD_CAT[b.reward]}「${name}」をもらいました${firstEver?'。もらったものは「コレクション」で見られます':''}`);SFX.dex();log(`ていねいに運べたので、${REWARD_CAT[b.reward]}「${name}」をもらいました！（図鑑・実績 → コレクション）`,'ok');
 }
 function breakLoad(b,why){if(!b.fragile||b.broken)return;b.broken=true;G.broken++;G.score-=20;log(`ワレモノ破損：${why}（−20）`,'bad');}
 function overturn(kind){const fl=G.fl;if(G.tipFreeze>0)return;G.tipFreeze=2.5;G.overturns=(G.overturns||0)+1;G.roll=0;G.rearUp=0;G.rollWarned=false;fl.v=0;G.flash=1;SFX.accident();
@@ -3207,6 +3223,9 @@ function padPlace(){if(!document.body.classList.contains('splitpad'))return;cons
 addEventListener('resize',()=>requestAnimationFrame(()=>{if(document.body.classList.contains('splitpad')!==padSplitOn()&&!document.querySelector('.k.on'))padApply();else padPlace();}));
 matchMedia('(orientation:portrait)').addEventListener('change',()=>requestAnimationFrame(padApply));
 // 合図パネル（チュートリアルの説明など）を小さくする
+// オーバーレイを開いている間は、後ろのページがスクロールしないようにする
+{const upd=()=>document.documentElement.classList.toggle('ovlock',[...document.querySelectorAll('.overlay')].some(o=>!o.hidden));
+ const mo=new MutationObserver(upd);document.querySelectorAll('.overlay').forEach(o=>mo.observe(o,{attributes:true,attributeFilter:['hidden']}));upd();}
 function sigMinApply(){const on=!!REC.sigMin;document.body.classList.toggle('sigmin',on);const b=$('sigMin');if(b){b.textContent=on?'説明 ▾':'小さく ▴';b.setAttribute('aria-expanded',String(!on));}}
 // 設定画面の「操作ボタンの配置」
 function padRender(){const box=$('padBox');if(!box)return;const c=padCfg();const sel=(k,o)=>`<select data-pk="${k}">${o.map(([v,t])=>`<option value="${v}"${String(c[k])===v?' selected':''}>${t}</option>`).join('')}</select>`;
@@ -3789,6 +3808,8 @@ function showResult(){clearSnap();
   for(const a of G.newAch){const sp=document.createElement('span');sp.textContent='実績：'+a;gains.appendChild(sp);}
   for(const d of G.newDex){const sp=document.createElement('span');sp.textContent='図鑑：'+d;gains.appendChild(sp);}
   for(const d of (G.rewards||[])){const sp=document.createElement('span');sp.textContent='ごほうび：'+d;gains.appendChild(sp);}
+  for(const d of (G.rewMiss||[])){const sp=document.createElement('span');sp.className='miss';sp.textContent='惜しい！ごほうびなし：'+d;gains.appendChild(sp);}
+  if((G.rewards||[]).length){const sp=document.createElement('span');sp.className='note';sp.textContent='ごほうびは「コレクション」で見られます';gains.appendChild(sp);}
   $('btnEdit').hidden=settings.job!=='free';const nb=$('btnNext');nb.hidden=!(grade!=='C'&&settings.level<LV_MAX)||settings.job==='free';if(settings.level<LV_MAX)nb.textContent=`次のレベルへ（Lv${settings.level+1} ${LEVELS[settings.level+1].sub}）`;
   if(G.endless){const E=G.endless,n=E.done,eb=REC.endBest||null,nb2=!eb||n>eb.n;if(nb2){REC.endBest={n,time:Math.round(G.t),date:new Date().toISOString().slice(0,10)};saveRec();}
     $('rGrade').textContent=n>=15?'S':n>=10?'A':n>=5?'B':'C';$('rScore').innerHTML=`${n} 個${nb2&&eb?'<span class="newbest">自己ベスト更新</span>':''}`;
@@ -4431,6 +4452,7 @@ function renderPlay(){$('playEasy').checked=REC.playEasy!==false;$('playOpts').o
   const box=$('playLv');box.innerHTML='';const clr=REC.lvClear||0;
   for(let n=1;n<=LV_MAX;n++){const L=LEVELS[n],b=document.createElement('button');b.type='button';b.className='lvt'+(n<=clr?' clr':'')+(n===clr+1?' next':'');
     b.innerHTML='<b></b><em></em>';b.querySelector('b').textContent=`Lv${n} ${L.name}`;b.querySelector('em').textContent=n>clr+1?'前のステージをクリアすると遊べます':L.sub;
+    const rw=lvRewards(n);if(rw.length){const C=REC.coll||{};const i=document.createElement('i');i.className='rw';i.textContent='ごほうび '+rw.map(r=>`${REWAR_E[r]}${Object.keys(C[r]||{}).length}/${REWARD_POOL[r].length}`).join(' ');b.appendChild(i);}
     b.disabled=n>clr+1;b.onclick=()=>playStart({level:n});box.appendChild(b);}}
 function renderLearn(){const jc=REC.jobClear||{};const d=Object.keys(jc).filter(k=>JOBS[k]&&k!=='endless').map(k=>`${JOBS[k].name} Lv${jc[k]}`);
   if(REC.lvClear&&!jc.yard)d.unshift(`構内運搬 Lv${REC.lvClear}`);$('lcJobSub').textContent=d.length?'クリア：'+d.join('・'):'';}
@@ -4456,6 +4478,7 @@ $('lcJob').onclick=()=>{hub='learn';renderStart();showOnly('startOv');$('startOv
 $('lcGtip').onclick=()=>openGtip('learnOv');
 $('gtipBack').onclick=$('gtipDone').onclick=()=>closeGtip();
 $('pGtip').onclick=()=>openGtip('pauseOv');
+$('pKeys').onclick=()=>{$('pauseOv').hidden=true;setFrom='pauseOv';renderSet();showOnly('setOv');const d=document.querySelector('#setOv .keymap');if(d){d.open=true;requestAnimationFrame(()=>{$('setOv').scrollTop=d.offsetTop-60;});}};
 $('vGview').onclick=()=>{if(!G)return;const o=gviewList();G.gview=o[(o.indexOf(G.gview||'drv')+1)%o.length];gviewBtn();forkCaption();if(primary!=='cab'&&$('vCab').classList.contains('sub')&&document.body.classList.contains('nosub'))setSub(true);};
 $('vGpos').onclick=()=>{if(!G)return;if(G.gpFix){G.gpFix=false;log('誘導員の立ち位置を自動に戻しました','info');}else{G.gpFix=true;G.gpHinted=true;log('誘導員の立ち位置を固定しました。上方ビューのオレンジの丸をドラッグして動かせます','info');}gposBtn();};
 function gviewList(){return ['drv','back3','side3','front3','bird'].concat(guideFigOn()?['eye','low','align']:[]);}
@@ -4473,7 +4496,7 @@ $('tsBack').onclick=()=>showHub('learn');
 let setFrom='titleOv';
 $('startSet').onclick=()=>{setFrom='startOv';renderSet();showOnly('setOv');};
 $('setBack').onclick=$('setDone').onclick=()=>{savePrefs();if(setFrom==='startOv'){renderStart();showOnly('startOv');}else if(setFrom==='playOv')showHub('play');else if(setFrom==='learnOv')showHub('learn');else if(setFrom==='pauseOv'){$('setOv').hidden=true;$('pauseOv').hidden=false;}else showTitle(true);};
-function renderSet(){$('optSnd').checked=SND.on;stickHintUpd();siteRender();padRender();}
+function renderSet(){$('optSnd').checked=SND.on;stickHintUpd();siteRender();padRender();keyCap=null;keyRender();}
 function stickHintUpd(){$('stickHint').textContent=STICK_TITLE[$('optStick').value]||'';}
 $('optStick').addEventListener('change',stickHintUpd);
 $('optSnd').addEventListener('change',()=>{if($('optSnd').checked!==SND.on)$('btnSnd').click();});
@@ -4562,7 +4585,7 @@ function openPause(){if(!G||G.over||!$('gtipOv').hidden||!$('startOv').hidden||!
   $('pStickBox').hidden=false;$('pStickBox').querySelector('.playctl').hidden=settings.mode==='guide';padStatus();document.querySelectorAll('input[name=pStick]').forEach(r=>r.checked=r.value===settings.stick);$('pStickMsg').textContent='';
   $('pTire').checked=$('optTire').checked;$('pGauge').checked=$('optGauge').checked;$('pTiltG').checked=$('optTiltG').checked;$('pSteerHold').checked=steerHoldOn();$('pSteerRow').hidden=!['real','pedal','car'].includes(settings.stick)||(G.tut&&G.tut.job==='steer');$('pCreep').checked=creepOn();$('pCreepRow').hidden=$('pCreepCfg').hidden=settings.stick!=='real';ccSync();
   $('pkEasy').closest('label').hidden=!!(G.tut&&G.tut.job==='steer');
-  $('pTutSkip').hidden=!G.tut;{const c=padCfg();$('pPad').value=c.mode;$('pPadL').checked=!!c.left;}$('pAtt').value=curAtt();$('pAtt').disabled=!!G.tut||!!G.exam||!!G.tb;
+  $('pTutSkip').hidden=!G.tut;$('pKeys').hidden=!matchMedia('(pointer:fine)').matches;{const c=padCfg();$('pPad').value=c.mode;$('pPadL').checked=!!c.left;}$('pAtt').value=curAtt();$('pAtt').disabled=!!G.tut||!!G.exam||!!G.tb;
   $('pauseOv').hidden=false;}
 // ゲーム・チュートリアルの途中で操作方法を切り替える
 function switchScheme(st){if(!G||settings.stick===st)return;settings.stick=st;if(settings.ov)settings.ov.stick=st;
@@ -4638,24 +4661,104 @@ document.querySelectorAll('[data-hold]').forEach(b=>{
   el.addEventListener('contextmenu',e=>e.preventDefault());}
 document.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>{if(!G||G.paused||G.over)return;const a=b.dataset.act;if(a==='up'){forkUp();SFX.sig('up');}else if(a==='down'){forkDown();SFX.sig('down');}else if(a==='forkmode')setForkMode(true);else if(a==='drive')setForkMode(false);else callCheck(false);}));
 document.querySelectorAll('[data-cmd]').forEach(b=>b.addEventListener('click',()=>sendSignal(b.dataset.cmd,false)));
-const KD={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',KeyZ:'tfwd',KeyX:'tback',KeyB:'back',KeyQ:'q',KeyE:'e',Comma:'rotl',Period:'rotr',ShiftLeft:'inch',ShiftRight:'inch'};
-const KG={KeyZ:'slow',KeyW:'fwd',ArrowUp:'fwd',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyX:'straight',Space:'stop',KeyQ:'up',KeyE:'down',KeyC:'check'};
+/* ---------- キーボードの割り当て（パソコン） ---------- */
+// [id, 表示名, グループ, 種類(hold=押している間／press=押したとき), 初期のキー]
+const KEY_ACTS=[
+  ['up','前進／アクセル（フォーク操作中はゆっくり前進）','走る・ハンドル','hold',['ArrowUp','KeyW']],
+  ['down','後進／ブレーキ（フォーク操作中はゆっくりバック）','走る・ハンドル','hold',['ArrowDown','KeyS']],
+  ['left','ハンドル左（フォーク操作中は爪を左へ）','走る・ハンドル','hold',['ArrowLeft','KeyA']],
+  ['right','ハンドル右（フォーク操作中は爪を右へ）','走る・ハンドル','hold',['ArrowRight','KeyD']],
+  ['back','バック（スティック操作）','走る・ハンドル','hold',['KeyB']],
+  ['inch','インチング（実機配置）','走る・ハンドル','hold',['ShiftLeft','ShiftRight']],
+  ['q','上げ／リフトを引く','荷役','hold',['KeyQ']],
+  ['e','下げ／リフトを押す','荷役','hold',['KeyE']],
+  ['tfwd','前傾（ロールクランプは縦へ）','荷役','hold',['KeyZ']],
+  ['tback','後傾（ロールクランプは横へ）','荷役','hold',['KeyX']],
+  ['rotl','サイドシフト左・回す左（クランプは開く、ポジショナーは狭く）','荷役','hold',['Comma']],
+  ['rotr','サイドシフト右・回す右（クランプは閉じる、ポジショナーは広く）','荷役','hold',['Period']],
+  ['forkmode','フォーク操作の切り替え（ボタン操作）','荷役','press',['KeyG']],
+  ['dirF','前後進レバー F（実機配置）','実機配置','press',['Digit1']],
+  ['dirN','前後進レバー N（実機配置）','実機配置','press',['Digit2']],
+  ['dirR','前後進レバー R（実機配置）','実機配置','press',['Digit3']],
+  ['park','駐車ブレーキ（実機配置）','実機配置','press',['KeyB']],
+  ['check','指差確認','安全','press',['KeyC']],
+  ['belt','シートベルト（検定コース）','安全','press',['KeyJ']],
+  ['ebrake','駐車ブレーキ（検定コース）','安全','press',['KeyK']],
+  ['pause','一時停止・メニュー','画面','press',['KeyP']],
+  ['view','視点の切り替え','画面','press',['KeyT']],
+  ['fs','全画面','画面','press',['KeyF']],
+  ['sub','小窓のあり・なし','画面','press',['KeyV']],
+  ['snd','音のオン・オフ','画面','press',['KeyM']],
+  ['g_fwd','合図：前進','誘導員モードの合図','press',['KeyW','ArrowUp']],
+  ['g_back','合図：後進','誘導員モードの合図','press',['KeyS','ArrowDown']],
+  ['g_left','合図：左へ','誘導員モードの合図','press',['KeyA','ArrowLeft']],
+  ['g_right','合図：右へ','誘導員モードの合図','press',['KeyD','ArrowRight']],
+  ['g_straight','合図：まっすぐ','誘導員モードの合図','press',['KeyX']],
+  ['g_stop','合図：停止','誘導員モードの合図','press',['Space']],
+  ['g_slow','合図：徐行','誘導員モードの合図','press',['KeyZ']],
+  ['g_up','合図：フォーク上げ','誘導員モードの合図','press',['KeyQ']],
+  ['g_down','合図：フォーク下げ','誘導員モードの合図','press',['KeyE']],
+  ['g_check','合図：指差確認','誘導員モードの合図','press',['KeyC']]];
+const KEY_SYS=['pause','view','fs','sub','snd'];// 誘導員モードでも使う
+function keyCfg(){const m=REC.keymap||{},o={};for(const [id,,,,d] of KEY_ACTS)o[id]=Array.isArray(m[id])?m[id].slice(0,2):d.slice();return o;}
+let KD={},KP={},KGm={};
+function keyBuild(){KD={};KP={};KGm={};const c=keyCfg();
+  for(const [id,,,kind] of KEY_ACTS)for(const code of c[id]){if(!code)continue;
+    if(id.startsWith('g_'))KGm[code]=id.slice(2);else if(kind==='hold')KD[code]=id;else (KP[code]=KP[code]||[]).push(id);}
+  for(const id of ['q','e'])for(const code of c[id])if(code)(KP[code]=KP[code]||[]).push(id);
+  keyHints();}
+function keyName(c){if(!c)return '—';const M={ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',ShiftLeft:'左Shift',ShiftRight:'右Shift',ControlLeft:'左Ctrl',ControlRight:'右Ctrl',AltLeft:'左Alt',AltRight:'右Alt',Space:'Space',Enter:'Enter',Tab:'Tab',Comma:',',Period:'.',Slash:'/',Semicolon:';',Quote:"'",BracketLeft:'[',BracketRight:']',Backslash:'\\',Minus:'-',Equal:'=',Backquote:'`',IntlRo:'＼',IntlYen:'¥'};
+  if(M[c])return M[c];if(/^Key/.test(c))return c.slice(3);if(/^Digit/.test(c))return c.slice(5);if(/^Numpad/.test(c))return 'テンキー'+c.slice(6);return c;}
+const keyOf=id=>{const c=keyCfg()[id]||[];return c.filter(Boolean).map(keyName).join('・')||'なし';};
+// 画面の説明と、誘導員モードのボタンの表示を、いまの割り当てに合わせる
+function keyHints(){const h=$('keyHint');const K=id=>`<kbd>${keyOf(id)}</kbd>`;
+  if(h)h.innerHTML=`キーボード：${K('up')} ${K('down')} 前進・後進（実機配置はアクセル・ブレーキ）、${K('left')} ${K('right')} ハンドル、${K('forkmode')} フォーク操作、${K('q')} ${K('e')} 上げ・下げ、${K('tfwd')} ${K('tback')} 前傾・後傾、${K('rotl')} ${K('rotr')} サイドシフト、${K('inch')} インチング、${K('dirF')}${K('dirN')}${K('dirR')} 前後進レバー、${K('park')} 駐車ブレーキ、${K('check')} 指差確認、${K('view')} 視点、${K('pause')} 一時停止。割り当ては「設定」の「キーボードの割り当て」で変えられます`;
+  for(const c of Object.keys(SIG_KEYS)){const k=keyCfg()['g_'+c];SIG_KEYS[c]=(k||[]).filter(Boolean).map(keyName)[0]||'';}
+  if(typeof siteApply==='function'&&G)siteApply();}
+// 設定画面
+let keyCap=null;
+function keyRender(){const box=$('keyBox');if(!box)return;const c=keyCfg();let html='',grp='';
+  for(const [id,label,g] of KEY_ACTS){if(g!==grp){if(grp)html+='</tbody></table>';grp=g;html+=`<h4 class="kgh">${g}</h4><table class="rtable ktab"><tbody>`;}
+    html+=`<tr><td>${label}</td>${[0,1].map(i=>`<td><button type="button" class="kbtn${keyCap&&keyCap.id===id&&keyCap.i===i?' cap':''}" data-kid="${id}" data-ki="${i}">${keyCap&&keyCap.id===id&&keyCap.i===i?'キーを押す…':keyName(c[id][i])}</button></td>`).join('')}</tr>`;}
+  html+='</tbody></table><p class="hint" id="keyMsg">ボタンを押してから、割り当てたいキーを押します（Esc で取り消し、Backspace・Delete で空にする）。同じ組（運転／誘導員）で使っているキーを選ぶと、前の割り当てから外します。</p><div class="row"><button type="button" class="btn-ghost" id="keyReset">初期の割り当てに戻す</button></div>';
+  box.innerHTML=html;
+  box.querySelectorAll('.kbtn').forEach(b=>b.onclick=()=>{keyCap={id:b.dataset.kid,i:+b.dataset.ki};keyRender();});
+  $('keyReset').onclick=()=>{REC.keymap=null;saveRec();keyCap=null;keyBuild();keyRender();};}
+addEventListener('keydown',e=>{if(!keyCap)return;e.preventDefault();e.stopImmediatePropagation();
+  const {id,i}=keyCap;keyCap=null;if(e.code==='Escape'){keyRender();return;}
+  const c=keyCfg();let msg='';
+  if(e.code==='Backspace'||e.code==='Delete'){c[id][i]='';}
+  else{const gd=id.startsWith('g_');const same=x=>x.startsWith('g_')===gd||(!gd&&false);
+    for(const [oid,olab] of KEY_ACTS){if(oid===id||!same(oid))continue;
+      // 押している間（hold）どうしと、押したとき（press）どうしの重なりを外す。q・e は両方に使うので除く
+      c[oid]=c[oid].map(x=>{if(x===e.code){msg=`「${olab}」から ${keyName(x)} を外しました`;return '';}return x;});}
+    if(gd&&KEY_SYS.length){for(const sid of KEY_SYS)c[sid]=c[sid].map(x=>{if(x===e.code){msg=`「${KEY_ACTS.find(a=>a[0]===sid)[1]}」から ${keyName(x)} を外しました`;return '';}return x;});}
+    c[id][i]=e.code;}
+  REC.keymap=c;saveRec();keyBuild();keyRender();if(msg&&$('keyMsg'))$('keyMsg').textContent=msg;},true);
 addEventListener('keydown',e=>{
-  if(!G||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden||!$('edDlg').hidden)return;
-  if(e.code==='KeyP'){$('btnPause').click();return;}
-  if(G&&G.exam&&e.code==='KeyJ'){$('exBelt').click();return;}
-  if(G&&G.exam&&e.code==='KeyK'){$('exBrake').click();return;}
-  if(e.code==='KeyF'){$('btnFS').click();return;}
-  if(e.code==='KeyV'){$('btnSub').click();return;}
-  if(e.code==='KeyM'){$('btnSnd').click();return;}
+  if(!G||!$('startOv').hidden||!$('resultOv').hidden||!$('recOv').hidden||!$('titleOv').hidden||!$('setOv').hidden||!$('tutSelOv').hidden||!$('playOv').hidden||!$('learnOv').hidden||!$('ptsOv').hidden||!$('edOv').hidden||!$('edDlg').hidden||!$('gtipOv').hidden||!$('siteShareOv').hidden)return;
+  const P=KP[e.code]||[],has=a=>P.includes(a);
   if(e.code==='Escape'&&document.body.classList.contains('fs')){setFS(false);return;}
-  if(e.code==='Escape'&&G&&!G.over&&$('startOv').hidden&&$('titleOv').hidden){$('btnPause').click();return;}
+  if(e.code==='Escape'&&G&&!G.over){$('btnPause').click();return;}
+  if(has('pause')){$('btnPause').click();return;}
+  if(!$('pauseOv').hidden)return;
+  if(G.exam&&has('belt')){$('exBelt').click();return;}
+  if(G.exam&&has('ebrake')){$('exBrake').click();return;}
+  if(has('fs')){$('btnFS').click();return;}
+  if(has('sub')){$('btnSub').click();return;}
+  if(has('snd')){$('btnSnd').click();return;}
+  if(has('view')&&!e.repeat){$('vGview').click();return;}
   if(driverLike()){
-    if(KD[e.code]){keys[KD[e.code]]=true;e.preventDefault();}
-    if(!e.repeat&&!G.paused&&!G.over){if(e.code==='KeyG')setForkMode(!G.forkMode);if(e.code==='KeyB'&&realOn())togglePark();if(!G.forkMode&&!realOn()){if(e.code==='KeyQ'){forkUp();SFX.sig('up');}if(e.code==='KeyE'){forkDown();SFX.sig('down');}}if(realOn()){if(e.code==='Digit1')setDir(1);if(e.code==='Digit2')setDir(0);if(e.code==='Digit3')setDir(-1);}if(e.code==='KeyC')callCheck(false);}
-  }else if(KG[e.code]){e.preventDefault();if(!e.repeat)sendSignal(KG[e.code],false);}
+    const hk=KD[e.code];if(hk){keys[hk]=true;e.preventDefault();}
+    if(!e.repeat&&!G.paused&&!G.over){if(has('forkmode'))setForkMode(!G.forkMode);if(has('park')&&realOn())togglePark();
+      if(!G.forkMode&&!realOn()){if(has('q')){forkUp();SFX.sig('up');}if(has('e')){forkDown();SFX.sig('down');}}
+      if(realOn()){if(has('dirF'))setDir(1);if(has('dirN'))setDir(0);if(has('dirR'))setDir(-1);}
+      if(has('check'))callCheck(false);}
+    if(P.length)e.preventDefault();
+  }else if(KGm[e.code]){e.preventDefault();if(!e.repeat)sendSignal(KGm[e.code],false);}
 });
-addEventListener('keyup',e=>{if(KD[e.code])keys[KD[e.code]]=false;});
+addEventListener('keyup',e=>{const hk=KD[e.code];if(hk)keys[hk]=false;});
+keyBuild();
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 
 if(REC.prefTop===false)$('optTop').checked=false;
